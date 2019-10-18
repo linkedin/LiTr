@@ -1,0 +1,96 @@
+<!-- Copyright 2019 LinkedIn Corporation -->
+<!-- All Rights Reserved. -->
+<!-- -->
+<!-- Licensed under the BSD 2-Clause License (the "License").  See License in the project root -->
+<!-- for license information. -->
+<resources>
+    <string name="app_name">LiTr</string>
+
+    <string name="pick_video">Pick Video</string>
+    <string name="pick_video_overlay">Pick Video Overlay</string>
+    <string name="source_path" formatted="true">Source: %s</string>
+
+    <string name="size" formatted="true">Size: %.2f MB</string>
+
+    <string name="target_height">Height</string>
+    <string name="target_width">Width</string>
+    <string name="target_bitrate">Bitrate (Mbps)</string>
+    <string name="target_key_frame_interval">Key Frame Interval (s)</string>
+
+    <string name="target_transcode_audio">Transcode audio</string>
+    <string name="target_audio_bitrate">Audio bitrate (Kbps)</string>
+
+    <string name="default_height">720</string>
+    <string name="default_width">1280</string>
+    <string name="default_bitrate">3.3</string>
+    <string name="default_key_frame_interval">3</string>
+    <string name="default_audio_bitrate">128</string>
+
+    <string name="transcode">Transcode</string>
+    <string name="estimated_target_size">Estimated target size: %.2f MB</string>
+    <string name="cancel">Cancel</string>
+
+    <string name="target_path" formatted="true">Target: %s</string>
+    <string name="play">Play</string>
+
+    <string name="pick_source_video">Pick Source Video</string>
+    <string name="cancelled">Transcoding cancelled</string>
+    <string name="transcoding_error">Transcoding Error: %s</string>
+    <string name="unknown_error">Unknown</string>
+
+    <string name="menu_device_info">Device Info</string>
+    <string name="menu_capture_formats">Capture Formats</string>
+    <string name="menu_codecs">Codec List</string>
+    <string name="menu_avc_encoders">AVC Encoders</string>
+    <string name="menu_avc_decoders">AVC Decoders</string>
+    <string name="title_activity_device_info">Device Info</string>
+
+    <string name="brand" formatted="true">Brand: %s\n</string>
+    <string name="manufacturer" formatted="true">Manufacturer: %s\n</string>
+    <string name="make">Make: %s\n</string>
+    <string name="board">Board: %s\n</string>
+    <string name="product">Product: %s\n</string>
+    <string name="api_level">API Level: %d\n</string>
+
+    <string name="supported_mime_type" formatted="true">Supported MIME type: %s\n</string>
+    <string name="color_formats">Color formats:\n</string>
+    <string name="encoder_complexity_range">Encoder complexity range: %s\n</string>
+    <string name="bitrate_range">Bitrate range: %s\n</string>
+    <string name="supported_heights">Supported heights: %s\n</string>
+    <string name="supported_widths">Supported widths: %s\n</string>
+    <string name="supported_frame_rates">Supported frame rates: %s\n</string>
+
+    <string name="camcorder_profile_not_supported" formatted="true">Camcorder profile %d is not supported</string>
+    <string name="video_frame_width">Video frame width: %d\n</string>
+    <string name="video_frame_height">Video frame height: %d\n</string>
+    <string name="file_output_format">File output format: %s\n</string>
+    <string name="video_codec">Video codec: %s\n</string>
+    <string name="video_bitrate">Video bitrate: %d Mbps\n</string>
+    <string name="video_frame_rate">Video frame rate: %d fps\n</string>
+    <string name="audio_codec">Audio codec: %s\n</string>
+    <string name="audio_bitrate">Audio bitrate: %d Kbps\n</string>
+    <string name="audio_sample_rate">Audio sample rate: %d KHz\n</string>
+    <string name="audio_channels">Audio channels: %d\n</string>
+
+    <string name="track" formatted="true">Track %d:\n</string>
+    <string name="mime_type" formatted="true">MIME type: %s\n</string>
+    <string name="width" formatted="true">Width: %d\n</string>
+    <string name="height" formatted="true">Height: %d\n</string>
+    <string name="rotation" formatted="true">Rotation: %d\n</string>
+    <string name="duration" formatted="true">Duration: %d \u03BCs\n</string>
+    <string name="bitrate" formatted="true">Bitrate: %d bps\n</string>
+    <string name="frame_rate" formatted="true">Frame Rate %d fps\n</string>
+    <string name="key_frame_interval" formatted="true">Key Frame Interval: %d s\n</string>
+    <string name="channel_count" formatted="true">Channels: %d\n</string>
+    <string name="sample_rate" formatted="true">Sample Rate: %d Hz\n</string>
+
+    <string name="source_format">Source Format\n</string>
+    <string name="target_format">Target Format\n</string>
+
+    <string name="decoder" formatted="true">Decoder: %s\n</string>
+    <string name="encoder" formatted="true">Encoder: %s\n</string>
+    <string name="transformation_duration" formatted="true">Transformation duration: %d ms\n</string>
+
+    <string name="no_transformation_stats">No transformation stats available</string>
+
+</resources>

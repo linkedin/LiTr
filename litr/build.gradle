@@ -1,0 +1,47 @@
+apply plugin: 'com.android.library'
+apply plugin: 'com.novoda.bintray-release'
+
+android {
+    compileSdkVersion 29
+    buildToolsVersion "29.0.2"
+
+
+    defaultConfig {
+        minSdkVersion 18
+        targetSdkVersion 28
+        versionCode 1
+        versionName "1.0.0"
+    }
+
+    testOptions {
+        unitTests.returnDefaultValues = true
+    }
+
+    lintOptions {
+        abortOnError true
+        checkDependencies true
+        checkTestSources true
+        checkReleaseBuilds false
+    }
+}
+
+dependencies {
+    implementation 'androidx.annotation:annotation:1.1.0'
+
+    testImplementation 'junit:junit:4.12'
+    testImplementation 'org.mockito:mockito-core:2.25.0'
+}
+
+publish {
+    def groupProjectID = 'com.linkedin.android.litr'
+    def artifactProjectID = 'litr'
+    def publishVersionID = '1.0.0'
+
+    userOrg = 'linkedin'
+    repoName = 'maven'
+    groupId = groupProjectID
+    artifactId = artifactProjectID
+    publishVersion = publishVersionID
+    desc = 'Hardware accelerated media transformer for Android'
+    website = 'https://github.com/linkedin/LiTr'
+}

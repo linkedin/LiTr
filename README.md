@@ -1,0 +1,153 @@
+# LiTr
+
+LiTr (pronounced "lai-tr") is a lightweight video/audio transformation tool which supports transcoding video and audio tracks with optional frame modification. 
+
+In its current iteration LiTr supports:
+ - changing resolution and/or bitrate of a video track(s)
+ - changing bitrate of an audio track(s)
+ - overlaying bitmap watermark onto video track(s)
+ 
+By default, LiTr uses Android MediaCodec stack for hardware accelerated decoding/encoding and OpenGL for rendering. It also uses MediaExtractor and MediaMuxer to read/write media. 
+ 
+## Getting Started
+
+Simply grab via Gradle:
+
+```groovy
+ implementation 'com.linkedin.android.litr:litr:1.0.0'
+``` 
+...or Maven:
+
+```xml
+<dependency>
+  <groupId>com.linkedin.android.litr</groupId>
+  <artifactId>litr</artifactId>
+  <version>1.0.0</version>
+</dependency>
+
+```
+
+## How to Transform a Video
+
+First, instantiate `MediaTransformer` with a `Context` that can access `Uri`s you will be using for input and output. Most commonly, that will be an application context.
+
+```java
+MediaTransformer mediaTransformer = new MediaTransformer(getApplicationContext());
+```
+
+Then simply call `transform` method to transform your video:
+
+```java
+mediaTransformer.transform(requestId,
+                           sourceVideoUri,
+                           targetVideoFilePath,
+                           targetVideoFormat,
+                           targetAudioFormat,
+                           videoTransformationListener,
+                           MediaTransformer.GRANULARITY_DEFAULT,
+                           glFilters);
+```
+
+Few notable things related to transformation:
+ - make sure to provide a unique `requestId`, it will be used when calling back on a listener, or needed when cancelling an ongoing transformation
+ - target formats will be applied to all tracks of that type, non video or audio tracks will be copied "as is"
+ - passing `null` target format means that you don't want to modify track(s) of that type
+ - transformation is performed asynchronously, listener will be called with any transformation progress or state changes
+ - listener callbacks happen on a UI thread, it is safe to update UI in listener implementation
+ - if you want to modify video frames, pass in a list of `GlFilter`s, which will be applied in order
+ - client can call `transform` multiple times, to queue transformation requests
+ - video will be written into MP4 container, we recommend using H.264 ("video/avc" MIME type) for target encoding
+ - progress update granularity is 100 by default, to match percentage 
+ 
+ Ongoing transformation can be cancelled by calling `cancel` with its `requestId`:
+ 
+ ```java
+mediaTransformer.cancel(requestId);
+```
+
+When you no longer need `MediaTransformer`, please release it. Note that `MediaTransformer` instance becomes unusable after you release it, you will have to instantiate a new one.
+
+```java
+mediaTransformer.release();
+```
+
+## Handling errors
+
+When transformation fails, exception is not thrown, but rather provided in `TransformationListener.onError` callback. LiTr defines its own exceptions for different scenarios. For API >= 23, LiTr exception will also contain `MediaCodec.CodecException` as a cause. 
+
+## Reporting statistics
+
+When possible, transformation statistics will be provided in listener callbacks. Statistics include source and target track formats, codecs used and transformation result and time for each track.
+
+## Beyond Defaults
+
+By default, LiTr uses Android MediaCodec stack to do all media work, and OpenGl for rendering. But this is not set in stone. 
+
+At high level, LiTr breaks down transformation into five essential steps:
+ - reading encoded frame from source container
+ - decoding source frame
+ - rendering a source frame onto target frame, optionally modifying it (for example, overlaying a bitmap)
+ - encoding target frame
+ - writing encoded target frame into target container
+ 
+Each transformation step is performed by a component. Each component is abstracted as an interface:
+ - `MediaSource`
+ - `Decoder`
+ - `Renderer`
+ - `Encoder`
+ - `MediaTarget`
+
+This allows clients pass in their own implementations of different transformation steps using more "low level" `transform` API:
+
+```java
+transform(requestId,
+          mediaSource,
+          decoder,
+          videoRenderer,
+          encoder,
+          mediaTarget,
+          targetVideoFormat,
+          targetAudioFormat,
+          listener,
+          granularity)
+``` 
+
+When using your own component implementations, make sure that output of a component matches the expected input of a next component. For example, if you are using a custom `Encoder` (AV1?), make sure it accepts whatever frame format `Renderer` produces (`GlSurface`, `ByteBuffer`) and outputs what `MediaTarget` expects as an input.
+
+## Using in Tests
+
+`MediaTransformer` is very intentionally not a singleton, to allow easy mocking of it in client code.
+
+## Testing
+
+Core business logic in LiTr is well covered by unit tests. LiTr is designed to use dependency injection pattern, which makes it very easy to write JVM tests with mocked dependencies. We use Mockito framework for mocking.
+
+## Demo App
+
+LiTr comes with pretty useful demo app, which lets you transcode video/audio tracks with different parameters, in addition to providing sample code.
+
+## Contributing
+
+Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on our code of conduct, and the process for submitting pull requests to us.
+
+## Versioning
+
+For the versions available, see the [tags on this repository](https://github.com/linkedin/litr/tags). 
+
+## Authors
+
+* **Izzat Bahadirov** - *Initial work* - [LiTr](https://github.com/linkedin/litr)
+
+See also the list of [contributors](https://github.com/linkedin/litr/contributors) who participated in this project.
+
+## License
+
+This project is licensed under the BSD 2-Clause License - see the [LICENSE](LICENSE) file for details
+
+## Acknowledgments
+
+* A huge thank you for [ypresto](https://github.com/ypresto/) for his [android-transcoder](https://github.com/ypresto/android-transcoder) project for his pioneering work, which inspired me to write LiTr
+* A thank you to Google's AOSP CTS team for writing Surface to Surface rendering implementation in OpenGL, which became a foundation for GlRenderer in LiTr 
+* A shout out to my awesome colleagues Amita Sahasrabudhe, Long Peng and Keerthi Korrapati for contributions and code reviews
+* A shout out to our designer Mauroof Ahmed for giving LiTr a visual identity
+* A shout out to [PurpleBooth](https://gist.github.com/PurpleBooth/) for very useful [README.md template](https://gist.github.com/PurpleBooth/109311bb0361f32d87a2)

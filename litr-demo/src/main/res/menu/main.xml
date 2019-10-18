@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2019 LinkedIn Corporation -->
+<!-- All Rights Reserved. -->
+<!-- -->
+<!-- Licensed under the BSD 2-Clause License (the "License").  See License in the project root -->
+<!-- for license information. -->
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/device_info"
+        android:title="@string/menu_device_info"/>
+    <item
+        android:id="@+id/capture_formats"
+        android:title="@string/menu_capture_formats" />
+    <item
+        android:id="@+id/codec_list"
+        android:title="@string/menu_codecs" />
+    <item
+        android:id="@+id/avc_encoders"
+        android:title="@string/menu_avc_encoders" />
+    <item
+        android:id="@+id/avc_decoders"
+        android:title="@string/menu_avc_decoders" />
+</menu>
