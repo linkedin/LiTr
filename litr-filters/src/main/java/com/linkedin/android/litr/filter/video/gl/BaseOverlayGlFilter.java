@@ -7,10 +7,8 @@
  */
 package com.linkedin.android.litr.filter.video.gl;
 
-import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.RectF;
-import android.net.Uri;
 import android.opengl.GLES20;
 import android.opengl.GLUtils;
 import android.opengl.Matrix;
@@ -41,9 +39,7 @@ abstract class BaseOverlayGlFilter implements GlFilter {
             "  gl_FragColor = texture2D(uTexture, vTextureCoord);\n" +
             "}\n";
 
-    final Context context;
-    final Uri bitmapUri;
-    final RectF bitmapRect;
+    private final RectF bitmapRect;
 
     private int glOverlayProgram;
     private int overlayMvpMatrixHandle;
@@ -54,9 +50,7 @@ abstract class BaseOverlayGlFilter implements GlFilter {
 
     private float[] stMatrix = new float[16];
 
-    BaseOverlayGlFilter(@NonNull Context context, @NonNull Uri bitmapUri, @Nullable RectF bitmapRect) {
-        this.context = context;
-        this.bitmapUri = bitmapUri;
+    BaseOverlayGlFilter(@Nullable RectF bitmapRect) {
         this.bitmapRect = bitmapRect;
     }
 

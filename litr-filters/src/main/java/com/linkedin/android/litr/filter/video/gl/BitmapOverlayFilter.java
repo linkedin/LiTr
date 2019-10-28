@@ -28,6 +28,9 @@ public class BitmapOverlayFilter extends BaseOverlayGlFilter {
 
     private static final String TAG = BitmapOverlayFilter.class.getSimpleName();
 
+    private final Context context;
+    private final Uri bitmapUri;
+
     private int overlayTextureID = -12346;
     /**
      * Create filter with certain configuration.
@@ -37,7 +40,9 @@ public class BitmapOverlayFilter extends BaseOverlayGlFilter {
      *                   in fourth quadrant (0,0 is top left corner)
      */
     public BitmapOverlayFilter(@NonNull Context context, @NonNull Uri bitmapUri, @Nullable RectF bitmapRect) {
-        super(context, bitmapUri, bitmapRect);
+        super(bitmapRect);
+        this.context = context;
+        this.bitmapUri = bitmapUri;
     }
 
     @Override
