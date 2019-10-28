@@ -23,6 +23,7 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.os.SystemClock;
 import android.provider.MediaStore;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -46,6 +47,7 @@ import com.linkedin.android.litr.MediaTransformer;
 import com.linkedin.android.litr.TransformationListener;
 import com.linkedin.android.litr.analytics.TrackTransformationInfo;
 import com.linkedin.android.litr.filter.GlFilter;
+import com.linkedin.android.litr.filter.video.gl.AnimatedGifOverlayFilter;
 import com.linkedin.android.litr.filter.video.gl.BitmapOverlayFilter;
 import com.linkedin.android.litr.utils.TrackMetadataUtil;
 
@@ -271,8 +273,13 @@ public class MainActivity extends AppCompatActivity {
                             float bitmapWidth = 0.5f;
                             float bitmapHeight = bitmapWidth * bitmap.getHeight() / bitmap.getWidth() * width / height;
                             RectF bitmapRect = new RectF(bitmapLeft, bitmapTop, bitmapLeft + bitmapWidth, bitmapTop + bitmapHeight);
-                            GlFilter bitmapOverlayFilter = new BitmapOverlayFilter(MainActivity.this, overlayUri, bitmapRect);
-                            glFilters = Collections.singletonList(bitmapOverlayFilter);
+                            if (TextUtils.equals(getContentResolver().getType(overlayUri), "image/gif")) {
+                                GlFilter animatedGifOverlayFilter = new AnimatedGifOverlayFilter(getApplicationContext(), overlayUri, bitmapRect);
+                                glFilters = Collections.singletonList(animatedGifOverlayFilter);
+                            } else {
+                                GlFilter bitmapOverlayFilter = new BitmapOverlayFilter(getApplicationContext(), overlayUri, bitmapRect);
+                                glFilters = Collections.singletonList(bitmapOverlayFilter);
+                            }
                             bitmap.recycle();
                         }
                     } catch (IOException ex) {
