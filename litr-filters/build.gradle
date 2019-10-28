@@ -10,38 +10,36 @@ android {
         minSdkVersion 18
         targetSdkVersion 28
         versionCode 1
-        versionName "1.0.1"
+        versionName "1.0.0"
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        consumerProguardFiles 'consumer-rules.pro'
     }
 
-    testOptions {
-        unitTests.returnDefaultValues = true
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
     }
 
-    lintOptions {
-        abortOnError true
-        checkDependencies true
-        checkTestSources true
-        checkReleaseBuilds false
-    }
 }
 
 dependencies {
     implementation 'androidx.annotation:annotation:1.1.0'
-
-    testImplementation 'junit:junit:4.12'
-    testImplementation 'org.mockito:mockito-core:2.25.0'
+    implementation project(':litr')
 }
 
 publish {
     def groupProjectID = 'com.linkedin.android.litr'
-    def artifactProjectID = 'litr'
-    def publishVersionID = '1.0.1'
+    def artifactProjectID = 'litr-filters'
+    def publishVersionID = '1.0.0'
 
     userOrg = 'linkedin'
     repoName = 'maven'
     groupId = groupProjectID
     artifactId = artifactProjectID
     publishVersion = publishVersionID
-    desc = 'Hardware accelerated media transformer for Android'
+    desc = 'Video/Audio filter pack for LiTr'
     website = 'https://github.com/linkedin/LiTr'
 }

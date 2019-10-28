@@ -11,6 +11,8 @@ import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.RectF;
 import android.media.MediaCodecInfo;
 import android.media.MediaExtractor;
@@ -43,8 +45,8 @@ import androidx.core.content.FileProvider;
 import com.linkedin.android.litr.MediaTransformer;
 import com.linkedin.android.litr.TransformationListener;
 import com.linkedin.android.litr.analytics.TrackTransformationInfo;
-import com.linkedin.android.litr.filter.BitmapOverlayFilter;
 import com.linkedin.android.litr.filter.GlFilter;
+import com.linkedin.android.litr.filter.video.gl.BitmapOverlayFilter;
 import com.linkedin.android.litr.utils.TrackMetadataUtil;
 
 import java.io.File;
@@ -261,9 +263,21 @@ public class MainActivity extends AppCompatActivity {
 
                 List<GlFilter> glFilters = null;
                 if (overlayUri != null) {
-                    RectF bitmapRect = new RectF(0, 0, 1, 1);
-                    GlFilter bitmapOverlayFilter = new BitmapOverlayFilter(MainActivity.this, overlayUri, bitmapRect);
-                    glFilters = Collections.singletonList(bitmapOverlayFilter);
+                    try {
+                        Bitmap bitmap = BitmapFactory.decodeStream(getContentResolver().openInputStream(overlayUri));
+                        if (bitmap != null) {
+                            float bitmapLeft = 0.25f;
+                            float bitmapTop = 0.1f;
+                            float bitmapWidth = 0.5f;
+                            float bitmapHeight = bitmapWidth * bitmap.getHeight() / bitmap.getWidth() * width / height;
+                            RectF bitmapRect = new RectF(bitmapLeft, bitmapTop, bitmapLeft + bitmapWidth, bitmapTop + bitmapHeight);
+                            GlFilter bitmapOverlayFilter = new BitmapOverlayFilter(MainActivity.this, overlayUri, bitmapRect);
+                            glFilters = Collections.singletonList(bitmapOverlayFilter);
+                            bitmap.recycle();
+                        }
+                    } catch (IOException ex) {
+                        Log.e(TAG, "Failed to extract bitmap size");
+                    }
                 }
 
                 mediaTransformer.transform(requestId,

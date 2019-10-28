@@ -5,7 +5,7 @@
  * Licensed under the BSD 2-Clause License (the "License").  See License in the project root for
  * license information.
  */
-package com.linkedin.android.litr.filter;
+package com.linkedin.android.litr.filter.video.gl;
 
 import android.content.ContentResolver;
 import android.content.Context;
@@ -19,6 +19,7 @@ import android.opengl.Matrix;
 import android.util.Log;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import com.linkedin.android.litr.filter.GlFilter;
 import com.linkedin.android.litr.render.GlRenderUtils;
 
 import java.io.File;
@@ -27,9 +28,7 @@ import java.io.InputStream;
 
 /**
  * An OpenGL filter that overlays a static bitmap on top of all video frames.
- * @deprecated use BitmapOverlayFilter from litr-filters library instead
  */
-@Deprecated
 public class BitmapOverlayFilter implements GlFilter {
 
     private static final String TAG = BitmapOverlayFilter.class.getSimpleName();

@@ -1,1 +1,1 @@
-include ':litr-demo', ':litr'
+include ':litr-demo', ':litr', ':litr-filters'

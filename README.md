@@ -14,7 +14,7 @@ By default, LiTr uses Android MediaCodec stack for hardware accelerated decoding
 Simply grab via Gradle:
 
 ```groovy
- implementation 'com.linkedin.android.litr:litr:1.0.0'
+ implementation 'com.linkedin.android.litr:litr:1.0.1'
 ``` 
 ...or Maven:
 
@@ -22,7 +22,7 @@ Simply grab via Gradle:
 <dependency>
   <groupId>com.linkedin.android.litr</groupId>
   <artifactId>litr</artifactId>
-  <version>1.0.0</version>
+  <version>1.0.1</version>
 </dependency>
 
 ```
@@ -114,6 +114,26 @@ transform(requestId,
 
 When using your own component implementations, make sure that output of a component matches the expected input of a next component. For example, if you are using a custom `Encoder` (AV1?), make sure it accepts whatever frame format `Renderer` produces (`GlSurface`, `ByteBuffer`) and outputs what `MediaTarget` expects as an input.
 
+## Using Filters
+
+You can use custom filters to modify video frames. Write your own in OpenGL as an implementtion of `GlFilter` interface, or use existing one from "filter pack" library, which is available via Gradle:
+
+```groovy
+ implementation 'com.linkedin.android.litr:litr-filters:1.0.0'
+``` 
+...or Maven:
+
+```xml
+<dependency>
+  <groupId>com.linkedin.android.litr</groupId>
+  <artifactId>litr-filters</artifactId>
+  <version>1.0.0</version>
+</dependency>
+
+```
+
+You can pass in a list of filters when transforming a video. Keep in mind that filters will be applied in the order they are in the list, so ordering matters.
+
 ## Using in Tests
 
 `MediaTransformer` is very intentionally not a singleton, to allow easy mocking of it in client code.
@@ -146,7 +166,7 @@ This project is licensed under the BSD 2-Clause License - see the [LICENSE](LICE
 
 ## Acknowledgments
 
-* A huge thank you for [ypresto](https://github.com/ypresto/) for his [android-transcoder](https://github.com/ypresto/android-transcoder) project for his pioneering work, which inspired me to write LiTr
+* A huge thank you to [ypresto](https://github.com/ypresto/) for his pioneering work on [android-transcoder](https://github.com/ypresto/android-transcoder) project, which was an inspiration and heavy influence on LiTr
 * A thank you to Google's AOSP CTS team for writing Surface to Surface rendering implementation in OpenGL, which became a foundation for GlRenderer in LiTr 
 * A shout out to my awesome colleagues Amita Sahasrabudhe, Long Peng and Keerthi Korrapati for contributions and code reviews
 * A shout out to our designer Mauroof Ahmed for giving LiTr a visual identity

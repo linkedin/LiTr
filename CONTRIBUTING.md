@@ -6,7 +6,7 @@ LiTr is designed to encourage contribution. Transformation process is divided in
  - Overriding `MediaTarget` allows writing data using custom muxer (MKV, for instance)
  - Custom `Renderer` can do things beyond simple resizing - ML based frame modification, audio mixing, etc.
  
-In addition, it should be quite easy to develop and contribute new filters by implementing `GlFilter` interface.  
+In addition, it should be quite easy to develop and contribute new filters by implementing `GlFilter` interface. Please contribute filters into `litr-filters` library.
 
 ## Contribution Agreement
 
