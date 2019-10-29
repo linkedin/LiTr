@@ -8,8 +8,10 @@
 package com.linkedin.android.litr.demo;
 
 import android.Manifest;
+import android.content.ContentResolver;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.content.res.AssetFileDescriptor;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -23,6 +25,7 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.os.SystemClock;
 import android.provider.MediaStore;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -42,18 +45,28 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
+import com.bumptech.glide.gifdecoder.GifDecoder;
+import com.bumptech.glide.gifdecoder.StandardGifDecoder;
+import com.bumptech.glide.load.engine.bitmap_recycle.BitmapPool;
+import com.bumptech.glide.load.engine.bitmap_recycle.LruBitmapPool;
+import com.bumptech.glide.load.resource.gif.GifBitmapProvider;
 import com.linkedin.android.litr.MediaTransformer;
 import com.linkedin.android.litr.TransformationListener;
 import com.linkedin.android.litr.analytics.TrackTransformationInfo;
 import com.linkedin.android.litr.filter.GlFilter;
+import com.linkedin.android.litr.filter.video.gl.FrameSequenceAnimationOverlayFilter;
+import com.linkedin.android.litr.filter.video.gl.AnimationFrameProvider;
 import com.linkedin.android.litr.filter.video.gl.BitmapOverlayFilter;
 import com.linkedin.android.litr.utils.TrackMetadataUtil;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = MainActivity.class.getSimpleName();
@@ -271,8 +284,43 @@ public class MainActivity extends AppCompatActivity {
                             float bitmapWidth = 0.5f;
                             float bitmapHeight = bitmapWidth * bitmap.getHeight() / bitmap.getWidth() * width / height;
                             RectF bitmapRect = new RectF(bitmapLeft, bitmapTop, bitmapLeft + bitmapWidth, bitmapTop + bitmapHeight);
-                            GlFilter bitmapOverlayFilter = new BitmapOverlayFilter(MainActivity.this, overlayUri, bitmapRect);
-                            glFilters = Collections.singletonList(bitmapOverlayFilter);
+                            if (TextUtils.equals(getContentResolver().getType(overlayUri), "image/gif")) {
+                                ContentResolver contentResolver = getApplicationContext().getContentResolver();
+                                InputStream inputStream = contentResolver.openInputStream(overlayUri);
+                                BitmapPool bitmapPool = new LruBitmapPool(10);
+                                GifBitmapProvider gifBitmapProvider = new GifBitmapProvider(bitmapPool);
+                                final GifDecoder gifDecoder = new StandardGifDecoder(gifBitmapProvider);
+                                gifDecoder.read(inputStream, (int) getGifSize(overlayUri));
+
+                                AnimationFrameProvider animationFrameProvider = new AnimationFrameProvider() {
+                                    @Override
+                                    public int getFrameCount() {
+                                        return gifDecoder.getFrameCount();
+                                    }
+
+                                    @Nullable
+                                    @Override
+                                    public Bitmap getNextFrame() {
+                                        return gifDecoder.getNextFrame();
+                                    }
+
+                                    @Override
+                                    public long getNextFrameDurationNs() {
+                                        return TimeUnit.MILLISECONDS.toNanos(gifDecoder.getNextDelay());
+                                    }
+
+                                    @Override
+                                    public void advance() {
+                                        gifDecoder.advance();
+                                    }
+                                };
+
+                                GlFilter animatedGifOverlayFilter = new FrameSequenceAnimationOverlayFilter(animationFrameProvider, bitmapRect);
+                                glFilters = Collections.singletonList(animatedGifOverlayFilter);
+                            } else {
+                                GlFilter bitmapOverlayFilter = new BitmapOverlayFilter(getApplicationContext(), overlayUri, bitmapRect);
+                                glFilters = Collections.singletonList(bitmapOverlayFilter);
+                            }
                             bitmap.recycle();
                         }
                     } catch (IOException ex) {
@@ -518,4 +566,30 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    private long getGifSize(@NonNull Uri uri) {
+        if (ContentResolver.SCHEME_CONTENT.equals(uri.getScheme())) {
+            AssetFileDescriptor fileDescriptor = null;
+            try {
+                fileDescriptor = getApplicationContext().getContentResolver().openAssetFileDescriptor(uri, "r");
+                long size = fileDescriptor != null ? fileDescriptor.getParcelFileDescriptor().getStatSize() : 0;
+                return size < 0 ? 0 : size;
+            } catch (FileNotFoundException | IllegalStateException e) {
+                Log.e(TAG, "Unable to extract length from uri: " + uri, e);
+                return 0;
+            } finally {
+                if (fileDescriptor != null) {
+                    try {
+                        fileDescriptor.close();
+                    } catch (IOException e) {
+                        Log.e(TAG, "Unable to close file descriptor from uri: " + uri, e);
+                    }
+                }
+            }
+        } else if (ContentResolver.SCHEME_FILE.equals(uri.getScheme()) && uri.getPath() != null) {
+            File file = new File(uri.getPath());
+            return file.length();
+        } else {
+            return 0;
+        }
+    }
 }
