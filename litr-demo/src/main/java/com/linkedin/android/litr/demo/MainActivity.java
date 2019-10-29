@@ -54,7 +54,7 @@ import com.linkedin.android.litr.MediaTransformer;
 import com.linkedin.android.litr.TransformationListener;
 import com.linkedin.android.litr.analytics.TrackTransformationInfo;
 import com.linkedin.android.litr.filter.GlFilter;
-import com.linkedin.android.litr.filter.video.gl.AnimatedGifOverlayFilter;
+import com.linkedin.android.litr.filter.video.gl.FrameSequenceAnimationOverlayFilter;
 import com.linkedin.android.litr.filter.video.gl.AnimationFrameProvider;
 import com.linkedin.android.litr.filter.video.gl.BitmapOverlayFilter;
 import com.linkedin.android.litr.utils.TrackMetadataUtil;
@@ -315,7 +315,7 @@ public class MainActivity extends AppCompatActivity {
                                     }
                                 };
 
-                                GlFilter animatedGifOverlayFilter = new AnimatedGifOverlayFilter(animationFrameProvider, bitmapRect);
+                                GlFilter animatedGifOverlayFilter = new FrameSequenceAnimationOverlayFilter(animationFrameProvider, bitmapRect);
                                 glFilters = Collections.singletonList(animatedGifOverlayFilter);
                             } else {
                                 GlFilter bitmapOverlayFilter = new BitmapOverlayFilter(getApplicationContext(), overlayUri, bitmapRect);

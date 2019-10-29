@@ -15,11 +15,11 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 /**
- * An OpenGL filter that overlays an animated GIF on top of all video frames.
+ * An OpenGL filter that overlays a sprite animation (such as animated GIF) on top of all video frames.
  */
-public class AnimatedGifOverlayFilter extends BaseOverlayGlFilter {
+public class FrameSequenceAnimationOverlayFilter extends BaseOverlayGlFilter {
 
-    private static final String TAG = AnimatedGifOverlayFilter.class.getSimpleName();
+    private static final String TAG = FrameSequenceAnimationOverlayFilter.class.getSimpleName();
 
     private final AnimationFrameProvider animationFrameProvider;
 
@@ -32,7 +32,7 @@ public class AnimatedGifOverlayFilter extends BaseOverlayGlFilter {
      * @param bitmapRect Rectangle of bitmap's target position on a video frame, in relative coordinate in 0 - 1 range
      *                   in fourth quadrant (0,0 is top left corner)
      */
-    public AnimatedGifOverlayFilter(@NonNull AnimationFrameProvider animationFrameProvider, @Nullable RectF bitmapRect) {
+    public FrameSequenceAnimationOverlayFilter(@NonNull AnimationFrameProvider animationFrameProvider, @Nullable RectF bitmapRect) {
         super(bitmapRect);
 
         this.animationFrameProvider = animationFrameProvider;
