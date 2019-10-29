@@ -119,7 +119,7 @@ When using your own component implementations, make sure that output of a compon
 You can use custom filters to modify video frames. Write your own in OpenGL as an implementtion of `GlFilter` interface, or use existing one from "filter pack" library, which is available via Gradle:
 
 ```groovy
- implementation 'com.linkedin.android.litr:litr-filters:1.0.0'
+ implementation 'com.linkedin.android.litr:litr-filters:1.0.1'
 ``` 
 ...or Maven:
 
@@ -127,7 +127,7 @@ You can use custom filters to modify video frames. Write your own in OpenGL as a
 <dependency>
   <groupId>com.linkedin.android.litr</groupId>
   <artifactId>litr-filters</artifactId>
-  <version>1.0.0</version>
+  <version>1.0.1</version>
 </dependency>
 
 ```
