@@ -8,6 +8,7 @@
 package com.linkedin.android.litr.filter.video.gl;
 
 import android.graphics.Bitmap;
+import android.graphics.PointF;
 import android.graphics.RectF;
 import android.opengl.GLES20;
 import android.opengl.GLUtils;
@@ -39,7 +40,9 @@ abstract class BaseOverlayGlFilter implements GlFilter {
             "  gl_FragColor = texture2D(uTexture, vTextureCoord);\n" +
             "}\n";
 
-    private final RectF bitmapRect;
+    private final PointF position;
+    private final PointF size;
+    private final float rotation;
 
     private int glOverlayProgram;
     private int overlayMvpMatrixHandle;
@@ -51,7 +54,20 @@ abstract class BaseOverlayGlFilter implements GlFilter {
     private float[] stMatrix = new float[16];
 
     BaseOverlayGlFilter(@Nullable RectF bitmapRect) {
-        this.bitmapRect = bitmapRect;
+        if (bitmapRect == null) {
+            size = new PointF(1, 1);
+            position = new PointF(0, 0);
+        } else {
+            size = new PointF(bitmapRect.right - bitmapRect.left, bitmapRect.bottom - bitmapRect.top);
+            position = new PointF(bitmapRect.left, bitmapRect.top);
+        }
+        rotation = 0;
+    }
+
+    BaseOverlayGlFilter(@NonNull PointF size, @NonNull PointF position, float rotation) {
+        this.size = size;
+        this.position = position;
+        this.rotation = rotation;
     }
 
     @Override
@@ -64,18 +80,13 @@ abstract class BaseOverlayGlFilter implements GlFilter {
         this.mvpMatrix = mvpMatrix;
         this.mvpMatrixOffset = mvpMatrixOffset;
 
-        // initializing bitmap matrix
-        if (bitmapRect == null) {
-            // just apply video frame's MVP matrix, which will fit the bitmap to entire video frame
-            return;
-        }
-
-        float scaleX = bitmapRect.right - bitmapRect.left;
-        float scaleY = bitmapRect.bottom - bitmapRect.top;
-        float translateX = (bitmapRect.left * 2 + scaleX - 1) / scaleX;
-        float translateY = (1 - bitmapRect.top * 2 - scaleY) / scaleY;
+        float scaleX = size.x;
+        float scaleY = size.y;
+        float translateX = (position.x * 2 + scaleX - 1) / scaleX;
+        float translateY = (1 - position.y * 2 - scaleY) / scaleY;
         Matrix.scaleM(mvpMatrix, mvpMatrixOffset, scaleX, scaleY, 1);
         Matrix.translateM(mvpMatrix, mvpMatrixOffset, translateX, translateY, 0);
+        Matrix.rotateM(mvpMatrix, mvpMatrixOffset, rotation, 0, 0, 1);
     }
 
     void renderOverlayTexture(int textureId) {

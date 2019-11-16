@@ -11,6 +11,7 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.PointF;
 import android.graphics.RectF;
 import android.net.Uri;
 import android.util.Log;
@@ -28,12 +29,14 @@ public class BitmapOverlayFilter extends BaseOverlayGlFilter {
 
     private static final String TAG = BitmapOverlayFilter.class.getSimpleName();
 
-    private final Context context;
-    private final Uri bitmapUri;
+    private Context context;
+    private Uri bitmapUri;
+
+    private Bitmap bitmap;
 
     private int overlayTextureID = -12346;
     /**
-     * Create filter with certain configuration.
+     * Create filter with bitmap URI, scale and position the bitmap into specified rectangle, with no rotation.
      * @param context context for accessing bitmap
      * @param bitmapUri bitmap {@link Uri}
      * @param bitmapRect Rectangle of bitmap's target position on a video frame, in relative coordinate in 0 - 1 range
@@ -45,14 +48,46 @@ public class BitmapOverlayFilter extends BaseOverlayGlFilter {
         this.bitmapUri = bitmapUri;
     }
 
+    /**
+     * Create filter with bitmap URI, then scale, then position and then rotate the bitmap around its center as specified.
+     * @param context context for accessing bitmap
+     * @param bitmapUri bitmap {@link Uri}
+     * @param size size in X and Y direction, relative to video frame
+     * @param position position of top left corner, in relative coordinate in 0 - 1 range
+     *      *          in fourth quadrant (0,0 is top left corner)
+     * @param rotation counter-clockwise rotation, in degrees
+     */
+    public BitmapOverlayFilter(@NonNull Context context, @NonNull Uri bitmapUri, @NonNull PointF size, @NonNull PointF position, float rotation) {
+        super(size, position, rotation);
+        this.context = context;
+        this.bitmapUri = bitmapUri;
+    }
+
+    /**
+     * Create filter with client managed {@link Bitmap}, then scale, then position and then rotate the bitmap around its center as specified.
+     * @param bitmap client managed bitmap
+     * @param size size in X and Y direction, relative to video frame
+     * @param position position of top left corner, in relative coordinate in 0 - 1 range
+     *                 in fourth quadrant (0,0 is top left corner)
+     * @param rotation counter-clockwise rotation, in degrees
+     */
+    public BitmapOverlayFilter(@NonNull Bitmap bitmap, @NonNull PointF size, @NonNull PointF position, float rotation) {
+        super(size, position, rotation);
+        this.bitmap = bitmap;
+    }
+
     @Override
     public void init(@NonNull float[] mvpMatrix, int mvpMatrixOffset) {
         super.init(mvpMatrix, mvpMatrixOffset);
 
-        Bitmap bitmap = decodeBitmap(bitmapUri);
         if (bitmap != null) {
             overlayTextureID = createOverlayTexture(bitmap);
-            bitmap.recycle();
+        } else {
+            Bitmap bitmap = decodeBitmap(bitmapUri);
+            if (bitmap != null) {
+                overlayTextureID = createOverlayTexture(bitmap);
+                bitmap.recycle();
+            }
         }
     }
 

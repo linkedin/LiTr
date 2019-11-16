@@ -15,7 +15,7 @@ import android.content.res.AssetFileDescriptor;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.RectF;
+import android.graphics.PointF;
 import android.media.MediaCodecInfo;
 import android.media.MediaExtractor;
 import android.media.MediaFormat;
@@ -54,9 +54,9 @@ import com.linkedin.android.litr.MediaTransformer;
 import com.linkedin.android.litr.TransformationListener;
 import com.linkedin.android.litr.analytics.TrackTransformationInfo;
 import com.linkedin.android.litr.filter.GlFilter;
-import com.linkedin.android.litr.filter.video.gl.FrameSequenceAnimationOverlayFilter;
 import com.linkedin.android.litr.filter.video.gl.AnimationFrameProvider;
 import com.linkedin.android.litr.filter.video.gl.BitmapOverlayFilter;
+import com.linkedin.android.litr.filter.video.gl.FrameSequenceAnimationOverlayFilter;
 import com.linkedin.android.litr.utils.TrackMetadataUtil;
 
 import java.io.File;
@@ -279,11 +279,10 @@ public class MainActivity extends AppCompatActivity {
                     try {
                         Bitmap bitmap = BitmapFactory.decodeStream(getContentResolver().openInputStream(overlayUri));
                         if (bitmap != null) {
-                            float bitmapLeft = 0.25f;
-                            float bitmapTop = 0.1f;
-                            float bitmapWidth = 0.5f;
-                            float bitmapHeight = bitmapWidth * bitmap.getHeight() / bitmap.getWidth() * width / height;
-                            RectF bitmapRect = new RectF(bitmapLeft, bitmapTop, bitmapLeft + bitmapWidth, bitmapTop + bitmapHeight);
+                            PointF position = new PointF(0.3f, 0.1f);
+                            PointF size = new PointF(0.5f, 0.9f);
+                            float rotation = 45;
+
                             if (TextUtils.equals(getContentResolver().getType(overlayUri), "image/gif")) {
                                 ContentResolver contentResolver = getApplicationContext().getContentResolver();
                                 InputStream inputStream = contentResolver.openInputStream(overlayUri);
@@ -315,10 +314,10 @@ public class MainActivity extends AppCompatActivity {
                                     }
                                 };
 
-                                GlFilter animatedGifOverlayFilter = new FrameSequenceAnimationOverlayFilter(animationFrameProvider, bitmapRect);
+                                GlFilter animatedGifOverlayFilter = new FrameSequenceAnimationOverlayFilter(animationFrameProvider, size, position, rotation);
                                 glFilters = Collections.singletonList(animatedGifOverlayFilter);
                             } else {
-                                GlFilter bitmapOverlayFilter = new BitmapOverlayFilter(getApplicationContext(), overlayUri, bitmapRect);
+                                GlFilter bitmapOverlayFilter = new BitmapOverlayFilter(getApplicationContext(), overlayUri, size, position, rotation);
                                 glFilters = Collections.singletonList(bitmapOverlayFilter);
                             }
                             bitmap.recycle();
