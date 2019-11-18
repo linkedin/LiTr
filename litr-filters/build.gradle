@@ -34,7 +34,7 @@ dependencies {
 publish {
     def groupProjectID = 'com.linkedin.android.litr'
     def artifactProjectID = 'litr-filters'
-    def publishVersionID = '1.0.1'
+    def publishVersionID = '1.0.2'
 
     userOrg = 'linkedin'
     repoName = 'maven'
