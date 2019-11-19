@@ -10,7 +10,7 @@ android {
         minSdkVersion 18
         targetSdkVersion 28
         versionCode 3
-        versionName "1.0.2"
+        versionName '1.0.2'
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles 'consumer-rules.pro'
@@ -32,15 +32,13 @@ dependencies {
 }
 
 publish {
-    def groupProjectID = 'com.linkedin.android.litr'
-    def artifactProjectID = 'litr-filters'
-    def publishVersionID = '1.0.2'
-
     userOrg = 'linkedin'
     repoName = 'maven'
-    groupId = groupProjectID
-    artifactId = artifactProjectID
-    publishVersion = publishVersionID
+    groupId = 'com.linkedin.android.litr'
+    artifactId = project.name
+    publishVersion = android.defaultConfig.versionName
     desc = 'Video/Audio filter pack for LiTr'
     website = 'https://github.com/linkedin/LiTr'
+    repository = 'git@github.com:linkedin/LiTr.git'
+    licences = 'BSD-2-Clause'
 }

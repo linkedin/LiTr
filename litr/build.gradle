@@ -10,7 +10,7 @@ android {
         minSdkVersion 18
         targetSdkVersion 28
         versionCode 1
-        versionName "1.0.1"
+        versionName '1.0.1'
     }
 
     testOptions {
@@ -33,15 +33,13 @@ dependencies {
 }
 
 publish {
-    def groupProjectID = 'com.linkedin.android.litr'
-    def artifactProjectID = 'litr'
-    def publishVersionID = '1.0.1'
-
     userOrg = 'linkedin'
     repoName = 'maven'
-    groupId = groupProjectID
-    artifactId = artifactProjectID
-    publishVersion = publishVersionID
+    groupId = 'com.linkedin.android.litr'
+    artifactId = project.name
+    publishVersion = android.defaultConfig.versionName
     desc = 'Hardware accelerated media transformer for Android'
     website = 'https://github.com/linkedin/LiTr'
+    repository = 'git@github.com:linkedin/LiTr.git'
+    licences = 'BSD-2-Clause'
 }
