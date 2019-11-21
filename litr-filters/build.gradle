@@ -40,5 +40,5 @@ publish {
     desc = 'Video/Audio filter pack for LiTr'
     website = 'https://github.com/linkedin/LiTr'
     repository = 'git@github.com:linkedin/LiTr.git'
-    licences = 'BSD-2-Clause'
+    licences = ['BSD-2-Clause']
 }

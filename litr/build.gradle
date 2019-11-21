@@ -41,5 +41,5 @@ publish {
     desc = 'Hardware accelerated media transformer for Android'
     website = 'https://github.com/linkedin/LiTr'
     repository = 'git@github.com:linkedin/LiTr.git'
-    licences = 'BSD-2-Clause'
+    licences = ['BSD-2-Clause']
 }
