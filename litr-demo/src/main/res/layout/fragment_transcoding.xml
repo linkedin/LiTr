@@ -1,0 +1,261 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2019 LinkedIn Corporation -->
+<!-- All Rights Reserved. -->
+<!-- -->
+<!-- Licensed under the BSD 2-Clause License (the "License").  See License in the project root -->
+<!-- for license information. -->
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/scrollable_container"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_marginStart="5dp"
+        android:layout_marginEnd="5dp">
+
+        <Button
+            android:id="@+id/button_pick_video"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:text="@string/pick_video"/>
+
+        <Button
+            android:id="@+id/button_pick_video_overlay"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="gone"
+            android:text="@string/pick_video_overlay"/>
+
+        <LinearLayout
+            android:id="@+id/section_source"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <TextView
+                android:id="@+id/source_path"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/source_path"/>
+
+            <TextView
+                android:id="@+id/source_size"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/size"/>
+
+            <TextView
+                android:id="@+id/source_track_metadata"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/mime_type"/>
+
+            <TextView
+                android:id="@+id/source_overlay"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/source_path"/>
+
+            <Button
+                android:id="@+id/button_transcode"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/transcode"/>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/target_width"/>
+
+                <EditText
+                    android:id="@+id/target_width"
+                    android:layout_width="50dp"
+                    android:layout_height="wrap_content"
+                    android:text="@string/default_width"
+                    android:inputType="number"
+                    android:textAlignment="viewEnd"/>
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/target_height"/>
+
+                <EditText
+                    android:id="@+id/target_height"
+                    android:layout_width="50dp"
+                    android:layout_height="wrap_content"
+                    android:text="@string/default_height"
+                    android:inputType="number"
+                    android:textAlignment="viewEnd"/>
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/target_bitrate"/>
+
+                <EditText
+                    android:id="@+id/target_bitrate"
+                    android:layout_width="50dp"
+                    android:layout_height="wrap_content"
+                    android:text="@string/default_bitrate"
+                    android:inputType="numberDecimal"
+                    android:textAlignment="viewEnd"/>
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/target_key_frame_interval"/>
+
+                <EditText
+                    android:id="@+id/target_key_frame_interval"
+                    android:layout_width="50dp"
+                    android:layout_height="wrap_content"
+                    android:text="@string/default_key_frame_interval"
+                    android:inputType="number"
+                    android:textAlignment="viewEnd"/>
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/target_transcode_audio"/>
+
+                <Switch
+                    android:id="@+id/target_transcode_audio"
+                    android:layout_width="50dp"
+                    android:layout_height="wrap_content"/>
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/target_audio_bitrate"/>
+
+                <EditText
+                    android:id="@+id/target_audio_bitrate"
+                    android:layout_width="50dp"
+                    android:layout_height="wrap_content"
+                    android:text="@string/default_audio_bitrate"
+                    android:inputType="number"
+                    android:textAlignment="viewEnd"/>
+            </LinearLayout>
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/section_transcode"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <TextView
+                android:id="@+id/estimated_target_size"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/estimated_target_size"
+                android:layout_marginTop="10dp"/>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginTop="10dp"
+                android:layout_marginBottom="10dp"
+                android:layout_marginStart="10dp"
+                android:layout_marginEnd="10dp">
+
+                <ProgressBar
+                    android:id="@+id/progressBar"
+                    android:layout_width="0dp"
+                    android:layout_height="10dp"
+                    android:layout_weight="1"
+                    android:layout_gravity="center_vertical"
+                    style="@android:style/Widget.ProgressBar.Horizontal"/>
+
+                <Button
+                    android:id="@+id/button_cancel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/cancel"
+                    android:enabled="false"/>
+            </LinearLayout>
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/section_target"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <TextView
+                android:id="@+id/transcoding_duration"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:text="@string/duration"/>
+
+            <Button
+                android:id="@+id/button_play"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/play"/>
+
+            <TextView
+                android:id="@+id/target_path"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/target_path"/>
+
+            <TextView
+                android:id="@+id/target_size"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/size"/>
+
+            <TextView
+                android:id="@+id/transcoding_stats"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:visibility="gone"/>
+
+        </LinearLayout>
+
+    </LinearLayout>
+</ScrollView>

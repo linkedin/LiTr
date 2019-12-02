@@ -6,6 +6,8 @@
 <resources>
     <string name="app_name">LiTr</string>
 
+    <string name="demo_case_transcode_video_gl">Transcode Video (GL Renderer)</string>
+
     <string name="pick_video">Pick Video</string>
     <string name="pick_video_overlay">Pick Video Overlay</string>
     <string name="source_path" formatted="true">Source: %s</string>
