@@ -56,10 +56,11 @@ abstract class BaseOverlayGlFilter implements GlFilter {
     BaseOverlayGlFilter(@Nullable RectF bitmapRect) {
         if (bitmapRect == null) {
             size = new PointF(1, 1);
-            position = new PointF(0, 0);
+            position = new PointF(0.5f, 0.5f);
         } else {
             size = new PointF(bitmapRect.right - bitmapRect.left, bitmapRect.bottom - bitmapRect.top);
-            position = new PointF(bitmapRect.left, bitmapRect.top);
+            position = new PointF((bitmapRect.left + bitmapRect.right) / 2,
+                                  (bitmapRect.top + bitmapRect.bottom) / 2);
         }
         rotation = 0;
     }
@@ -104,19 +105,15 @@ abstract class BaseOverlayGlFilter implements GlFilter {
         }
 
         // Position values are in relative (0, 1) range, which means they have to be mapped from (-1, 1) range
-        // and adjusted for aspect ratio. Furthermore, they are given for top left corner of bitmap's bounding box
-        // (not its center as in OpenGL), so we have to adjust for that, too.
-        double rotationRads = Math.abs(Math.toRadians(rotation));
-        float boundingBoxWidth = (float) (scaleX * Math.cos(rotationRads) + scaleY * Math.sin(rotationRads));
-        float boundingBoxHeight = (float) (scaleX * Math.sin(rotationRads) + scaleY * Math.cos(rotationRads));
+        // and adjusted for aspect ratio.
         float translateX;
         float translateY;
         if (isPortraitVideo) {
-            translateX = position.x * 2 - 1 + boundingBoxWidth;
-            translateY = (1 - position.y * 2) * videoAspectRatio - boundingBoxHeight;
+            translateX = position.x * 2 - 1;
+            translateY = (1 - position.y * 2) * videoAspectRatio;
         } else {
-            translateX = (position.x * 2 - 1) * videoAspectRatio + boundingBoxWidth;
-            translateY = 1 - position.y * 2 - boundingBoxHeight;
+            translateX = (position.x * 2 - 1) * videoAspectRatio;
+            translateY = 1 - position.y * 2;
         }
 
         // Matrix operations in OpenGL are done in reverse. So here we scale (and flip vertically) first, then rotate

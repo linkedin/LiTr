@@ -282,7 +282,7 @@ public class MainActivity extends AppCompatActivity {
                             Bitmap overlayBitmap = BitmapFactory.decodeStream(getContentResolver().openInputStream(overlayUri));
                             float overlayWidth = (float) overlayBitmap.getWidth() / width;
                             float overlayHeight = (float) overlayBitmap.getHeight() / height;
-                            PointF position = new PointF(0.3f, 0.1f);
+                            PointF position = new PointF(0.6f, 0.4f);
                             PointF size = new PointF(overlayWidth, overlayHeight);
                             float rotation = 30;
 
