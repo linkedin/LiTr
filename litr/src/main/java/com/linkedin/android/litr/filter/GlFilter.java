@@ -17,15 +17,15 @@ public interface GlFilter {
 
     /**
      * Initialize filter. This will be called during renderer initialization.
-     * Before calling this, renderer will configure its MVP matrix and pass copies of it to filters, so they can use it to
-     * configure their own MVP matrices. Model matrix in renderer's MVP matrix is usually an identity matrix. View matrix
-     * is configured to have its camera angle match video's. Using renderer's MVP matrix ensures that filters don't have to
-     * worry about handling video rotation and can just do model transformations.
+     * Before calling this, renderer will configure its VP matrix and pass copies of it to filters, so they can use it to
+     * configure their own MVP matrices. Model matrix not present. View matrix is configured to have its camera angle match video's.
+     * Projection matrix is configured to orthogonal projection to account for video frame's aspect ratio: (-aspectRatio, aspectRatio, -1, 1, -1, 1)
+     * Filters can set up their model matrix and then multiply it by renderer's VP matrix to match their geometry to video frame's.
      *
-     * @param mvpMatrix MVP matrix configured by the renderer, usually
-     * @param mvpMatrixOffset offset into MVP matrix
+     * @param vpMatrix VP (projection * view) matrix configured by the renderer, usually
+     * @param vpMatrixOffset offset into VP matrix
      */
-    void init(@NonNull float[] mvpMatrix, int mvpMatrixOffset);
+    void init(@NonNull float[] vpMatrix, int vpMatrixOffset);
 
     /**
      * Apply GL rendering to a frame

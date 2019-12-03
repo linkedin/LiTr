@@ -279,9 +279,12 @@ public class MainActivity extends AppCompatActivity {
                     try {
                         Bitmap bitmap = BitmapFactory.decodeStream(getContentResolver().openInputStream(overlayUri));
                         if (bitmap != null) {
+                            Bitmap overlayBitmap = BitmapFactory.decodeStream(getContentResolver().openInputStream(overlayUri));
+                            float overlayWidth = (float) overlayBitmap.getWidth() / width;
+                            float overlayHeight = (float) overlayBitmap.getHeight() / height;
                             PointF position = new PointF(0.3f, 0.1f);
-                            PointF size = new PointF(0.5f, 0.9f);
-                            float rotation = 45;
+                            PointF size = new PointF(overlayWidth, overlayHeight);
+                            float rotation = 30;
 
                             if (TextUtils.equals(getContentResolver().getType(overlayUri), "image/gif")) {
                                 ContentResolver contentResolver = getApplicationContext().getContentResolver();
