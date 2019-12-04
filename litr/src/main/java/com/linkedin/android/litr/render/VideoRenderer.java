@@ -20,8 +20,9 @@ public interface VideoRenderer {
      * Initialize the renderer. Called during track transformer initialization.
      * @param outputSurface {@link Surface} to render onto, null for non OpenGL renderer
      * @param rotation source frame rotation
+     * @param aspectRatio source video frame aspect ratio
      */
-    void init(@Nullable Surface outputSurface, int rotation);
+    void init(@Nullable Surface outputSurface, int rotation, float aspectRatio);
 
     /**
      * Get renderer's input surface. Renderer creates it internally.

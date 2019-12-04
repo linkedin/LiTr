@@ -14,7 +14,7 @@ By default, LiTr uses Android MediaCodec stack for hardware accelerated decoding
 Simply grab via Gradle:
 
 ```groovy
- implementation 'com.linkedin.android.litr:litr:1.0.1'
+ implementation 'com.linkedin.android.litr:litr:1.1.0'
 ``` 
 ...or Maven:
 
@@ -22,7 +22,7 @@ Simply grab via Gradle:
 <dependency>
   <groupId>com.linkedin.android.litr</groupId>
   <artifactId>litr</artifactId>
-  <version>1.0.1</version>
+  <version>1.1.0</version>
 </dependency>
 
 ```
@@ -116,10 +116,10 @@ When using your own component implementations, make sure that output of a compon
 
 ## Using Filters
 
-You can use custom filters to modify video frames. Write your own in OpenGL as an implementtion of `GlFilter` interface, or use existing one from "filter pack" library, which is available via Gradle:
+You can use custom filters to modify video frames. Write your own in OpenGL as an implementation of `GlFilter` interface, or use existing one from "filter pack" library, which is available via Gradle:
 
 ```groovy
- implementation 'com.linkedin.android.litr:litr-filters:1.0.1'
+ implementation 'com.linkedin.android.litr:litr-filters:1.1.0'
 ``` 
 ...or Maven:
 
@@ -127,7 +127,7 @@ You can use custom filters to modify video frames. Write your own in OpenGL as a
 <dependency>
   <groupId>com.linkedin.android.litr</groupId>
   <artifactId>litr-filters</artifactId>
-  <version>1.0.1</version>
+  <version>1.1.0</version>
 </dependency>
 
 ```

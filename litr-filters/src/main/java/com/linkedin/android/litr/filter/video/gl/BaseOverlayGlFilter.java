@@ -56,10 +56,11 @@ abstract class BaseOverlayGlFilter implements GlFilter {
     BaseOverlayGlFilter(@Nullable RectF bitmapRect) {
         if (bitmapRect == null) {
             size = new PointF(1, 1);
-            position = new PointF(0, 0);
+            position = new PointF(0.5f, 0.5f);
         } else {
             size = new PointF(bitmapRect.right - bitmapRect.left, bitmapRect.bottom - bitmapRect.top);
-            position = new PointF(bitmapRect.left, bitmapRect.top);
+            position = new PointF((bitmapRect.left + bitmapRect.right) / 2,
+                                  (bitmapRect.top + bitmapRect.bottom) / 2);
         }
         rotation = 0;
     }
@@ -72,21 +73,61 @@ abstract class BaseOverlayGlFilter implements GlFilter {
 
     @Override
     @CallSuper
-    public void init(@NonNull float[] mvpMatrix, int mvpMatrixOffset) {
+    public void init(@NonNull float[] vpMatrix, int vpMatrixOffset) {
         Matrix.setIdentityM(stMatrix, 0);
-        // flip the bitmap vertically
-        Matrix.scaleM(stMatrix, 0, 1, -1, 1);
 
-        this.mvpMatrix = mvpMatrix;
-        this.mvpMatrixOffset = mvpMatrixOffset;
+        // Let's use features of VP matrix to extract frame aspect ratio and orientation from it
+        // for 90 and 270 degree rotations (portrait orientation) top left element will be zero
+        boolean isPortraitVideo = vpMatrix[0] == 0;
 
-        float scaleX = size.x;
-        float scaleY = size.y;
-        float translateX = (position.x * 2 + scaleX - 1) / scaleX;
-        float translateY = (1 - position.y * 2 - scaleY) / scaleY;
-        Matrix.scaleM(mvpMatrix, mvpMatrixOffset, scaleX, scaleY, 1);
-        Matrix.translateM(mvpMatrix, mvpMatrixOffset, translateX, translateY, 0);
-        Matrix.rotateM(mvpMatrix, mvpMatrixOffset, rotation, 0, 0, 1);
+        // orthogonal projection matrix is basically a scaling matrix, which scales along X axis.
+        // 0 and 180 degree rotations keep the scaling factor in top left element (they don't move it)
+        // 90 and 270 degree rotations move it to one position right in top row
+        // Inverting scaling factor gives us the aspect ratio.
+        // Scale can be negative if video is flipped, so we use absolute value.
+        float videoAspectRatio;
+        if (isPortraitVideo) {
+            videoAspectRatio = 1 / Math.abs(vpMatrix[4]);
+        } else {
+            videoAspectRatio = 1 / Math.abs(vpMatrix[0]);
+        }
+
+        // Size is respective to video frame, and frame will later be scaled by perspective and view matrices.
+        // So we have to adjust the scale accordingly.
+        float scaleX;
+        float scaleY;
+        if (isPortraitVideo) {
+            scaleX = size.x;
+            scaleY = size.y / videoAspectRatio;
+        } else {
+            scaleX = size.x * videoAspectRatio;
+            scaleY = size.y;
+        }
+
+        // Position values are in relative (0, 1) range, which means they have to be mapped from (-1, 1) range
+        // and adjusted for aspect ratio.
+        float translateX;
+        float translateY;
+        if (isPortraitVideo) {
+            translateX = position.x * 2 - 1;
+            translateY = (1 - position.y * 2) * videoAspectRatio;
+        } else {
+            translateX = (position.x * 2 - 1) * videoAspectRatio;
+            translateY = 1 - position.y * 2;
+        }
+
+        // Matrix operations in OpenGL are done in reverse. So here we scale (and flip vertically) first, then rotate
+        // around the center, and then translate into desired position.
+        float[] modelMatrix = new float[16];
+        Matrix.setIdentityM(modelMatrix, 0);
+        Matrix.translateM(modelMatrix, 0, translateX, translateY, 0);
+        Matrix.rotateM(modelMatrix, 0, rotation, 0, 0, 1);
+        Matrix.scaleM(modelMatrix, 0, scaleX, -scaleY, 1);
+
+        // last, we multiply the model matrix by the view matrix to get final MVP matrix for an overlay
+        mvpMatrix = new float[16];
+        mvpMatrixOffset = 0;
+        Matrix.multiplyMM(this.mvpMatrix, this.mvpMatrixOffset, vpMatrix, 0, modelMatrix, 0);
     }
 
     void renderOverlayTexture(int textureId) {

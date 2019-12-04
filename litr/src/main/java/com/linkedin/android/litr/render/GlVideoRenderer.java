@@ -103,7 +103,7 @@ public class GlVideoRenderer implements VideoRenderer {
     }
 
     @Override
-    public void init(@Nullable Surface outputSurface, int rotation) {
+    public void init(@Nullable Surface outputSurface, int rotation, float aspectRatio) {
         if (outputSurface == null) {
             throw new IllegalArgumentException("GlRenderer requires an output surface");
         }
@@ -112,10 +112,17 @@ public class GlVideoRenderer implements VideoRenderer {
 
         inputSurface = new VideoRenderInputSurface();
         initGl();
-        initMvpMatrix(rotation);
+        initMvpMatrix(rotation, aspectRatio);
 
         for (GlFilter filter : filters) {
             filter.init(Arrays.copyOf(mvpMatrix, mvpMatrix.length), 0);
+        }
+
+        // scale video frames to fit the projection
+        if (rotation == 90 || rotation == 270) {
+            Matrix.scaleM(mvpMatrix, 0, 1, aspectRatio, 1);
+        } else {
+            Matrix.scaleM(mvpMatrix, 0, aspectRatio, 1, 1);
         }
     }
 
@@ -208,10 +215,14 @@ public class GlVideoRenderer implements VideoRenderer {
         GLES20.glFinish();
     }
 
-    private void initMvpMatrix(int rotation) {
-        Matrix.setIdentityM(mvpMatrix, 0);
+    private void initMvpMatrix(int rotation, float videoAspectRatio) {
+        float[] projectionMatrix = new float[16];
+        Matrix.setIdentityM(projectionMatrix, 0);
+        Matrix.orthoM(projectionMatrix, 0, -videoAspectRatio, videoAspectRatio, -1, 1, -1, 1);
 
-        // position the camera to match video frame rotation
+        // rotate the camera to match video frame rotation
+        float[] viewMatrix = new float[16];
+        Matrix.setIdentityM(viewMatrix, 0);
         float upX;
         float upY;
         switch (rotation) {
@@ -237,9 +248,12 @@ public class GlVideoRenderer implements VideoRenderer {
                 upY = (float) Math.cos(rotation / Math.PI);
                 break;
         }
-        Matrix.setLookAtM(mvpMatrix, 0,
+        Matrix.setLookAtM(viewMatrix, 0,
                           0, 0, 1,
                           0, 0, 0,
                           upX, upY, 0);
+
+        Matrix.setIdentityM(mvpMatrix, 0);
+        Matrix.multiplyMM(mvpMatrix, 0, projectionMatrix, 0, viewMatrix, 0);
     }
 }

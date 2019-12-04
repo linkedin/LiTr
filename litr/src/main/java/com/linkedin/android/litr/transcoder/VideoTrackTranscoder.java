@@ -81,9 +81,13 @@ public class VideoTrackTranscoder extends TrackTranscoder {
         if (sourceVideoFormat.containsKey(KEY_ROTATION)) {
             rotation = sourceVideoFormat.getInteger(KEY_ROTATION);
         }
+        float aspectRatio = 1;
+        if (targetVideoFormat.containsKey(MediaFormat.KEY_WIDTH) && targetVideoFormat.containsKey(MediaFormat.KEY_HEIGHT)) {
+            aspectRatio = (float) targetVideoFormat.getInteger(MediaFormat.KEY_WIDTH) / targetVideoFormat.getInteger(MediaFormat.KEY_HEIGHT);
+        }
 
         encoder.init(targetFormat);
-        renderer.init(encoder.createInputSurface(), rotation);
+        renderer.init(encoder.createInputSurface(), rotation, aspectRatio);
         decoder.init(sourceVideoFormat, renderer.getInputSurface());
     }
 

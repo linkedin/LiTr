@@ -53,7 +53,7 @@ public class BitmapOverlayFilter extends BaseOverlayGlFilter {
      * @param context context for accessing bitmap
      * @param bitmapUri bitmap {@link Uri}
      * @param size size in X and Y direction, relative to video frame
-     * @param position position of top left corner, in relative coordinate in 0 - 1 range
+     * @param position position of bitmap center, in relative coordinate in 0 - 1 range
      *      *          in fourth quadrant (0,0 is top left corner)
      * @param rotation counter-clockwise rotation, in degrees
      */
@@ -67,7 +67,7 @@ public class BitmapOverlayFilter extends BaseOverlayGlFilter {
      * Create filter with client managed {@link Bitmap}, then scale, then position and then rotate the bitmap around its center as specified.
      * @param bitmap client managed bitmap
      * @param size size in X and Y direction, relative to video frame
-     * @param position position of top left corner, in relative coordinate in 0 - 1 range
+     * @param position position of bitmap center, in relative coordinate in 0 - 1 range
      *                 in fourth quadrant (0,0 is top left corner)
      * @param rotation counter-clockwise rotation, in degrees
      */

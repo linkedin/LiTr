@@ -40,6 +40,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class VideoTrackTranscoderShould {
     private static final int VIDEO_TRACK = 0;
@@ -48,6 +49,12 @@ public class VideoTrackTranscoderShould {
     private static final float DURATION = 84f;
     private static final long CURRENT_PRESENTATION_TIME = 42L;
     private static final float CURRENT_PROGRESS = 0.5f;
+
+    private static final String TARGET_MIME_TYPE = "video/avc";
+    private static final int TARGET_WIDTH = 1280;
+    private static final int TARGET_HEIGHT = 720;
+    private static final int TARGET_BITRATE = 4000000;
+    private static final int TARGET_KEY_FRAME_INTERVAL = 3;
 
     @Mock private MediaSource mediaSource;
     @Mock private MediaTarget mediaTarget;
@@ -59,7 +66,8 @@ public class VideoTrackTranscoderShould {
     @Mock private Decoder decoder;
     @Mock private GlVideoRenderer renderer;
 
-    private MediaFormat targetVideoFormat;
+    @Mock private MediaFormat targetVideoFormat;
+
     private VideoTrackTranscoder videoTrackTranscoder;
 
     private ByteBuffer[] sampleByteBuffers;
@@ -79,12 +87,16 @@ public class VideoTrackTranscoderShould {
         doReturn(true).when(decoder).isRunning();
         doReturn(true).when(encoder).isRunning();
 
-        targetVideoFormat = new MediaFormat();
-        targetVideoFormat.setString(MediaFormat.KEY_MIME, "video/avc");
-        targetVideoFormat.setInteger(MediaFormat.KEY_WIDTH, 1280);
-        targetVideoFormat.setInteger(MediaFormat.KEY_HEIGHT, 720);
-        targetVideoFormat.setInteger(MediaFormat.KEY_BIT_RATE, 4000000);
-        targetVideoFormat.setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, 3);
+        when(targetVideoFormat.containsKey(MediaFormat.KEY_MIME)).thenReturn(true);
+        when(targetVideoFormat.getString(MediaFormat.KEY_MIME)).thenReturn(TARGET_MIME_TYPE);
+        when(targetVideoFormat.containsKey(MediaFormat.KEY_WIDTH)).thenReturn(true);
+        when(targetVideoFormat.getInteger(MediaFormat.KEY_WIDTH)).thenReturn(TARGET_WIDTH);
+        when(targetVideoFormat.containsKey(MediaFormat.KEY_HEIGHT)).thenReturn(true);
+        when(targetVideoFormat.getInteger(MediaFormat.KEY_HEIGHT)).thenReturn(TARGET_HEIGHT);
+        when(targetVideoFormat.containsKey(MediaFormat.KEY_BIT_RATE)).thenReturn(true);
+        when(targetVideoFormat.getInteger(MediaFormat.KEY_BIT_RATE)).thenReturn(TARGET_BITRATE);
+        when(targetVideoFormat.containsKey(MediaFormat.KEY_I_FRAME_INTERVAL)).thenReturn(true);
+        when(targetVideoFormat.getInteger(MediaFormat.KEY_I_FRAME_INTERVAL)).thenReturn(TARGET_KEY_FRAME_INTERVAL);
 
         // setting up and starting test target, which will be used for frame processing testing below
         videoTrackTranscoder = spy(new VideoTrackTranscoder(mediaSource,
@@ -153,7 +165,7 @@ public class VideoTrackTranscoderShould {
         verify(decoder, never()).stop();
         verify(encoder).start();
         verify(decoder).start();
-        verify(renderer).init(surface, 0);
+        verify(renderer).init(surface, 0, (float) TARGET_WIDTH / TARGET_HEIGHT);
     }
 
     @Test
