@@ -1,5 +1,4 @@
 apply plugin: 'com.android.library'
-apply plugin: 'com.novoda.bintray-release'
 
 android {
     compileSdkVersion 29
@@ -31,14 +30,8 @@ dependencies {
     implementation 'androidx.annotation:annotation:1.1.0'
 }
 
-publish {
-    userOrg = 'linkedin'
-    repoName = 'maven'
-    groupId = 'com.linkedin.android.litr'
-    artifactId = project.name
-    publishVersion = android.defaultConfig.versionName
-    desc = 'Video/Audio filter pack for LiTr'
-    website = 'https://github.com/linkedin/LiTr'
-    repository = 'git@github.com:linkedin/LiTr.git'
-    licences = ['BSD-2-Clause']
-}
+group "com.linkedin.android.litr"
+version '1.1.0'
+description 'Video/Audio filter pack for LiTr'
+
+apply from:'../publish.gradle'

@@ -1,0 +1,104 @@
+apply plugin: 'com.jfrog.bintray'
+apply plugin: 'maven-publish'
+
+ext {
+    githubUrl = 'https://github.com/linkedin/LiTr'
+    gitUrl = 'git@github.com:linkedin/LiTr.git'
+}
+
+task sourcesJar(type: Jar) {
+    classifier = 'sources'
+    from android.sourceSets.main.java.srcDirs
+}
+
+task javadoc(type: Javadoc) {
+    source = android.sourceSets.main.java.srcDirs
+    classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
+}
+
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    classifier = 'javadoc'
+    from javadoc.destinationDir
+}
+
+publishing {
+    publications {
+        aar(MavenPublication) {
+
+            artifact("$buildDir/outputs/aar/${project.getName()}-release.aar") {
+                builtBy assemble
+            }
+            artifact sourcesJar
+            artifact javadocJar
+
+            pom.withXml {
+                asNode().children().last() + {
+                    resolveStrategy = Closure.DELEGATE_FIRST
+
+                    description = project.description
+                    url githubUrl
+                    scm {
+                        url githubUrl
+                        connection gitUrl
+                        developerConnection gitUrl
+                    }
+                    licenses {
+                        license {
+                            name '2-Clause BSD License'
+                            url 'https://opensource.org/licenses/BSD-2-Clause'
+                            distribution 'repo'
+                        }
+                    }
+
+                    developers {
+                        developer {
+                            id 'com.linkedin'
+                            name 'LinkedIn Corp.'
+                            email ''
+                        }
+                    }
+
+                    dependencies {
+                        configurations.implementation.allDependencies.each { ModuleDependency dp ->
+                            dependency {
+                                resolveStrategy = Closure.DELEGATE_ONLY
+                                groupId dp.group
+                                artifactId dp.name
+                                version dp.version
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+bintray {
+
+    user = project.hasProperty('bintrayUser') ? project.property('bintrayUser') : System.getenv('BINTRAY_USER')
+    key = project.hasProperty('bintrayApiKey') ? project.property('bintrayApiKey') : System.getenv('BINTRAY_API_KEY')
+
+    pkg {
+        userOrg = 'linkedin'
+        repo = 'maven'
+        name = project.name
+        desc = project.description
+        labels = ['android','video','audio','media','transcoder']
+        licenses = ['2-Clause BSD License']
+
+        websiteUrl = githubUrl
+        vcsUrl = gitUrl
+        issueTrackerUrl = 'https://github.com/linkedin/LiTr/issues'
+        githubRepo = 'linkedin/LiTr'
+
+        version {
+            name = project.version
+            released = new Date()
+        }
+
+        publish = true
+    }
+
+    publications = ['aar']
+}
