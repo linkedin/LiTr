@@ -367,8 +367,20 @@ public class TranscodeVideoGlFragment extends Fragment {
                         Context context = getContext();
                         Bitmap bitmap = BitmapFactory.decodeStream(context.getContentResolver().openInputStream(overlayUri));
                         if (bitmap != null) {
-                            float overlayWidth = (float) bitmap.getWidth() / width;
-                            float overlayHeight = (float) bitmap.getHeight() / height;
+                            int videoRotation = getVideoRotation();
+
+                            float overlayWidth = 0.56f;
+                            float overlayHeight;
+                            if (videoRotation == 90 || videoRotation == 270) {
+                                float overlayWidthPixels = overlayWidth * height;
+                                float overlayHeightPixels = overlayWidthPixels * bitmap.getHeight() / bitmap.getWidth();
+                                overlayHeight = overlayHeightPixels / width;
+                            } else {
+                                float overlayWidthPixels = overlayWidth * width;
+                                float overlayHeightPixels = overlayWidthPixels * bitmap.getHeight() / bitmap.getWidth();
+                                overlayHeight = overlayHeightPixels / height;
+                            }
+
                             PointF position = new PointF(0.6f, 0.4f);
                             PointF size = new PointF(overlayWidth, overlayHeight);
                             float rotation = 30;
@@ -519,8 +531,6 @@ public class TranscodeVideoGlFragment extends Fragment {
         return audioMediaFormat;
     }
 
-
-
     private long getGifSize(@NonNull Uri uri) {
         if (ContentResolver.SCHEME_CONTENT.equals(uri.getScheme())) {
             AssetFileDescriptor fileDescriptor = null;
@@ -546,5 +556,26 @@ public class TranscodeVideoGlFragment extends Fragment {
         } else {
             return 0;
         }
+    }
+
+    private int getVideoRotation() {
+        int rotation = 0;
+        try {
+            MediaExtractor mediaExtractor = new MediaExtractor();
+            mediaExtractor.setDataSource(getContext(), sourceVideoUri, null);
+            int trackCount = mediaExtractor.getTrackCount();
+            for (int track = 0; track < trackCount; track++) {
+                MediaFormat mediaFormat = mediaExtractor.getTrackFormat(track);
+                if (mediaFormat.containsKey(MediaFormat.KEY_MIME)
+                    && mediaFormat.getString(MediaFormat.KEY_MIME).startsWith("video")
+                    && mediaFormat.containsKey(MediaFormat.KEY_ROTATION)) {
+                        rotation = mediaFormat.getInteger(MediaFormat.KEY_ROTATION);
+                    }
+            }
+        } catch (IOException ex) {
+            Log.e(TAG, "Failed to extract audio track metadata: " + ex);
+        }
+
+        return rotation;
     }
 }

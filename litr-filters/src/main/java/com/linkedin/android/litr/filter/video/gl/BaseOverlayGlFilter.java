@@ -98,7 +98,7 @@ abstract class BaseOverlayGlFilter implements GlFilter {
         float scaleY;
         if (isPortraitVideo) {
             scaleX = size.x;
-            scaleY = size.y / videoAspectRatio;
+            scaleY = size.y * videoAspectRatio;
         } else {
             scaleX = size.x * videoAspectRatio;
             scaleY = size.y;
