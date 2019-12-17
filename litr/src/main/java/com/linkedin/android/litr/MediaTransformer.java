@@ -35,6 +35,7 @@ import com.linkedin.android.litr.render.GlVideoRenderer;
 import com.linkedin.android.litr.render.VideoRenderer;
 import com.linkedin.android.litr.utils.TranscoderUtils;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -153,14 +154,59 @@ public class MediaTransformer {
             throw new IllegalArgumentException("Request with id " + requestId + " already exists");
         }
 
+        int trackCount = mediaSource.getTrackCount();
+        List<TrackTransform> trackTransforms = new ArrayList<>(trackCount);
+        for (int track = 0; track < trackCount; track++) {
+            MediaFormat sourceMediaFormat = mediaSource.getTrackFormat(track);
+            String mimeType = null;
+            if (sourceMediaFormat.containsKey(MediaFormat.KEY_MIME)) {
+                mimeType = sourceMediaFormat.getString(MediaFormat.KEY_MIME);
+            }
+
+            if (mimeType == null) {
+                Log.e(TAG, "Mime type is null for track " + track);
+                continue;
+            }
+
+            TrackTransform.Builder trackTransformBuilder = new TrackTransform.Builder(mediaSource, track, mediaTarget)
+                .setTargetTrack(track);
+
+            if (mimeType.startsWith("video")) {
+                trackTransformBuilder.setDecoder(decoder)
+                                     .setRenderer(videoRenderer)
+                                     .setEncoder(encoder)
+                                     .setTargetFormat(targetVideoFormat);
+            } else if (mimeType.startsWith("audio")) {
+                trackTransformBuilder.setDecoder(decoder)
+                                     .setEncoder(encoder)
+                                     .setTargetFormat(targetAudioFormat);
+            }
+
+            trackTransforms.add(trackTransformBuilder.build());
+        }
+
+        transform(requestId, trackTransforms, listener, granularity);
+    }
+
+    /**
+     * Transform using specific track transformation instructions. This allows things muxing/demuxing tracks, applying
+     * different transformations to different tracks, etc.
+     * @param requestId client defined unique id for a transformation request. If not unique, {@link IllegalArgumentException} will be thrown.
+     * @param trackTransforms list of track transformation instructions
+     * @param listener {@link TransformationListener} implementation, to get updates on transformation status/result/progress
+     * @param granularity progress reporting granularity. NO_GRANULARITY for per-frame progress reporting,
+     *                    or positive integer value for number of times transformation progress should be reported
+     */
+    public void transform(@NonNull String requestId,
+                          List<TrackTransform> trackTransforms,
+                          @NonNull TransformationListener listener,
+                          @IntRange(from = GRANULARITY_NONE) int granularity) {
+        if (futureMap.containsKey(requestId)) {
+            throw new IllegalArgumentException("Request with id " + requestId + " already exists");
+        }
+
         TransformationJob transformationJob = new TransformationJob(requestId,
-                                                                    mediaSource,
-                                                                    decoder,
-                                                                    videoRenderer,
-                                                                    encoder,
-                                                                    mediaTarget,
-                                                                    targetVideoFormat,
-                                                                    targetAudioFormat,
+                                                                    trackTransforms,
                                                                     listener,
                                                                     granularity,
                                                                     handler);

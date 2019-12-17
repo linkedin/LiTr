@@ -35,8 +35,8 @@ public abstract class TrackTranscoder {
 
     @NonNull protected final MediaSource mediaSource;
     @NonNull protected final MediaTarget mediaMuxer;
-    @NonNull protected final Decoder decoder;
-    @NonNull protected final Encoder encoder;
+    @Nullable protected final Decoder decoder;
+    @Nullable protected final Encoder encoder;
 
     protected int sourceTrack;
     protected int targetTrack;
@@ -50,8 +50,8 @@ public abstract class TrackTranscoder {
                     int sourceTrack,
                     @NonNull MediaTarget mediaTarget,
                     @Nullable MediaFormat targetFormat,
-                    @NonNull Decoder decoder,
-                    @NonNull Encoder encoder) {
+                    @Nullable Decoder decoder,
+                    @Nullable Encoder encoder) {
         this.mediaSource = mediaSource;
         this.sourceTrack = sourceTrack;
         this.mediaMuxer = mediaTarget;

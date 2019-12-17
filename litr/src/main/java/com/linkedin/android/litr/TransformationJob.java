@@ -7,7 +7,6 @@
  */
 package com.linkedin.android.litr;
 
-import android.media.MediaFormat;
 import android.text.TextUtils;
 import android.util.Log;
 import androidx.annotation.IntRange;
@@ -15,14 +14,9 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.VisibleForTesting;
 import com.linkedin.android.litr.analytics.TransformationStatsCollector;
-import com.linkedin.android.litr.codec.Decoder;
-import com.linkedin.android.litr.codec.Encoder;
 import com.linkedin.android.litr.exception.InsufficientDiskSpaceException;
 import com.linkedin.android.litr.exception.MediaTransformationException;
 import com.linkedin.android.litr.exception.TrackTranscoderException;
-import com.linkedin.android.litr.io.MediaSource;
-import com.linkedin.android.litr.io.MediaTarget;
-import com.linkedin.android.litr.render.VideoRenderer;
 import com.linkedin.android.litr.transcoder.TrackTranscoder;
 import com.linkedin.android.litr.transcoder.TrackTranscoderFactory;
 import com.linkedin.android.litr.utils.DiskUtil;
@@ -40,48 +34,29 @@ class TransformationJob implements Runnable {
 
     private static final float DEFAULT_SIZE_PADDING = 0.10f; // 10% padding
 
-    @VisibleForTesting List<MediaFormat> trackFormats;
     @VisibleForTesting List<TrackTranscoder> trackTranscoders;
     @VisibleForTesting float lastProgress;
     @VisibleForTesting int granularity;
-
-    @VisibleForTesting MediaSource mediaSource;
-    @VisibleForTesting MediaTarget mediaTarget;
 
     @VisibleForTesting TrackTranscoderFactory trackTranscoderFactory;
     @VisibleForTesting DiskUtil diskUtil;
 
     @VisibleForTesting TransformationStatsCollector statsCollector;
 
+    private final List<TrackTransform> trackTransforms;
+
     private final String jobId;
-    private final Decoder decoder;
-    private final VideoRenderer videoRenderer;
-    private final Encoder encoder;
     private final TransformationListener listener;
     private final MediaTransformer.ProgressHandler handler;
-    private final MediaFormat targetVideoFormat;
-    private final MediaFormat targetAudioFormat;
 
     TransformationJob(@NonNull String jobId,
-                      @NonNull MediaSource mediaSource,
-                      @NonNull Decoder decoder,
-                      @NonNull VideoRenderer videoRenderer,
-                      @NonNull Encoder encoder,
-                      @NonNull MediaTarget mediaTarget,
-                      @Nullable MediaFormat targetVideoFormat,
-                      @Nullable MediaFormat targetAudioFormat,
+                      List<TrackTransform> trackTransforms,
                       @NonNull TransformationListener listener,
                       @IntRange(from = GRANULARITY_NONE) int granularity,
                       @NonNull MediaTransformer.ProgressHandler handler) {
 
         this.jobId = jobId;
-        this.mediaSource = mediaSource;
-        this.decoder = decoder;
-        this.videoRenderer = videoRenderer;
-        this.encoder = encoder;
-        this.mediaTarget = mediaTarget;
-        this.targetVideoFormat = targetVideoFormat;
-        this.targetAudioFormat = targetAudioFormat;
+        this.trackTransforms = trackTransforms;
         this.listener = listener;
         this.granularity = granularity;
         this.handler = handler;
@@ -114,7 +89,7 @@ class TransformationJob implements Runnable {
 
     @VisibleForTesting
     void transform() throws MediaTransformationException {
-        loadTrackFormats();
+        initStatsCollector();
         verifyAvailableDiskSpace();
         createTrackTranscoders();
         startTrackTranscoders();
@@ -151,13 +126,10 @@ class TransformationJob implements Runnable {
     }
 
     @VisibleForTesting
-    void loadTrackFormats() {
-        int trackCount = mediaSource.getTrackCount();
-        trackFormats = new ArrayList<>(trackCount);
-        for (int track = 0; track < trackCount; track++) {
-            MediaFormat mediaFormat = mediaSource.getTrackFormat(track);
-            trackFormats.add(mediaFormat);
-            statsCollector.addSourceTrack(mediaFormat);
+    void initStatsCollector() {
+        // TODO modify TrackTransformationInfo to report muxing/demuxing and different media sources/targets
+        for (TrackTransform trackTransform : trackTransforms) {
+            statsCollector.addSourceTrack(trackTransform.getMediaSource().getTrackFormat(trackTransform.getSourceTrack()));
         }
     }
 
@@ -172,7 +144,7 @@ class TransformationJob implements Runnable {
     @VisibleForTesting
     void verifyAvailableDiskSpace() throws InsufficientDiskSpaceException {
         long estimatedFileSizeInBytes =
-            TranscoderUtils.getEstimatedTargetVideoFileSize(mediaSource, targetVideoFormat, targetAudioFormat);
+            TranscoderUtils.getEstimatedTargetFileSize(trackTransforms);
         long estimatedFileSizeInBytesAfterPadding =
             (long) (estimatedFileSizeInBytes * (1 + DEFAULT_SIZE_PADDING));
 
@@ -186,7 +158,7 @@ class TransformationJob implements Runnable {
 
     @VisibleForTesting
     void createTrackTranscoders() throws TrackTranscoderException {
-        int trackCount = mediaSource.getTrackCount();
+        int trackCount = trackTransforms.size();
         trackTranscoders = new ArrayList<>(trackCount);
 
         if (trackCount < 1) {
@@ -194,16 +166,15 @@ class TransformationJob implements Runnable {
         }
 
         for (int track = 0; track < trackCount; track++) {
-            MediaFormat mediaFormat = mediaSource.getTrackFormat(track);
+            TrackTransform trackTransform = trackTransforms.get(track);
+
             TrackTranscoder trackTranscoder = trackTranscoderFactory.create(track,
-                                                                            mediaFormat,
-                                                                            mediaSource,
-                                                                            decoder,
-                                                                            videoRenderer,
-                                                                            encoder,
-                                                                            mediaTarget,
-                                                                            targetVideoFormat,
-                                                                            targetAudioFormat);
+                                                                            trackTransform.getMediaSource(),
+                                                                            trackTransform.getDecoder(),
+                                                                            trackTransform.getRenderer(),
+                                                                            trackTransform.getEncoder(),
+                                                                            trackTransform.getMediaTarget(),
+                                                                            trackTransform.getTargetFormat());
             trackTranscoders.add(trackTranscoder);
             statsCollector.setTrackCodecs(track, trackTranscoder.getDecoderName(), trackTranscoder.getEncoderName());
         }
@@ -253,15 +224,17 @@ class TransformationJob implements Runnable {
             statsCollector.setTargetFormat(track, trackTranscoder.getTargetMediaFormat());
         }
 
-        mediaSource.release();
-        mediaTarget.release();
+        for (TrackTransform trackTransform : trackTransforms) {
+            trackTransform.getMediaSource().release();
+            trackTransform.getMediaTarget().release();
 
-        String outputFilePath = mediaTarget.getOutputFilePath();
+            String outputFilePath = trackTransform.getMediaTarget().getOutputFilePath();
 
-        if (success) {
-            handler.onCompleted(listener, jobId, statsCollector.getStats());
-        } else {
-            deleteOutputFile(outputFilePath);
+            if (success) {
+                handler.onCompleted(listener, jobId, statsCollector.getStats());
+            } else {
+                deleteOutputFile(outputFilePath);
+            }
         }
     }
 
