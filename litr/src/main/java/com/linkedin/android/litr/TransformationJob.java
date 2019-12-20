@@ -17,6 +17,8 @@ import com.linkedin.android.litr.analytics.TransformationStatsCollector;
 import com.linkedin.android.litr.exception.InsufficientDiskSpaceException;
 import com.linkedin.android.litr.exception.MediaTransformationException;
 import com.linkedin.android.litr.exception.TrackTranscoderException;
+import com.linkedin.android.litr.io.MediaSource;
+import com.linkedin.android.litr.io.MediaTarget;
 import com.linkedin.android.litr.transcoder.TrackTranscoder;
 import com.linkedin.android.litr.transcoder.TrackTranscoderFactory;
 import com.linkedin.android.litr.utils.DiskUtil;
@@ -24,6 +26,7 @@ import com.linkedin.android.litr.utils.TranscoderUtils;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 import static com.linkedin.android.litr.MediaTransformer.GRANULARITY_NONE;
@@ -225,17 +228,25 @@ class TransformationJob implements Runnable {
             statsCollector.setTargetFormat(track, trackTranscoder.getTargetMediaFormat());
         }
 
+        HashSet<MediaSource> mediaSources = new HashSet<>();
+        HashSet<MediaTarget> mediaTargets = new HashSet<>();
+
         for (TrackTransform trackTransform : trackTransforms) {
-            trackTransform.getMediaSource().release();
-            trackTransform.getMediaTarget().release();
-
-            String outputFilePath = trackTransform.getMediaTarget().getOutputFilePath();
-
-            if (success) {
-                handler.onCompleted(listener, jobId, statsCollector.getStats());
-            } else {
-                deleteOutputFile(outputFilePath);
+            mediaSources.add(trackTransform.getMediaSource());
+            mediaTargets.add(trackTransform.getMediaTarget());
+        }
+        for (MediaSource mediaSource : mediaSources) {
+            mediaSource.release();
+        }
+        for (MediaTarget mediaTarget : mediaTargets) {
+            mediaTarget.release();
+            if (!success) {
+                deleteOutputFile(mediaTarget.getOutputFilePath());
             }
+        }
+
+        if (success) {
+            handler.onCompleted(listener, jobId, statsCollector.getStats());
         }
     }
 

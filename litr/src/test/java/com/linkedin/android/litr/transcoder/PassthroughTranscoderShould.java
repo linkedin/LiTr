@@ -47,7 +47,7 @@ public class PassthroughTranscoderShould {
     public void setup() throws Exception {
         MockitoAnnotations.initMocks(this);
 
-        passthroughTranscoder = spy(new PassthroughTranscoder(mediaSource, SOURCE_TRACK, mediaTarget));
+        passthroughTranscoder = spy(new PassthroughTranscoder(mediaSource, SOURCE_TRACK, mediaTarget, TARGET_TRACK));
         passthroughTranscoder.start();
 
         passthroughTranscoder.outputBufferInfo = outputBufferInfo;
@@ -76,8 +76,6 @@ public class PassthroughTranscoderShould {
         doReturn(mediaFormat).when(mediaSource).getTrackFormat(anyInt());
         doReturn(TARGET_TRACK).when(mediaTarget).addTrack(any(MediaFormat.class), anyInt());
 
-        passthroughTranscoder.targetTrack = TrackTranscoder.NO_SELECTED_TRACK;
-
         int result = passthroughTranscoder.processNextFrame();
 
         verify(mediaSource).getTrackFormat(SOURCE_TRACK);
@@ -90,6 +88,7 @@ public class PassthroughTranscoderShould {
     public void doNothingWhenOtherTrackIsSelected() {
         passthroughTranscoder.sourceTrack = 0;
         passthroughTranscoder.targetTrack = 0;
+        passthroughTranscoder.targetTrackAdded = true;
         doReturn(1).when(mediaSource).getSampleTrackIndex();
 
         int result = passthroughTranscoder.processNextFrame();
@@ -103,6 +102,7 @@ public class PassthroughTranscoderShould {
         passthroughTranscoder.sourceTrack = 0;
         passthroughTranscoder.targetTrack = 0;
         passthroughTranscoder.duration = DURATION;
+        passthroughTranscoder.targetTrackAdded = true;
         int outputFlags = 0;
 
         doReturn(0).when(mediaSource).getSampleTrackIndex();
@@ -126,6 +126,7 @@ public class PassthroughTranscoderShould {
         passthroughTranscoder.sourceTrack = 0;
         passthroughTranscoder.targetTrack = 0;
         passthroughTranscoder.duration = DURATION;
+        passthroughTranscoder.targetTrackAdded = true;
         int outputFlags = MediaCodec.BUFFER_FLAG_SYNC_FRAME;
 
         doReturn(0).when(mediaSource).getSampleTrackIndex();
@@ -149,6 +150,7 @@ public class PassthroughTranscoderShould {
         passthroughTranscoder.sourceTrack = 0;
         passthroughTranscoder.targetTrack = 0;
         passthroughTranscoder.duration = DURATION;
+        passthroughTranscoder.targetTrackAdded = true;
 
         doReturn(0).when(mediaSource).getSampleTrackIndex();
         doReturn(0).when(mediaSource).readSampleData(outputBuffer, 0);
