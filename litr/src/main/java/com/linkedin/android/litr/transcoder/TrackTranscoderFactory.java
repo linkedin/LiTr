@@ -37,6 +37,7 @@ public class TrackTranscoderFactory {
      */
     @NonNull
     public TrackTranscoder create(int sourceTrack,
+                                  int targetTrack,
                                   @NonNull MediaSource mediaSource,
                                   @Nullable Decoder decoder,
                                   @Nullable VideoRenderer renderer,
@@ -44,7 +45,7 @@ public class TrackTranscoderFactory {
                                   @NonNull MediaTarget mediaTarget,
                                   @Nullable MediaFormat targetFormat) throws TrackTranscoderException {
         if (targetFormat == null) {
-            return new PassthroughTranscoder(mediaSource, sourceTrack, mediaTarget);
+            return new PassthroughTranscoder(mediaSource, sourceTrack, mediaTarget, targetTrack);
         }
 
         String trackMimeType = targetFormat.getString(MediaFormat.KEY_MIME);
@@ -77,6 +78,7 @@ public class TrackTranscoderFactory {
             return new VideoTrackTranscoder(mediaSource,
                                             sourceTrack,
                                             mediaTarget,
+                                            targetTrack,
                                             targetFormat,
                                             renderer,
                                             decoder,
@@ -85,12 +87,13 @@ public class TrackTranscoderFactory {
             return new AudioTrackTranscoder(mediaSource,
                                             sourceTrack,
                                             mediaTarget,
+                                            targetTrack,
                                             targetFormat,
                                             new MediaCodecDecoder(),
                                             new MediaCodecEncoder());
         } else {
             Log.i(TAG, "Unsupported track mime type: " + trackMimeType + ", will use passthrough transcoder");
-            return new PassthroughTranscoder(mediaSource, sourceTrack, mediaTarget);
+            return new PassthroughTranscoder(mediaSource, sourceTrack, mediaTarget, targetTrack);
         }
     }
 }

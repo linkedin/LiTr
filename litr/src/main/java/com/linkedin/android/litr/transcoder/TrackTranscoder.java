@@ -41,6 +41,8 @@ public abstract class TrackTranscoder {
     protected int sourceTrack;
     protected int targetTrack;
 
+    protected boolean targetTrackAdded;
+
     @Nullable protected MediaFormat targetFormat;
 
     protected float duration = UNDEFINED_VALUE;
@@ -49,11 +51,13 @@ public abstract class TrackTranscoder {
     TrackTranscoder(@NonNull MediaSource mediaSource,
                     int sourceTrack,
                     @NonNull MediaTarget mediaTarget,
+                    int targetTrack,
                     @Nullable MediaFormat targetFormat,
                     @Nullable Decoder decoder,
                     @Nullable Encoder encoder) {
         this.mediaSource = mediaSource;
         this.sourceTrack = sourceTrack;
+        this.targetTrack = targetTrack;
         this.mediaMuxer = mediaTarget;
         this.targetFormat = targetFormat;
         this.decoder = decoder;

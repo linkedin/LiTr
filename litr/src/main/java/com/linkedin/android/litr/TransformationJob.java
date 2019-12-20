@@ -168,7 +168,8 @@ class TransformationJob implements Runnable {
         for (int track = 0; track < trackCount; track++) {
             TrackTransform trackTransform = trackTransforms.get(track);
 
-            TrackTranscoder trackTranscoder = trackTranscoderFactory.create(track,
+            TrackTranscoder trackTranscoder = trackTranscoderFactory.create(trackTransform.getSourceTrack(),
+                                                                            trackTransform.getTargetTrack(),
                                                                             trackTransform.getMediaSource(),
                                                                             trackTransform.getDecoder(),
                                                                             trackTransform.getRenderer(),

@@ -35,12 +35,9 @@ public class PassthroughTranscoder extends TrackTranscoder {
 
     PassthroughTranscoder(@NonNull MediaSource mediaSource,
                           int sourceTrack,
-                          @NonNull MediaTarget mediaTarget) {
-        super(mediaSource, sourceTrack, mediaTarget, null, null, null);
-
-        this.targetTrack = NO_SELECTED_TRACK;
-
-        this.sourceTrack = sourceTrack;
+                          @NonNull MediaTarget mediaTarget,
+                          int targetTrack) {
+        super(mediaSource, sourceTrack, mediaTarget, targetTrack, null, null, null);
     }
 
     @Override
@@ -66,11 +63,12 @@ public class PassthroughTranscoder extends TrackTranscoder {
         }
 
         // TranscoderJob expects the first result to be RESULT_OUTPUT_MEDIA_FORMAT_CHANGED, so that it can start the mediaMuxer
-        if (targetTrack == NO_SELECTED_TRACK) {
+        if (!targetTrackAdded) {
             targetFormat = mediaSource.getTrackFormat(sourceTrack);
             duration = targetFormat.getLong(MediaFormat.KEY_DURATION);
 
-            targetTrack = mediaMuxer.addTrack(targetFormat, sourceTrack);
+            targetTrack = mediaMuxer.addTrack(targetFormat, targetTrack);
+            targetTrackAdded = true;
 
             int bufferSize = targetFormat.getInteger(MediaFormat.KEY_MAX_INPUT_SIZE);
             outputBuffer = ByteBuffer.allocate(bufferSize);
