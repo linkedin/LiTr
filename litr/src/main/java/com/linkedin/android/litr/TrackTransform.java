@@ -136,6 +136,9 @@ public class TrackTransform {
             this.mediaSource = mediaSource;
             this.sourceTrack = sourceTrack;
             this.mediaTarget = mediaTarget;
+
+            // unless specified, target track defaults to source track
+            this.targetTrack = sourceTrack;
         }
 
         @NonNull
