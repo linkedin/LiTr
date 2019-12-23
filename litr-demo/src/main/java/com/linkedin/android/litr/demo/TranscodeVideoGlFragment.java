@@ -7,84 +7,95 @@
  */
 package com.linkedin.android.litr.demo;
 
-import android.content.Context;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.PointF;
-import android.media.MediaCodecInfo;
-import android.media.MediaFormat;
 import android.net.Uri;
-import android.util.Log;
+import android.os.Bundle;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
 import com.linkedin.android.litr.MediaTransformer;
-import com.linkedin.android.litr.filter.GlFilter;
+import com.linkedin.android.litr.demo.data.AudioTarget;
+import com.linkedin.android.litr.demo.data.OverlayTarget;
+import com.linkedin.android.litr.demo.data.SourceMedia;
+import com.linkedin.android.litr.demo.data.TransformationPresenter;
+import com.linkedin.android.litr.demo.data.TransformationState;
+import com.linkedin.android.litr.demo.data.VideoTarget;
+import com.linkedin.android.litr.demo.databinding.FragmentTranscodeVideoGlBinding;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.Collections;
-import java.util.List;
-import java.util.UUID;
+public class TranscodeVideoGlFragment extends Fragment implements MediaPickerTarget {
 
-public class TranscodeVideoGlFragment extends BaseDemoFragment {
+    private FragmentTranscodeVideoGlBinding binding;
 
-    private static final String TAG = TranscodeVideoGlFragment.class.getSimpleName();
+    private MediaTransformer mediaTransformer;
 
     @Override
-    protected void transform(@NonNull Uri sourceVideoUri,
-                             @Nullable Uri overlayUri,
-                             @NonNull File targetVideoFile,
-                             @Nullable MediaFormat targetVideoFormat,
-                             @Nullable MediaFormat targetAudioFormat) {
-        targetVideoFormat.setInteger(MediaFormat.KEY_COLOR_FORMAT, MediaCodecInfo.CodecCapabilities.COLOR_FormatSurface);
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
 
-        int width = targetVideoFormat.getInteger(MediaFormat.KEY_WIDTH);
-        int height = targetVideoFormat.getInteger(MediaFormat.KEY_HEIGHT);
-
-        String requestId = UUID.randomUUID().toString();
-
-        List<GlFilter> glFilters = null;
-        if (overlayUri != null) {
-            try {
-                Context context = getContext();
-                Bitmap bitmap = BitmapFactory.decodeStream(context.getContentResolver().openInputStream(overlayUri));
-                if (bitmap != null) {
-                    int videoRotation = getVideoRotation();
-
-                    float overlayWidth = 0.56f;
-                    float overlayHeight;
-                    if (videoRotation == 90 || videoRotation == 270) {
-                        float overlayWidthPixels = overlayWidth * height;
-                        float overlayHeightPixels = overlayWidthPixels * bitmap.getHeight() / bitmap.getWidth();
-                        overlayHeight = overlayHeightPixels / width;
-                    } else {
-                        float overlayWidthPixels = overlayWidth * width;
-                        float overlayHeightPixels = overlayWidthPixels * bitmap.getHeight() / bitmap.getWidth();
-                        overlayHeight = overlayHeightPixels / height;
-                    }
-
-                    PointF position = new PointF(0.6f, 0.4f);
-                    PointF size = new PointF(overlayWidth, overlayHeight);
-                    float rotation = 30;
-
-                    GlFilter filter = createGlFilter(overlayUri, size, position, rotation);
-                    if (filter != null) {
-                        glFilters = Collections.singletonList(filter);
-                    }
-                }
-            } catch (IOException ex) {
-                Log.e(TAG, "Failed to extract audio track metadata: " + ex);
-            }
-        }
-
-        mediaTransformer.transform(requestId,
-                                   sourceVideoUri,
-                                   targetVideoFile.getAbsolutePath(),
-                                   targetVideoFormat,
-                                   targetAudioFormat,
-                                   videoTransformationListener,
-                                   MediaTransformer.GRANULARITY_DEFAULT,
-                                   glFilters);
-
+        mediaTransformer = new MediaTransformer(getContext().getApplicationContext());
     }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        mediaTransformer.release();
+    }
+
+    @Override
+    public View onCreateView(@NonNull LayoutInflater inflater,
+                             ViewGroup container, Bundle savedInstanceState) {
+        binding = FragmentTranscodeVideoGlBinding.inflate(inflater, container, false);
+
+        binding.sectionPickVideo.buttonPickVideo.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                pickMedia(MediaPickerFragment.PICK_VIDEO);
+            }
+        });
+
+        binding.sectionPickOverlay.buttonPickVideoOverlay.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                pickMedia(MediaPickerFragment.PICK_OVERLAY);
+            }
+        });
+
+        binding.setVideoTarget(new VideoTarget());
+        binding.setAudioTarget(new AudioTarget());
+        binding.setOverlayTarget(new OverlayTarget());
+        binding.setTransformationState(new TransformationState());
+        binding.setPresenter(new TransformationPresenter(getContext(), mediaTransformer));
+
+        return binding.getRoot();
+    }
+
+    @Override
+    public void onMediaPicked(@NonNull SourceMedia sourceMedia) {
+        binding.setSourceMedia(sourceMedia);
+        binding.getTransformationState().setState(TransformationState.STATE_IDLE);
+        binding.getTransformationState().setStats(null);
+    }
+
+    @Override
+    public void onOverlayPicked(@NonNull Uri uri, long size) {
+        OverlayTarget overlayTarget = binding.getOverlayTarget();
+        overlayTarget.setUri(uri);
+        overlayTarget.setSize(size);
+    }
+
+    private void pickMedia(int mediaType) {
+        MediaPickerFragment mediaPickerFragment = new MediaPickerFragment();
+        Bundle arguments = new Bundle();
+        arguments.putInt(MediaPickerFragment.KEY_PICK_TYPE, mediaType);
+        mediaPickerFragment.setArguments(arguments);
+        mediaPickerFragment.setTargetFragment(this, mediaType);
+
+        getActivity().getSupportFragmentManager().beginTransaction()
+                     .add(mediaPickerFragment, "MediaPickerFragment")
+                     .addToBackStack(null)
+                     .commit();
+    }
+
 }

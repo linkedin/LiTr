@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2019 LinkedIn Corporation -->
+<!-- All Rights Reserved. -->
+<!-- -->
+<!-- Licensed under the BSD 2-Clause License (the "License").  See License in the project root -->
+<!-- for license information. -->
+<layout>
+    <data>
+        <import type="android.view.View"/>
+
+        <variable
+            name="overlayTarget"
+            type="com.linkedin.android.litr.demo.data.OverlayTarget" />
+    </data>
+
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="@dimen/section_margin">
+
+        <Switch
+            android:id="@+id/switch_overlay"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/apply_overlay"
+            android:textStyle="bold"
+            android:padding="@dimen/cell_padding"
+            android:checked="@={overlayTarget.shouldApplyOverlay}"
+            android:onCheckedChanged="@{(switch, checked) -> overlayTarget.onCheckedChanged(switch, checked)}"/>
+
+        <Button
+            android:id="@+id/button_pick_video_overlay"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/pick_video_overlay"
+            android:padding="@dimen/cell_padding"
+            android:visibility="@{overlayTarget.shouldApplyOverlay ? View.VISIBLE : View.GONE}"/>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="@{overlayTarget.shouldApplyOverlay &amp;&amp; overlayTarget.uri != null ? View.VISIBLE : View.GONE}"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text = "@{overlayTarget.uri == null ? null : String.format(@string/source_path, overlayTarget.uri.toString())}"
+                android:padding="@dimen/cell_padding"/>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text = "@{overlayTarget == null ? null : String.format(@string/size, (float) overlayTarget.size / (1024 * 1024))}"
+                android:padding="@dimen/cell_padding"/>
+        </LinearLayout>
+
+    </LinearLayout>
+
+</layout>

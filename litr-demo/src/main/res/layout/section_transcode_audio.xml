@@ -1,0 +1,238 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2019 LinkedIn Corporation -->
+<!-- All Rights Reserved. -->
+<!-- -->
+<!-- Licensed under the BSD 2-Clause License (the "License").  See License in the project root -->
+<!-- for license information. -->
+<layout>
+    <data>
+        <import type="android.view.View"/>
+
+        <variable
+            name="sourceMedia"
+            type="com.linkedin.android.litr.demo.data.SourceMedia" />
+
+        <variable
+            name="audioTarget"
+            type="com.linkedin.android.litr.demo.data.AudioTarget" />
+    </data>
+
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="@dimen/section_margin">
+
+        <Switch
+            android:id="@+id/switch_transcode_audio"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/transcode_audio"
+            android:textStyle="bold"
+            android:enabled="@{sourceMedia != null}"
+            android:padding="@dimen/cell_padding"
+            android:onCheckedChanged="@{(switch, checked) -> audioTarget.onCheckedChanged(switch, checked)}"
+            android:visibility="@{(sourceMedia != null &amp;&amp; sourceMedia.audioMimeType != null) ? View.VISIBLE : View.GONE}"/>
+
+        <TableLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="@{audioTarget.shouldTranscodeAudio ? View.VISIBLE : View.GONE}">
+
+            <TableRow
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/track"
+                    android:paddingStart="@dimen/cell_padding"
+                    android:paddingEnd="@dimen/cell_padding"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@{sourceMedia != null ? Integer.toString(sourceMedia.audioTrack) : null}"
+                    android:textAlignment="textEnd"
+                    android:paddingStart="@dimen/cell_padding"
+                    android:paddingEnd="@dimen/cell_padding"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@{sourceMedia != null ? Integer.toString(sourceMedia.audioTrack) : null}"
+                    android:textAlignment="textEnd"
+                    android:paddingStart="@dimen/cell_padding"
+                    android:paddingEnd="@dimen/cell_padding"
+                    android:paddingTop="0dp"
+                    android:paddingBottom="@dimen/edit_text_padding"/>
+            </TableRow>
+
+            <TableRow
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/mime_type"
+                    android:paddingStart="@dimen/cell_padding"
+                    android:paddingEnd="@dimen/cell_padding"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@{sourceMedia != null ? sourceMedia.audioMimeType : null}"
+                    android:textAlignment="textEnd"
+                    android:paddingStart="@dimen/cell_padding"
+                    android:paddingEnd="@dimen/cell_padding"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@{sourceMedia != null ? sourceMedia.audioMimeType : null}"
+                    android:textAlignment="textEnd"
+                    android:paddingStart="@dimen/cell_padding"
+                    android:paddingEnd="@dimen/cell_padding"
+                    android:paddingTop="0dp"
+                    android:paddingBottom="@dimen/edit_text_padding"/>
+            </TableRow>
+
+            <TableRow
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/channel_count"
+                    android:paddingStart="@dimen/cell_padding"
+                    android:paddingEnd="@dimen/cell_padding"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@{sourceMedia != null ? Integer.toString(sourceMedia.audioChannelCount) : null}"
+                    android:textAlignment="textEnd"
+                    android:paddingStart="@dimen/cell_padding"
+                    android:paddingEnd="@dimen/cell_padding"/>
+
+                <TextView
+                    android:id="@+id/target_audio_channel_count"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@{sourceMedia != null ? Integer.toString(sourceMedia.audioChannelCount) : null}"
+                    android:textAlignment="textEnd"
+                    android:paddingStart="@dimen/cell_padding"
+                    android:paddingEnd="@dimen/cell_padding"
+                    android:paddingTop="0dp"
+                    android:paddingBottom="@dimen/edit_text_padding"/>
+            </TableRow>
+
+            <TableRow
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/sample_rate"
+                    android:paddingStart="@dimen/cell_padding"
+                    android:paddingEnd="@dimen/cell_padding"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@{sourceMedia != null ? Integer.toString(sourceMedia.audioSamplingRate) : null}"
+                    android:textAlignment="textEnd"
+                    android:paddingStart="@dimen/cell_padding"
+                    android:paddingEnd="@dimen/cell_padding"/>
+
+                <TextView
+                    android:id="@+id/target_audio_sample_rate"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@{sourceMedia != null ? Integer.toString(sourceMedia.audioSamplingRate) : null}"
+                    android:textAlignment="textEnd"
+                    android:paddingStart="@dimen/cell_padding"
+                    android:paddingEnd="@dimen/cell_padding"
+                    android:paddingTop="0dp"
+                    android:paddingBottom="@dimen/edit_text_padding"/>
+            </TableRow>
+
+            <TableRow
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/bitrate_kbps"
+                    android:paddingStart="@dimen/cell_padding"
+                    android:paddingEnd="@dimen/cell_padding"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@{sourceMedia != null ? Integer.toString(sourceMedia.audioBitrate) : null}"
+                    android:textAlignment="textEnd"
+                    android:paddingStart="@dimen/cell_padding"
+                    android:paddingEnd="@dimen/cell_padding"/>
+
+                <EditText
+                    android:id="@+id/target_audio_bitate"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@={audioTarget.targetBitrate}"
+                    android:textAlignment="textEnd"
+                    android:inputType="number"
+                    android:textSize="15sp"
+                    android:paddingStart="@dimen/cell_padding"
+                    android:paddingEnd="@dimen/cell_padding"
+                    android:paddingTop="0dp"
+                    android:paddingBottom="@dimen/edit_text_padding"
+                    android:enabled="@{audioTarget.shouldTranscodeAudio}"/>
+            </TableRow>
+
+            <TableRow
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/duration"
+                    android:paddingStart="@dimen/cell_padding"
+                    android:paddingEnd="@dimen/cell_padding"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@{sourceMedia != null ? Long.toString(sourceMedia.audioDuration) : null}"
+                    android:textAlignment="textEnd"
+                    android:paddingStart="@dimen/cell_padding"
+                    android:paddingEnd="@dimen/cell_padding"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@{sourceMedia != null ? Long.toString(sourceMedia.audioDuration) : null}"
+                    android:textAlignment="textEnd"
+                    android:paddingStart="@dimen/cell_padding"
+                    android:paddingEnd="@dimen/cell_padding"
+                    android:paddingTop="0dp"
+                    android:paddingBottom="@dimen/edit_text_padding"/>
+            </TableRow>
+
+        </TableLayout>
+
+    </LinearLayout>
+</layout>

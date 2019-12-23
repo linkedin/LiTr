@@ -1,0 +1,342 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2019 LinkedIn Corporation -->
+<!-- All Rights Reserved. -->
+<!-- -->
+<!-- Licensed under the BSD 2-Clause License (the "License").  See License in the project root -->
+<!-- for license information. -->
+<layout>
+    <data>
+        <import type="android.view.View"/>
+
+        <variable
+            name="sourceMedia"
+            type="com.linkedin.android.litr.demo.data.SourceMedia" />
+
+        <variable
+            name="videoTarget"
+            type="com.linkedin.android.litr.demo.data.VideoTarget" />
+    </data>
+
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="@dimen/section_margin">
+
+        <Switch
+            android:id="@+id/switch_transcode_video"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/transcode_video"
+            android:textStyle="bold"
+            android:enabled="@{sourceMedia != null}"
+            android:padding="@dimen/cell_padding"
+            android:checked="@={videoTarget.shouldTranscodeVideo}"
+            android:onCheckedChanged="@{(switch, checked) -> videoTarget.onCheckedChanged(switch, checked)}"/>
+
+        <TableLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:visibility="@{videoTarget.shouldTranscodeVideo ? View.VISIBLE : View.GONE}">
+
+            <TableRow
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/track"
+                    android:paddingStart="@dimen/cell_padding"
+                    android:paddingEnd="@dimen/cell_padding"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@{sourceMedia != null ? Integer.toString(sourceMedia.videoTrack) : null}"
+                    android:textAlignment="textEnd"
+                    android:paddingStart="@dimen/cell_padding"
+                    android:paddingEnd="@dimen/cell_padding"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@{sourceMedia != null ? Integer.toString(sourceMedia.videoTrack) : null}"
+                    android:textAlignment="textEnd"
+                    android:paddingStart="@dimen/cell_padding"
+                    android:paddingEnd="@dimen/cell_padding"
+                    android:paddingTop="0dp"
+                    android:paddingBottom="@dimen/edit_text_padding"/>
+            </TableRow>
+
+            <TableRow
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/mime_type"
+                    android:paddingStart="@dimen/cell_padding"
+                    android:paddingEnd="@dimen/cell_padding"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@{sourceMedia != null ? sourceMedia.videoMimeType : null}"
+                    android:textAlignment="textEnd"
+                    android:paddingStart="@dimen/cell_padding"
+                    android:paddingEnd="@dimen/cell_padding"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/default_video_mime_type"
+                    android:textAlignment="textEnd"
+                    android:paddingStart="@dimen/cell_padding"
+                    android:paddingEnd="@dimen/cell_padding"
+                    android:paddingTop="0dp"
+                    android:paddingBottom="@dimen/edit_text_padding"/>
+            </TableRow>
+
+            <TableRow
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/width"
+                    android:paddingStart="@dimen/cell_padding"
+                    android:paddingEnd="@dimen/cell_padding"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@{sourceMedia != null ? Integer.toString(sourceMedia.videoWidth) : null}"
+                    android:textAlignment="textEnd"
+                    android:paddingStart="@dimen/cell_padding"
+                    android:paddingEnd="@dimen/cell_padding"/>
+
+                <EditText
+                    android:id="@+id/target_video_width"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@={videoTarget.targetWidth}"
+                    android:inputType="number"
+                    android:textAlignment="textEnd"
+                    android:paddingStart="@dimen/cell_padding"
+                    android:paddingEnd="@dimen/cell_padding"
+                    android:paddingTop="0dp"
+                    android:paddingBottom="@dimen/edit_text_padding"
+                    android:textSize="15sp"
+                    android:enabled="@{videoTarget.shouldTranscodeVideo}"/>
+            </TableRow>
+
+            <TableRow
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/height"
+                    android:paddingStart="@dimen/cell_padding"
+                    android:paddingEnd="@dimen/cell_padding"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@{sourceMedia != null ? Integer.toString(sourceMedia.videoHeight) : null}"
+                    android:textAlignment="textEnd"
+                    android:paddingStart="@dimen/cell_padding"
+                    android:paddingEnd="@dimen/cell_padding"/>
+
+                <EditText
+                    android:id="@+id/target_video_height"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@={videoTarget.targetHeight}"
+                    android:inputType="number"
+                    android:textAlignment="textEnd"
+                    android:paddingStart="@dimen/cell_padding"
+                    android:paddingEnd="@dimen/cell_padding"
+                    android:paddingTop="0dp"
+                    android:paddingBottom="@dimen/edit_text_padding"
+                    android:textSize="15sp"
+                    android:enabled="@{videoTarget.shouldTranscodeVideo}"/>
+            </TableRow>
+
+            <TableRow
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/bitrate_mbps"
+                    android:paddingStart="@dimen/cell_padding"
+                    android:paddingEnd="@dimen/cell_padding"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@{sourceMedia != null ? Integer.toString(sourceMedia.videoBitrate) : null}"
+                    android:textAlignment="textEnd"
+                    android:paddingStart="@dimen/cell_padding"
+                    android:paddingEnd="@dimen/cell_padding"/>
+
+                <EditText
+                    android:id="@+id/target_video_bitrate"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@={videoTarget.targetBitrate}"
+                    android:inputType="number"
+                    android:textAlignment="textEnd"
+                    android:paddingStart="@dimen/cell_padding"
+                    android:paddingEnd="@dimen/cell_padding"
+                    android:paddingTop="0dp"
+                    android:paddingBottom="@dimen/edit_text_padding"
+                    android:textSize="15sp"
+                    android:enabled="@{videoTarget.shouldTranscodeVideo}"/>
+            </TableRow>
+
+            <TableRow
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/key_frame_interval"
+                    android:paddingStart="@dimen/cell_padding"
+                    android:paddingEnd="@dimen/cell_padding"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@{sourceMedia != null ? Integer.toString(sourceMedia.videoKeyFrameInterval) : null}"
+                    android:textAlignment="textEnd"
+                    android:paddingStart="@dimen/cell_padding"
+                    android:paddingEnd="@dimen/cell_padding"/>
+
+                <EditText
+                    android:id="@+id/target_video_key_frame_interval"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@={videoTarget.targetKeyFrameInterval}"
+                    android:inputType="number"
+                    android:textAlignment="textEnd"
+                    android:paddingStart="@dimen/cell_padding"
+                    android:paddingEnd="@dimen/cell_padding"
+                    android:paddingTop="0dp"
+                    android:paddingBottom="@dimen/edit_text_padding"
+                    android:textSize="15sp"
+                    android:enabled="@{videoTarget.shouldTranscodeVideo}"/>
+            </TableRow>
+
+            <TableRow
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/frame_rate"
+                    android:paddingStart="@dimen/cell_padding"
+                    android:paddingEnd="@dimen/cell_padding"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@{sourceMedia != null ? Integer.toString(sourceMedia.videoFrameRate) : null}"
+                    android:textAlignment="textEnd"
+                    android:paddingStart="@dimen/cell_padding"
+                    android:paddingEnd="@dimen/cell_padding"/>
+
+                <TextView
+                    android:id="@+id/target_video_frame_rate"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@{sourceMedia != null ? Integer.toString(sourceMedia.videoFrameRate) : null}"
+                    android:textAlignment="textEnd"
+                    android:paddingStart="@dimen/cell_padding"
+                    android:paddingEnd="@dimen/cell_padding"
+                    android:paddingTop="0dp"
+                    android:paddingBottom="@dimen/edit_text_padding"/>
+            </TableRow>
+
+            <TableRow
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/rotation"
+                    android:paddingStart="@dimen/cell_padding"
+                    android:paddingEnd="@dimen/cell_padding"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@{sourceMedia != null ? Integer.toString(sourceMedia.videoRotation) : null}"
+                    android:textAlignment="textEnd"
+                    android:paddingStart="@dimen/cell_padding"
+                    android:paddingEnd="@dimen/cell_padding"/>
+
+                <TextView
+                    android:id="@+id/target_video_rotation"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@{sourceMedia != null ? Integer.toString(sourceMedia.videoRotation) : null}"
+                    android:textAlignment="textEnd"
+                    android:paddingStart="@dimen/cell_padding"
+                    android:paddingEnd="@dimen/cell_padding"
+                    android:paddingTop="0dp"
+                    android:paddingBottom="@dimen/edit_text_padding"/>
+            </TableRow>
+
+            <TableRow
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/duration"
+                    android:paddingStart="@dimen/cell_padding"
+                    android:paddingEnd="@dimen/cell_padding"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@{sourceMedia != null ? Long.toString(sourceMedia.videoDuration) : null}"
+                    android:textAlignment="textEnd"
+                    android:paddingStart="@dimen/cell_padding"
+                    android:paddingEnd="@dimen/cell_padding"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@{sourceMedia != null ? Long.toString(sourceMedia.videoDuration) : null}"
+                    android:textAlignment="textEnd"
+                    android:paddingStart="@dimen/cell_padding"
+                    android:paddingEnd="@dimen/cell_padding"
+                    android:paddingTop="0dp"
+                    android:paddingBottom="@dimen/edit_text_padding"/>
+            </TableRow>
+
+        </TableLayout>
+
+    </LinearLayout>
+</layout>

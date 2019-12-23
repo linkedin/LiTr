@@ -16,6 +16,10 @@ android {
         checkTestSources true
         checkReleaseBuilds false
     }
+
+    dataBinding {
+        enabled = true
+    }
 }
 
 dependencies {

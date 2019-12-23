@@ -8,34 +8,24 @@
 
     <string name="demo_case_transcode_video_gl">Transcode Video (GL Renderer)</string>
 
+    <string name="apply_overlay">Apply Overlay</string>
+    <string name="transcode_video">Transcode Video</string>
+    <string name="transcode_audio">Transcode Audio</string>
+
     <string name="pick_video">Pick Video</string>
     <string name="pick_video_overlay">Pick Video Overlay</string>
-    <string name="source_path" formatted="true">Source: %s</string>
-
+    <string name="source_path" formatted="true">Uri: %s</string>
     <string name="size" formatted="true">Size: %.2f MB</string>
 
-    <string name="target_height">Height</string>
-    <string name="target_width">Width</string>
-    <string name="target_bitrate">Bitrate (Mbps)</string>
-    <string name="target_key_frame_interval">Key Frame Interval (s)</string>
-
-    <string name="target_transcode_audio">Transcode audio</string>
-    <string name="target_audio_bitrate">Audio bitrate (Kbps)</string>
-
-    <string name="default_height">720</string>
-    <string name="default_width">1280</string>
-    <string name="default_bitrate">3.3</string>
-    <string name="default_key_frame_interval">3</string>
-    <string name="default_audio_bitrate">128</string>
+    <string name="default_video_mime_type">video/avc</string>
 
     <string name="transcode">Transcode</string>
-    <string name="estimated_target_size">Estimated target size: %.2f MB</string>
     <string name="cancel">Cancel</string>
 
     <string name="target_path" formatted="true">Target: %s</string>
     <string name="play">Play</string>
 
-    <string name="pick_source_video">Pick Source Video</string>
+    <string name="pick_media">Pick Media</string>
     <string name="cancelled">Transcoding cancelled</string>
     <string name="transcoding_error">Transcoding Error: %s</string>
     <string name="unknown_error">Unknown</string>
@@ -73,26 +63,40 @@
     <string name="audio_bitrate">Audio bitrate: %d Kbps\n</string>
     <string name="audio_sample_rate">Audio sample rate: %d KHz\n</string>
     <string name="audio_channels">Audio channels: %d\n</string>
+    <string name="bitrate">Bitrate: %d (Mbps)\n</string>
 
-    <string name="track" formatted="true">Track %d:\n</string>
-    <string name="mime_type" formatted="true">MIME type: %s\n</string>
-    <string name="width" formatted="true">Width: %d\n</string>
-    <string name="height" formatted="true">Height: %d\n</string>
-    <string name="rotation" formatted="true">Rotation: %d\n</string>
-    <string name="duration" formatted="true">Duration: %d \u03BCs\n</string>
-    <string name="bitrate" formatted="true">Bitrate: %d bps\n</string>
-    <string name="frame_rate" formatted="true">Frame Rate %d fps\n</string>
-    <string name="key_frame_interval" formatted="true">Key Frame Interval: %d s\n</string>
-    <string name="channel_count" formatted="true">Channels: %d\n</string>
-    <string name="sample_rate" formatted="true">Sample Rate: %d Hz\n</string>
-
-    <string name="source_format">Source Format\n</string>
-    <string name="target_format">Target Format\n</string>
-
-    <string name="decoder" formatted="true">Decoder: %s\n</string>
-    <string name="encoder" formatted="true">Encoder: %s\n</string>
-    <string name="transformation_duration" formatted="true">Transformation duration: %d ms\n</string>
+    <string name="track" >Track</string>
+    <string name="mime_type">MIME type</string>
+    <string name="width">Width (pixels)</string>
+    <string name="height">Height (pixels)</string>
+    <string name="rotation">Rotation (degrees)</string>
+    <string name="duration">Duration (\u03bcs)</string>
+    <string name="bitrate_mbps">Bitrate (Mbps)</string>
+    <string name="bitrate_kbps">Bitrate (Kbps)</string>
+    <string name="frame_rate">Frame Rate (fps)</string>
+    <string name="key_frame_interval">Key Frame Interval (s)</string>
+    <string name="channel_count">Channels</string>
+    <string name="sample_rate">Sample Rate</string>
 
     <string name="no_transformation_stats">No transformation stats available</string>
+
+    <string name="stats_track" formatted="true">Track: %d\n</string>
+    <string name="stats_mime_type" formatted="true">MIME type: %s\n</string>
+    <string name="stats_width" formatted="true">Width: %d\n</string>
+    <string name="stats_height" formatted="true">Height: %d\n</string>
+    <string name="stats_bitrate" formatted="true">Bitrate: %d\n</string>
+    <string name="stats_duration" formatted="true">Duration: %d\n</string>
+    <string name="stats_frame_rate" formatted="true">Frame Rate: %d\n</string>
+    <string name="stats_key_frame_interval" formatted="true">Key Frame Interval: %d\n</string>
+    <string name="stats_rotation" formatted="true">Rotation: %d\n</string>
+    <string name="stats_channel_count" formatted="true">Channel Count: %d\n</string>
+    <string name="stats_sampling_rate" formatted="true">Sampling Rate: %d\n</string>
+
+    <string name="stats_source_format">Source Format\n</string>
+    <string name="stats_target_format">Target Format\n</string>
+
+    <string name="stats_decoder" formatted="true">Decoder: %s\n</string>
+    <string name="stats_encoder" formatted="true">Encoder: %s\n</string>
+    <string name="stats_transformation_duration" formatted="true">Transformation duration: %d ms\n</string>
 
 </resources>

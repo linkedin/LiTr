@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2019 LinkedIn Corporation -->
+<!-- All Rights Reserved. -->
+<!-- -->
+<!-- Licensed under the BSD 2-Clause License (the "License").  See License in the project root -->
+<!-- for license information. -->
+<resources>
+    <dimen name="cell_padding">5dp</dimen>
+    <dimen name="section_margin">10dp</dimen>
+    <dimen name="edit_text_padding">4dp</dimen>
+    <dimen name="progress_bar_height">10dp</dimen>
+</resources>

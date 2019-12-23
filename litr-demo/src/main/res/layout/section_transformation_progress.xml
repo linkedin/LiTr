@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2019 LinkedIn Corporation -->
+<!-- All Rights Reserved. -->
+<!-- -->
+<!-- Licensed under the BSD 2-Clause License (the "License").  See License in the project root -->
+<!-- for license information. -->
+<layout xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <data>
+        <import type="android.view.View"/>
+
+        <variable
+            name="transformationState"
+            type="com.linkedin.android.litr.demo.data.TransformationState" />
+
+        <variable
+            name="presenter"
+            type="com.linkedin.android.litr.demo.data.TransformationPresenter" />
+    </data>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="@dimen/cell_padding">
+
+        <ProgressBar
+            android:id="@+id/progressBar"
+            android:layout_width="0dp"
+            android:layout_height="@dimen/progress_bar_height"
+            android:layout_weight="1"
+            android:layout_gravity="center_vertical"
+            android:progress="@{transformationState.progress}"
+            style="@android:style/Widget.ProgressBar.Horizontal"/>
+
+        <Button
+            android:id="@+id/button_cancel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/cancel"
+            android:enabled="@{transformationState.state == transformationState.STATE_RUNNING}"
+            android:onClick="@{() -> presenter.cancelTransformation(transformationState.requestId)}"/>
+    </LinearLayout>
+
+</layout>
