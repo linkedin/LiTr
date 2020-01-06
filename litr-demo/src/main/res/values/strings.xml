@@ -7,8 +7,7 @@
     <string name="app_name">LiTr</string>
 
     <string name="demo_case_transcode_video_gl">Transcode Video (GL Renderer)</string>
-    <string name="demo_case_extract_video_track">Extract Video Track</string>
-    <string name="demo_case_extract_audio_track">Extract Audio Track</string>
+    <string name="demo_case_extract_track">Extract Track</string>
 
     <string name="apply_overlay">Apply Overlay</string>
     <string name="transcode_video">Transcode Video</string>
@@ -26,6 +25,11 @@
 
     <string name="target_path" formatted="true">Target: %s</string>
     <string name="play">Play</string>
+
+    <string name="select_track">Select Track</string>
+    <string name="video_track">Video Track</string>
+    <string name="audio_track">Audio Track</string>
+    <string name="extract">Extract</string>
 
     <string name="pick_media">Pick Media</string>
     <string name="cancelled">Transcoding cancelled</string>
