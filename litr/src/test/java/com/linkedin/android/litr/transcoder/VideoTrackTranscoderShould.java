@@ -102,6 +102,7 @@ public class VideoTrackTranscoderShould {
         videoTrackTranscoder = spy(new VideoTrackTranscoder(mediaSource,
                                                             VIDEO_TRACK,
                                                             mediaTarget,
+                                                            VIDEO_TRACK,
                                                             targetVideoFormat,
                                                             renderer,
                                                             decoder,
@@ -120,6 +121,7 @@ public class VideoTrackTranscoderShould {
         VideoTrackTranscoder videoTrackTranscoder = spy(new VideoTrackTranscoder(mediaSource,
                                                                                  VIDEO_TRACK,
                                                                                  mediaTarget,
+                                                                                 VIDEO_TRACK,
                                                                                  targetVideoFormat,
                                                                                  renderer,
                                                                                  decoder,
@@ -137,6 +139,7 @@ public class VideoTrackTranscoderShould {
        VideoTrackTranscoder videoTrackTranscoder = new VideoTrackTranscoder(mediaSource,
                                                                             VIDEO_TRACK,
                                                                             mediaTarget,
+                                                                            VIDEO_TRACK,
                                                                             targetVideoFormat,
                                                                             renderer,
                                                                             decoder,
@@ -155,6 +158,7 @@ public class VideoTrackTranscoderShould {
         VideoTrackTranscoder videoTrackTranscoder = new VideoTrackTranscoder(mediaSource,
                                                                              VIDEO_TRACK,
                                                                              mediaTarget,
+                                                                             VIDEO_TRACK,
                                                                              targetVideoFormat,
                                                                              renderer,
                                                                              decoder,
@@ -173,6 +177,7 @@ public class VideoTrackTranscoderShould {
         VideoTrackTranscoder videoTrackTranscoder = spy(new VideoTrackTranscoder(mediaSource,
                                                                                  VIDEO_TRACK,
                                                                                  mediaTarget,
+                                                                                 VIDEO_TRACK,
                                                                                  targetVideoFormat,
                                                                                  renderer,
                                                                                  decoder,
@@ -201,6 +206,7 @@ public class VideoTrackTranscoderShould {
         VideoTrackTranscoder videoTrackTranscoder = new VideoTrackTranscoder(mediaSource,
                                                                              VIDEO_TRACK,
                                                                              mediaTarget,
+                                                                             VIDEO_TRACK,
                                                                              targetVideoFormat,
                                                                              renderer,
                                                                              decoder,
@@ -384,7 +390,6 @@ public class VideoTrackTranscoderShould {
         videoTrackTranscoder.lastExtractFrameResult = TrackTranscoder.RESULT_EOS_REACHED;
         videoTrackTranscoder.lastDecodeFrameResult = TrackTranscoder.RESULT_EOS_REACHED;
         videoTrackTranscoder.lastEncodeFrameResult = TrackTranscoder.RESULT_FRAME_PROCESSED;
-        videoTrackTranscoder.targetTrack = TrackTranscoder.NO_SELECTED_TRACK;
 
         MediaFormat encoderMediaFormat = new MediaFormat();
         doReturn(MediaCodec.INFO_OUTPUT_FORMAT_CHANGED).when(encoder).dequeueOutputFrame(anyLong());

@@ -13,6 +13,7 @@ import androidx.databinding.BaseObservable;
 public class AudioTarget extends BaseObservable implements CompoundButton.OnCheckedChangeListener {
 
     public boolean shouldTranscodeAudio;
+    public boolean shouldKeepTrack;
     public String targetBitrate;
 
     public AudioTarget() {
@@ -22,6 +23,7 @@ public class AudioTarget extends BaseObservable implements CompoundButton.OnChec
     @Override
     public void onCheckedChanged(CompoundButton button, boolean checked) {
         shouldTranscodeAudio = checked;
+        shouldKeepTrack = checked;
         notifyChange();
     }
 }

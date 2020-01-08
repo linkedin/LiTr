@@ -33,6 +33,9 @@ public class TrackTranscoderException extends MediaTransformationException {
     private static final String NO_TRACKS_FOUND_ERROR_TEXT = "No tracks found.";
     private static final String INTERNAL_CODEC_ERROR_TEXT = "Internal codec error occurred.";
     private static final String NO_FRAME_AVAILABLE_ERROR_TEXT = "No frame available for specified tag";
+    private static final String DECODER_NOT_PROVIDED_TEXT = "Decoder is not provided";
+    private static final String ENCODER_NOT_PROVIDED_TEXT = "Encoder is not provided";
+    private static final String RENDERER_NOT_PROVIDED_TEXT = "Renderer is not provided";
 
     @NonNull private final Error error;
     @Nullable private final MediaFormat mediaFormat;
@@ -52,7 +55,10 @@ public class TrackTranscoderException extends MediaTransformationException {
         SOURCE_TRACK_MIME_TYPE_NOT_FOUND(SOURCE_TRACK_MIME_TYPE_NOT_FOUND_ERROR_TEXT),
         NO_TRACKS_FOUND(NO_TRACKS_FOUND_ERROR_TEXT),
         INTERNAL_CODEC_ERROR(INTERNAL_CODEC_ERROR_TEXT),
-        NO_FRAME_AVAILABLE(NO_FRAME_AVAILABLE_ERROR_TEXT);
+        NO_FRAME_AVAILABLE(NO_FRAME_AVAILABLE_ERROR_TEXT),
+        DECODER_NOT_PROVIDED(DECODER_NOT_PROVIDED_TEXT),
+        ENCODER_NOT_PROVIDED(ENCODER_NOT_PROVIDED_TEXT),
+        RENDERER_NOT_PROVIDED(RENDERER_NOT_PROVIDED_TEXT);
 
         private final String message;
 

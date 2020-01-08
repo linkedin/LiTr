@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2019 LinkedIn Corporation -->
+<!-- All Rights Reserved. -->
+<!-- -->
+<!-- Licensed under the BSD 2-Clause License (the "License").  See License in the project root -->
+<!-- for license information. -->
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <data>
+        <import type="android.view.View"/>
+
+        <variable
+            name="sourceMedia"
+            type="com.linkedin.android.litr.demo.data.SourceMedia" />
+
+        <variable
+            name="videoTarget"
+            type="com.linkedin.android.litr.demo.data.VideoTarget" />
+
+        <variable
+            name="audioTarget"
+            type="com.linkedin.android.litr.demo.data.AudioTarget" />
+
+        <variable
+            name="overlayTarget"
+            type="com.linkedin.android.litr.demo.data.OverlayTarget" />
+
+        <variable
+            name="transformationState"
+            type="com.linkedin.android.litr.demo.data.TransformationState" />
+
+        <variable
+            name="presenter"
+            type="com.linkedin.android.litr.demo.data.TransformationPresenter" />
+
+    </data>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <include layout="@layout/section_pick_video"
+                android:id="@+id/section_pick_video"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:sourceMedia="@{sourceMedia}"/>
+
+            <include layout="@layout/section_select_track"
+                android:id="@+id/section_select_track"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:sourceMedia = "@{sourceMedia}"
+                app:videoTarget = "@{videoTarget}"
+                app:audioTarget = "@{audioTarget}"/>
+
+            <Button
+                android:id="@+id/button_extract_track"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/extract"
+                android:padding="@dimen/cell_padding"
+                android:enabled="@{sourceMedia != null &amp;&amp; (videoTarget.shouldKeepTrack || audioTarget.shouldKeepTrack) &amp;&amp; transformationState.state != transformationState.STATE_RUNNING}"
+                android:onClick="@{() -> presenter.startTransformation(sourceMedia, videoTarget, audioTarget, overlayTarget, transformationState)}"/>
+
+            <include layout="@layout/section_transformation_progress"
+                android:id="@+id/section_transformation_progress"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="@dimen/cell_padding"
+                android:visibility="@{transformationState.state == transformationState.STATE_IDLE ? View.GONE : View.VISIBLE}"
+                app:transformationState="@{transformationState}"
+                app:presenter="@{presenter}"/>
+
+            <Button
+                android:id="@+id/button_play"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/play"
+                android:enabled="@{transformationState.state == transformationState.STATE_COMPLETED}"
+                android:padding="@dimen/cell_padding"
+                android:onClick="@{() -> presenter.play(transformationState.targetFile)}"/>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:padding="@dimen/cell_padding"
+                android:text="@{transformationState.stats}"
+                android:visibility="@{transformationState.stats == null ? View.GONE : View.VISIBLE}"/>
+
+        </LinearLayout>
+
+    </ScrollView>
+
+</layout>

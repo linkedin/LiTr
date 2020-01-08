@@ -29,56 +29,71 @@ public class TrackTranscoderFactory {
     /**
      * Create a proper transcoder for a given source track and target media format.
      *
-     * @param sourceTrack       source track id
-     * @param sourceMediaFormat source track media format
-     * @param mediaSource    {@link MediaExtractor} for reading data from the source
-     * @param mediaTarget        {@link MediaTarget} for writing data to the target
-     * @param targetVideoFormat {@link MediaFormat} with target video track parameters, null if writing "as is"
-     * @param targetAudioFormat {@link MediaFormat} with target audio track parameters, null if writing "as is"
+     * @param sourceTrack  source track id
+     * @param mediaSource  {@link MediaExtractor} for reading data from the source
+     * @param mediaTarget  {@link MediaTarget} for writing data to the target
+     * @param targetFormat {@link MediaFormat} with target video track parameters, null if writing "as is"
      * @return implementation of {@link TrackTranscoder} for a given track
      */
     @NonNull
     public TrackTranscoder create(int sourceTrack,
-                                  @NonNull MediaFormat sourceMediaFormat,
+                                  int targetTrack,
                                   @NonNull MediaSource mediaSource,
-                                  @NonNull Decoder decoder,
-                                  @NonNull VideoRenderer videoRenderer,
-                                  @NonNull Encoder encoder,
+                                  @Nullable Decoder decoder,
+                                  @Nullable VideoRenderer renderer,
+                                  @Nullable Encoder encoder,
                                   @NonNull MediaTarget mediaTarget,
-                                  @Nullable MediaFormat targetVideoFormat,
-                                  @Nullable MediaFormat targetAudioFormat) throws TrackTranscoderException {
-        String trackMimeType = sourceMediaFormat.getString(MediaFormat.KEY_MIME);
+                                  @Nullable MediaFormat targetFormat) throws TrackTranscoderException {
+        if (targetFormat == null) {
+            return new PassthroughTranscoder(mediaSource, sourceTrack, mediaTarget, targetTrack);
+        }
+
+        String trackMimeType = targetFormat.getString(MediaFormat.KEY_MIME);
         if (trackMimeType == null) {
-            throw new TrackTranscoderException(TrackTranscoderException.Error.SOURCE_TRACK_MIME_TYPE_NOT_FOUND, sourceMediaFormat, null, null);
+            throw new TrackTranscoderException(TrackTranscoderException.Error.SOURCE_TRACK_MIME_TYPE_NOT_FOUND, targetFormat, null, null);
+        }
+
+        if (trackMimeType.startsWith("video") || trackMimeType.startsWith("audio")) {
+            if (decoder == null) {
+                throw new TrackTranscoderException(TrackTranscoderException.Error.DECODER_NOT_PROVIDED,
+                                                   targetFormat,
+                                                   null,
+                                                   null);
+            } else if (encoder == null) {
+                throw new TrackTranscoderException(TrackTranscoderException.Error.ENCODER_NOT_PROVIDED,
+                                                   targetFormat,
+                                                   null,
+                                                   null);
+            }
+        }
+        // TODO move into statement above when audio renderer is implemented
+        if (trackMimeType.startsWith("video") && renderer == null) {
+            throw new TrackTranscoderException(TrackTranscoderException.Error.RENDERER_NOT_PROVIDED,
+                                               targetFormat,
+                                               null,
+                                               null);
         }
 
         if (trackMimeType.startsWith("video")) {
-            if (targetVideoFormat == null) {
-                Log.d(TAG, "No target video format, using passthrough transcoder for video");
-            } else {
-                return new VideoTrackTranscoder(mediaSource,
-                                                sourceTrack,
-                                                mediaTarget,
-                                                targetVideoFormat,
-                                                videoRenderer,
-                                                decoder,
-                                                encoder);
-            }
+            return new VideoTrackTranscoder(mediaSource,
+                                            sourceTrack,
+                                            mediaTarget,
+                                            targetTrack,
+                                            targetFormat,
+                                            renderer,
+                                            decoder,
+                                            encoder);
         } else if (trackMimeType.startsWith("audio")) {
-            if (targetAudioFormat == null) {
-                Log.d(TAG, "No target audio format, using passthrough transcoder for audio");
-            } else {
-                return new AudioTrackTranscoder(mediaSource,
-                                                sourceTrack,
-                                                mediaTarget,
-                                                targetAudioFormat,
-                                                new MediaCodecDecoder(),
-                                                new MediaCodecEncoder());
-            }
+            return new AudioTrackTranscoder(mediaSource,
+                                            sourceTrack,
+                                            mediaTarget,
+                                            targetTrack,
+                                            targetFormat,
+                                            new MediaCodecDecoder(),
+                                            new MediaCodecEncoder());
         } else {
-            Log.e(TAG, "Unsupported track mime type: " + trackMimeType + ", will use passthrough transcoder");
+            Log.i(TAG, "Unsupported track mime type: " + trackMimeType + ", will use passthrough transcoder");
+            return new PassthroughTranscoder(mediaSource, sourceTrack, mediaTarget, targetTrack);
         }
-
-        return new PassthroughTranscoder(mediaSource, sourceTrack, mediaTarget);
     }
 }

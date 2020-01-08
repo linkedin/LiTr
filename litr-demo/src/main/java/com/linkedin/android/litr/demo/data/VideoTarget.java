@@ -13,6 +13,7 @@ import androidx.databinding.BaseObservable;
 public class VideoTarget extends BaseObservable implements CompoundButton.OnCheckedChangeListener {
 
     public boolean shouldTranscodeVideo;
+    public boolean shouldKeepTrack;
     public String targetWidth;
     public String targetHeight;
     public String targetBitrate;
@@ -28,6 +29,7 @@ public class VideoTarget extends BaseObservable implements CompoundButton.OnChec
     @Override
     public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
         shouldTranscodeVideo = b;
+        shouldKeepTrack = b;
         notifyChange();
     }
 }

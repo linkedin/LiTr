@@ -43,19 +43,18 @@ public class VideoTrackTranscoder extends TrackTranscoder {
     VideoTrackTranscoder(@NonNull MediaSource mediaSource,
                          int sourceTrack,
                          @NonNull MediaTarget mediaTarget,
+                         int targetTrack,
                          @NonNull MediaFormat targetFormat,
                          @NonNull VideoRenderer renderer,
                          @NonNull Decoder decoder,
                          @NonNull Encoder encoder) throws TrackTranscoderException {
-        super(mediaSource, sourceTrack, mediaTarget, targetFormat, decoder, encoder);
+        super(mediaSource, sourceTrack, mediaTarget, targetTrack, targetFormat, decoder, encoder);
 
         lastExtractFrameResult = RESULT_FRAME_PROCESSED;
         lastDecodeFrameResult = RESULT_FRAME_PROCESSED;
         lastEncodeFrameResult = RESULT_FRAME_PROCESSED;
 
         targetVideoFormat = targetFormat;
-
-        targetTrack = NO_SELECTED_TRACK;
 
         if (!(renderer instanceof GlVideoRenderer)) {
             throw new IllegalArgumentException("Cannot use non-OpenGL video renderer in " + VideoTrackTranscoder.class.getSimpleName());
@@ -253,8 +252,9 @@ public class VideoTrackTranscoder extends TrackTranscoder {
                 case MediaCodec.INFO_OUTPUT_FORMAT_CHANGED:
                     // TODO for now, we assume that we only get one media format as a first buffer
                     MediaFormat outputMediaFormat = encoder.getOutputFormat();
-                    if (targetTrack == NO_SELECTED_TRACK) {
-                        targetTrack = mediaMuxer.addTrack(outputMediaFormat, sourceTrack);
+                    if (!targetTrackAdded) {
+                        targetTrack = mediaMuxer.addTrack(outputMediaFormat, targetTrack);
+                        targetTrackAdded = true;
                     }
                     encodeFrameResult = RESULT_OUTPUT_MEDIA_FORMAT_CHANGED;
                     Log.d(TAG, "Encoder output format received " + outputMediaFormat);

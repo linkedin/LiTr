@@ -12,6 +12,7 @@ import android.util.Log;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.VisibleForTesting;
+import com.linkedin.android.litr.TrackTransform;
 import com.linkedin.android.litr.io.MediaSource;
 
 import java.util.ArrayList;
@@ -29,51 +30,40 @@ public final class TranscoderUtils {
     private static final int BITS_IN_BYTE = 8;
 
     // Private constructor to prevent unintended instantiation of the TranscoderUtils class.
-    private TranscoderUtils() {
-    }
+    private TranscoderUtils() {}
 
-    public static long getEstimatedTargetVideoFileSize(@NonNull MediaSource mediaSource,
-                                                       @NonNull MediaFormat targetVideoFormat,
-                                                       @Nullable MediaFormat targetAudioFormat) {
+    /**
+     * Estimate total target file size(s) for track transformation
+     * @param trackTransforms track transformations
+     * @return estimated size, zero if estimation fails
+     */
+    public static long getEstimatedTargetFileSize(@NonNull List<TrackTransform> trackTransforms) {
         long estimatedFileSize = 0;
-
-        int trackCount = mediaSource.getTrackCount();
-        List<MediaFormat> trackFormats = new ArrayList<>(trackCount);
 
         // calculate maximum track duration, we might need it later
         long maxDurationUs = 0;
-        for (int track = 0; track < trackCount; track++) {
-            MediaFormat mediaFormat = mediaSource.getTrackFormat(track);
-            trackFormats.add(mediaFormat);
-            long durationUs = mediaFormat.getLong(MediaFormat.KEY_DURATION);
+        for (TrackTransform trackTransform : trackTransforms) {
+            MediaFormat trackFormat = trackTransform.getMediaSource().getTrackFormat(trackTransform.getSourceTrack());
+            long durationUs = trackFormat.getLong(MediaFormat.KEY_DURATION);
             maxDurationUs = Math.max(durationUs, maxDurationUs);
         }
 
-        for (MediaFormat trackFormat : trackFormats) {
-            String mimeType = getMimeType(trackFormat);
-            int bitrate = getBitrate(trackFormat);
-            long duration = getDuration(trackFormat);
+        for (TrackTransform trackTransform : trackTransforms) {
+            MediaFormat sourceTrackFormat = trackTransform.getMediaSource().getTrackFormat(trackTransform.getSourceTrack());
+            int bitrate = getBitrate(sourceTrackFormat);
+            long duration = getDuration(sourceTrackFormat);
 
             if (duration < 0) {
                 Log.d(TAG, "Track duration is not available, using maximum duration");
                 duration = maxDurationUs;
             }
 
-            if (mimeType == null) {
-                Log.e(TAG, "No mime type for the track!");
-            } else {
-                if (mimeType.startsWith("video")) {
-                    // if video track, use transcoding target bitrate
-                    bitrate = targetVideoFormat.getInteger(MediaFormat.KEY_BIT_RATE);
-                } else {
-                    // everything else is passthrough, so use source bitrate
-                    if (mimeType.startsWith("audio") && bitrate < 0) {
-                        if (targetAudioFormat != null) {
-                            bitrate = targetAudioFormat.getInteger(MediaFormat.KEY_BIT_RATE);
-                        } else {
-                            bitrate = COMMON_AUDIO_BITRATE_KBPS * BITS_IN_KILO;
-                        }
-                    }
+            String mimeType = getMimeType(sourceTrackFormat);
+            if (mimeType != null) {
+                if (trackTransform.getTargetFormat() != null) {
+                    bitrate = trackTransform.getTargetFormat().getInteger(MediaFormat.KEY_BIT_RATE);
+                } else if (mimeType.startsWith("audio") && bitrate < 0) {
+                    bitrate = COMMON_AUDIO_BITRATE_KBPS * BITS_IN_KILO;
                 }
             }
 
@@ -88,6 +78,35 @@ public final class TranscoderUtils {
         estimatedFileSize /= BITS_IN_BYTE;
 
         return estimatedFileSize;
+    }
+
+    /**
+     * Estimate target file size for a video with one video and one audio track
+     * @param mediaSource source video
+     * @param targetVideoFormat target video format
+     * @param targetAudioFormat target audio format, null if not transformed
+     * @return estimated size in bytes, zero if estimation fails
+     */
+    public static long getEstimatedTargetVideoFileSize(@NonNull MediaSource mediaSource,
+                                                       @NonNull MediaFormat targetVideoFormat,
+                                                       @Nullable MediaFormat targetAudioFormat) {
+        List<TrackTransform> trackTransforms = new ArrayList<>(mediaSource.getTrackCount());
+        for (int track = 0; track < mediaSource.getTrackCount(); track++) {
+            MediaFormat sourceMediaFormat = mediaSource.getTrackFormat(track);
+            // we are passing null for MediaTarget here, because MediaTarget is not used when estimating target size
+            TrackTransform.Builder trackTransformBuilder = new TrackTransform.Builder(mediaSource, track, null);
+            if (sourceMediaFormat.containsKey(MediaFormat.KEY_MIME)) {
+                String mimeType = sourceMediaFormat.getString(MediaFormat.KEY_MIME);
+                if (mimeType.startsWith("video")) {
+                    trackTransformBuilder.setTargetFormat(targetVideoFormat);
+                } else if (mimeType.startsWith("audio")) {
+                    trackTransformBuilder.setTargetFormat(targetAudioFormat);
+                }
+            }
+            trackTransforms.add(trackTransformBuilder.build());
+        }
+
+        return getEstimatedTargetFileSize(trackTransforms);
     }
 
     @Nullable

@@ -12,7 +12,8 @@ import androidx.annotation.StringRes;
 import androidx.fragment.app.Fragment;
 
 public enum DemoCase {
-    TRANSCODE_VIDEO_GL(R.string.demo_case_transcode_video_gl, "TranscodeVideoGl", new TranscodeVideoGlFragment());
+    TRANSCODE_VIDEO_GL(R.string.demo_case_transcode_video_gl, "TranscodeVideoGl", new TranscodeVideoGlFragment()),
+    EXTRACT_TRACK(R.string.demo_case_extract_track, "ExtractTrack", new ExtractTrackFragment());
 
     @StringRes int displayName;
     String fragmentTag;

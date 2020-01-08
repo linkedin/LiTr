@@ -31,6 +31,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import static com.linkedin.android.litr.transcoder.TrackTranscoder.RESULT_EOS_REACHED;
@@ -44,7 +45,6 @@ import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.nullable;
-import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
@@ -82,6 +82,8 @@ public class TransformationJobShould {
 
     @Captor private ArgumentCaptor<List<TrackTransformationInfo>> trackTransformationInfosCaptor;
 
+    private List<TrackTransform> trackTransforms;
+
     private TransformationJob transformationJob;
 
     @Before
@@ -112,46 +114,55 @@ public class TransformationJobShould {
         doReturn(videoTrackTranscoder)
                 .when(trackTranscoderFactory)
                 .create(SOURCE_TRACK_VIDEO,
-                        sourceVideoFormat,
+                        SOURCE_TRACK_VIDEO,
                         mediaSource,
                         decoder,
                         renderer,
                         encoder,
                         mediaTarget,
-                        targetVideoFormat,
-                        targetAudioFormat);
+                        targetVideoFormat);
 
 
         doReturn(audioTrackTranscoder)
                 .when(trackTranscoderFactory)
                 .create(SOURCE_TRACK_AUDIO,
-                        sourceAudioFormat,
+                        SOURCE_TRACK_AUDIO,
                         mediaSource,
                         decoder,
-                        renderer,
+                        null,
                         encoder,
                         mediaTarget,
-                        targetVideoFormat,
                         targetAudioFormat);
 
         doReturn(RESULT_EOS_REACHED).when(videoTrackTranscoder).processNextFrame();
         doReturn(RESULT_EOS_REACHED).when(audioTrackTranscoder).processNextFrame();
 
+        TrackTransform videoTrackTransform = new TrackTransform.Builder(mediaSource, SOURCE_TRACK_VIDEO, mediaTarget)
+            .setDecoder(decoder)
+            .setRenderer(renderer)
+            .setEncoder(encoder)
+            .setTargetTrack(SOURCE_TRACK_VIDEO)
+            .setTargetFormat(targetVideoFormat)
+            .build();
+
+        TrackTransform audioTrackTransform = new TrackTransform.Builder(mediaSource, SOURCE_TRACK_AUDIO, mediaTarget)
+            .setDecoder(decoder)
+            .setEncoder(encoder)
+            .setTargetTrack(SOURCE_TRACK_AUDIO)
+            .setTargetFormat(targetAudioFormat)
+            .build();
+
+        trackTransforms = new ArrayList<>(2);
+        trackTransforms.add(videoTrackTransform);
+        trackTransforms.add(audioTrackTransform);
+
         transformationJob = spy(new TransformationJob(JOB_ID,
-                                                      mediaSource,
-                                                      decoder,
-                                                      renderer,
-                                                      encoder,
-                                                      mediaTarget,
-                                                      targetVideoFormat,
-                                                      targetAudioFormat,
+                                                      trackTransforms,
                                                       listener,
                                                       MAX_PROGRESS,
                                                       handler));
         transformationJob.trackTranscoderFactory = trackTranscoderFactory;
         transformationJob.diskUtil = diskUtil;
-        transformationJob.mediaSource = mediaSource;
-        transformationJob.mediaTarget = mediaTarget;
         transformationJob.statsCollector = statsCollector;
     }
 
@@ -209,8 +220,11 @@ public class TransformationJobShould {
     @Test
     public void notCreateTrackTranscodersWhenNoTracksAreFound() {
         try {
-            transformationJob.trackFormats = new ArrayList<>();
-            doReturn(0).when(mediaSource).getTrackCount();
+            TransformationJob transformationJob = new TransformationJob(JOB_ID,
+                                                                        Collections.<TrackTransform>emptyList(),
+                                                                        listener,
+                                                                        MAX_PROGRESS,
+                                                                        handler);
             transformationJob.createTrackTranscoders();
         } catch (TrackTranscoderException e) {
             assertThat(e.getError(), is(TrackTranscoderException.Error.NO_TRACKS_FOUND));
@@ -219,22 +233,16 @@ public class TransformationJobShould {
 
     @Test
     public void createTrackTranscodersWhenTracksAreFound() throws Exception {
-        doReturn(1).when(mediaSource).getTrackCount();
-        MediaFormat mediaFormat = new MediaFormat();
-        mediaFormat.setString(MediaFormat.KEY_MIME, "video/avc");
-        doReturn(mediaFormat).when(mediaSource).getTrackFormat(0);
-        doReturn(videoTrackTranscoder).when(trackTranscoderFactory).create(0,
-                                                                           mediaFormat,
+        doReturn(videoTrackTranscoder).when(trackTranscoderFactory).create(SOURCE_TRACK_VIDEO,
+                                                                           SOURCE_TRACK_VIDEO,
                                                                            mediaSource,
                                                                            decoder,
                                                                            renderer,
                                                                            encoder,
                                                                            mediaTarget,
-                                                                           targetVideoFormat,
-                                                                           targetAudioFormat);
+                                                                           targetVideoFormat);
         transformationJob.createTrackTranscoders();
 
-        verify(mediaSource, atLeastOnce()).getTrackFormat(0);
         verify(statsCollector).setTrackCodecs(0, videoTrackTranscoder.getDecoderName(), videoTrackTranscoder.getDecoderName());
     }
 
@@ -395,7 +403,7 @@ public class TransformationJobShould {
 
     private void loadTrackTranscoders() {
         transformationJob.trackTranscoders = new ArrayList<>();
-      transformationJob.trackTranscoders.add(videoTrackTranscoder);
-      transformationJob.trackTranscoders.add(audioTrackTranscoder);
+        transformationJob.trackTranscoders.add(videoTrackTranscoder);
+        transformationJob.trackTranscoders.add(audioTrackTranscoder);
     }
 }

@@ -80,7 +80,8 @@ public class AudioTrackTranscoderShould {
 
         // setting up and starting test target, which will be used for frame processing testing below
         audioTrackTranscoder = spy(new AudioTrackTranscoder(mediaSource, AUDIO_TRACK,
-                                                            mediaTarget, targetAudioFormat, decoder, encoder));
+                                                            mediaTarget, AUDIO_TRACK,
+                                                            targetAudioFormat, decoder, encoder));
         audioTrackTranscoder.start();
     }
 
@@ -94,7 +95,8 @@ public class AudioTrackTranscoderShould {
             .init(any(MediaFormat.class));
 
         AudioTrackTranscoder audioTrackTranscoder = new AudioTrackTranscoder(mediaSource, AUDIO_TRACK,
-                                                                             mediaTarget, targetAudioFormat, decoder, encoder);
+                                                                             mediaTarget, AUDIO_TRACK,
+                                                                             targetAudioFormat, decoder, encoder);
         audioTrackTranscoder.start();
     }
 
@@ -105,7 +107,8 @@ public class AudioTrackTranscoderShould {
             .init(any(MediaFormat.class));
 
         AudioTrackTranscoder audioTrackTranscoder = new AudioTrackTranscoder(mediaSource, AUDIO_TRACK,
-                                                                             mediaTarget, targetAudioFormat, decoder, encoder);
+                                                                             mediaTarget, AUDIO_TRACK,
+                                                                             targetAudioFormat, decoder, encoder);
 
         audioTrackTranscoder.start();
     }
@@ -115,7 +118,8 @@ public class AudioTrackTranscoderShould {
         Encoder encoder = mock(Encoder.class);
         Decoder decoder = mock(Decoder.class);
         AudioTrackTranscoder audioTrackTranscoder = new AudioTrackTranscoder(mediaSource, AUDIO_TRACK,
-                                                                             mediaTarget, targetAudioFormat, decoder, encoder);
+                                                                             mediaTarget, AUDIO_TRACK,
+                                                                             targetAudioFormat, decoder, encoder);
         audioTrackTranscoder.start();
 
         verify(encoder).start();
@@ -128,7 +132,8 @@ public class AudioTrackTranscoderShould {
         Decoder decoder = mock(Decoder.class);
 
         AudioTrackTranscoder audioTrackTranscoder = new AudioTrackTranscoder(mediaSource, AUDIO_TRACK,
-                                                                             mediaTarget, targetAudioFormat, decoder, encoder);
+                                                                             mediaTarget, AUDIO_TRACK,
+                                                                             targetAudioFormat, decoder, encoder);
 
         audioTrackTranscoder.stop();
 
@@ -139,7 +144,8 @@ public class AudioTrackTranscoderShould {
     @Test
     public void stopAndReleaseDecoderWhenStopped() throws Exception {
         AudioTrackTranscoder audioTrackTranscoder = new AudioTrackTranscoder(mediaSource, AUDIO_TRACK,
-                                                                             mediaTarget, targetAudioFormat, decoder, encoder);
+                                                                             mediaTarget, AUDIO_TRACK,
+                                                                             targetAudioFormat, decoder, encoder);
 
         audioTrackTranscoder.stop();
 
@@ -155,7 +161,8 @@ public class AudioTrackTranscoderShould {
     public void notProcessFrameWhenNotStarted() throws Exception {
         // use a method level test target, because we want it to be in the stopped state
         AudioTrackTranscoder audioTrackTranscoder = new AudioTrackTranscoder(mediaSource, AUDIO_TRACK,
-                                                                             mediaTarget, targetAudioFormat, decoder, encoder);
+                                                                             mediaTarget, AUDIO_TRACK,
+                                                                             targetAudioFormat, decoder, encoder);
         doReturn(false).when(encoder).isRunning();
 
         int result = audioTrackTranscoder.processNextFrame();
@@ -346,7 +353,6 @@ public class AudioTrackTranscoderShould {
         audioTrackTranscoder.lastExtractFrameResult = TrackTranscoder.RESULT_EOS_REACHED;
         audioTrackTranscoder.lastDecodeFrameResult = TrackTranscoder.RESULT_EOS_REACHED;
         audioTrackTranscoder.lastEncodeFrameResult = TrackTranscoder.RESULT_FRAME_PROCESSED;
-        audioTrackTranscoder.targetTrack = TrackTranscoder.NO_SELECTED_TRACK;
 
         MediaFormat encoderMediaFormat = new MediaFormat();
         doReturn(MediaCodec.INFO_OUTPUT_FORMAT_CHANGED).when(encoder).dequeueOutputFrame(anyLong());
