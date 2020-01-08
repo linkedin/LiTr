@@ -12,7 +12,6 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.PointF;
-import android.media.AudioRecord;
 import android.media.MediaFormat;
 import android.media.MediaMuxer;
 import android.net.Uri;
@@ -23,8 +22,6 @@ import androidx.core.content.FileProvider;
 import com.linkedin.android.litr.MediaTransformer;
 import com.linkedin.android.litr.TrackTransform;
 import com.linkedin.android.litr.TransformationListener;
-import com.linkedin.android.litr.codec.Decoder;
-import com.linkedin.android.litr.codec.Encoder;
 import com.linkedin.android.litr.codec.MediaCodecDecoder;
 import com.linkedin.android.litr.codec.MediaCodecEncoder;
 import com.linkedin.android.litr.exception.MediaTransformationException;
@@ -34,7 +31,6 @@ import com.linkedin.android.litr.io.MediaMuxerMediaTarget;
 import com.linkedin.android.litr.io.MediaSource;
 import com.linkedin.android.litr.io.MediaTarget;
 import com.linkedin.android.litr.render.GlVideoRenderer;
-import com.linkedin.android.litr.render.VideoRenderer;
 import com.linkedin.android.litr.utils.TransformationUtil;
 
 import java.io.File;
@@ -119,49 +115,47 @@ public class TransformationPresenter {
         if (audioTarget != null && audioTarget.shouldKeepTrack) {
             trackCount++;
         }
-        if (trackCount < 1) {
-            throw new IllegalArgumentException("No output tracks!");
-        }
 
         try {
-            MediaTarget mediaTarget = new MediaMuxerMediaTarget(transformationState.targetFile.getAbsolutePath(),
-                                                                trackCount,
-                                                                sourceMedia.videoRotation,
-                                                                MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4);
+            if (trackCount >= 1) {
+                MediaTarget mediaTarget = new MediaMuxerMediaTarget(transformationState.targetFile.getAbsolutePath(),
+                                                                    trackCount,
+                                                                    sourceMedia.videoRotation,
+                                                                    MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4);
 
-            List<TrackTransform> trackTransforms = new ArrayList<>(2);
-            int targetTrack = 0;
-            MediaSource mediaSource = new MediaExtractorMediaSource(context, sourceMedia.uri);
+                List<TrackTransform> trackTransforms = new ArrayList<>(2);
+                int targetTrack = 0;
+                MediaSource mediaSource = new MediaExtractorMediaSource(context, sourceMedia.uri);
 
-            if (videoTarget != null && videoTarget.shouldKeepTrack) {
-                TrackTransform trackTransform = new TrackTransform.Builder(mediaSource,
-                                                                   sourceMedia.videoTrack,
-                                                                   mediaTarget)
-                    .setTargetFormat(createMediaFormat(sourceMedia, videoTarget))
-                    .setTargetTrack(targetTrack++)
-                    .setEncoder(new MediaCodecEncoder())
-                    .setRenderer(new GlVideoRenderer(createGlFilters(sourceMedia, overlayTarget)))
-                    .setDecoder(new MediaCodecDecoder())
-                    .build();
-                trackTransforms.add(trackTransform);
+                if (videoTarget != null && videoTarget.shouldKeepTrack) {
+                    TrackTransform trackTransform = new TrackTransform.Builder(mediaSource,
+                                                                               sourceMedia.videoTrack,
+                                                                               mediaTarget)
+                        .setTargetFormat(createMediaFormat(sourceMedia, videoTarget))
+                        .setTargetTrack(targetTrack++)
+                        .setEncoder(new MediaCodecEncoder())
+                        .setRenderer(new GlVideoRenderer(createGlFilters(sourceMedia, overlayTarget)))
+                        .setDecoder(new MediaCodecDecoder())
+                        .build();
+                    trackTransforms.add(trackTransform);
+                }
+                if (audioTarget != null && audioTarget.shouldKeepTrack) {
+                    TrackTransform trackTransform = new TrackTransform.Builder(mediaSource,
+                                                                               sourceMedia.audioTrack,
+                                                                               mediaTarget)
+                        .setTargetFormat(createMediaFormat(sourceMedia, audioTarget))
+                        .setTargetTrack(targetTrack)
+                        .setEncoder(new MediaCodecEncoder())
+                        .setDecoder(new MediaCodecDecoder())
+                        .build();
+                    trackTransforms.add(trackTransform);
+                }
+
+                mediaTransformer.transform(transformationState.requestId,
+                                           trackTransforms,
+                                           transformationListener,
+                                           MediaTransformer.GRANULARITY_DEFAULT);
             }
-            if (audioTarget != null && audioTarget.shouldKeepTrack) {
-                TrackTransform trackTransform = new TrackTransform.Builder(mediaSource,
-                                                                           sourceMedia.audioTrack,
-                                                                           mediaTarget)
-                    .setTargetFormat(createMediaFormat(sourceMedia, audioTarget))
-                    .setTargetTrack(targetTrack)
-                    .setEncoder(new MediaCodecEncoder())
-                    .setDecoder(new MediaCodecDecoder())
-                    .build();
-                trackTransforms.add(trackTransform);
-            }
-
-            mediaTransformer.transform(transformationState.requestId,
-                                       trackTransforms,
-                                       transformationListener,
-                                       MediaTransformer.GRANULARITY_DEFAULT);
-
         } catch (MediaTransformationException ex) {
             Log.e(TAG, "Exception when trying to perform track operation", ex);
         }
