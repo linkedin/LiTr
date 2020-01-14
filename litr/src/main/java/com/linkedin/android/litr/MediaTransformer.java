@@ -301,10 +301,11 @@ public class MediaTransformer {
                 targetMediaFormat = MediaFormat.createVideoFormat(mimeType,
                                                                   sourceMediaFormat.getInteger(MediaFormat.KEY_WIDTH),
                                                                   sourceMediaFormat.getInteger(MediaFormat.KEY_HEIGHT));
-                int targetBitrate = TranscoderUtils.estimateVideoTrackBitrate(mediaSource,
-                                                                              sourceTrackIndex);
+                int targetBitrate;
                 if (sourceMediaFormat.containsKey(MediaFormat.KEY_BIT_RATE)) {
                     targetBitrate = sourceMediaFormat.getInteger(MediaFormat.KEY_BIT_RATE);
+                } else {
+                    targetBitrate = TranscoderUtils.estimateVideoTrackBitrate(mediaSource, sourceTrackIndex);
                 }
                 targetMediaFormat.setInteger(MediaFormat.KEY_BIT_RATE, targetBitrate);
 
