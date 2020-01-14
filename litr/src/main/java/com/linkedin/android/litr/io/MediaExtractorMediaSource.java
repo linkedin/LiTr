@@ -14,6 +14,7 @@ import android.media.MediaMetadataRetriever;
 import android.net.Uri;
 import androidx.annotation.NonNull;
 import com.linkedin.android.litr.exception.MediaSourceException;
+import com.linkedin.android.litr.utils.TranscoderUtils;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -28,6 +29,7 @@ public class MediaExtractorMediaSource implements MediaSource {
     private MediaExtractor mediaExtractor;
 
     private int orientationHint;
+    private long size;
 
     public MediaExtractorMediaSource(@NonNull Context context, @NonNull Uri uri) throws MediaSourceException {
         mediaExtractor = new MediaExtractor();
@@ -42,6 +44,7 @@ public class MediaExtractorMediaSource implements MediaSource {
         if (rotation != null) {
             orientationHint = Integer.parseInt(rotation);
         }
+        size = TranscoderUtils.getSize(context, uri);
     }
 
     @Override
@@ -98,5 +101,10 @@ public class MediaExtractorMediaSource implements MediaSource {
     @Override
     public void release() {
         mediaExtractor.release();
+    }
+
+    @Override
+    public long getSize() {
+        return size;
     }
 }

@@ -55,6 +55,8 @@ public class MediaTransformer {
     public static final int GRANULARITY_NONE = 0;
     public static final int GRANULARITY_DEFAULT = 100;
 
+    public static final int DEFAULT_KEY_FRAME_INTERVAL = 5;
+
     private static final String TAG = MediaTransformer.class.getSimpleName();
     private static final int DEFAULT_FUTURE_MAP_SIZE = 10;
 
@@ -80,6 +82,8 @@ public class MediaTransformer {
     /**
      * Transform video and audio track(s): change resolution, frame rate, bitrate, etc. Video track transformation
      * uses default hardware accelerated codecs and OpenGL renderer.
+     *
+     * If overlay(s) are provided, video track(s) will be transcoded with parameters as close to source format as possible.
      *
      * @param requestId client defined unique id for a transformation request. If not unique, {@link IllegalArgumentException} will be thrown.
      * @param inputUri input video {@link Uri}
@@ -127,6 +131,8 @@ public class MediaTransformer {
      * Transform audio/video tracks using provided transformation components (source, target, decoder, etc.)
      * It is up to a client to provide component implementations that work together - for example, output of media source
      * should be in format that decoder would accept, or renderer should use OpenGL if decoder and encoder use Surface.
+     *
+     * If renderer has overlay(s), video track(s) will be transcoded with parameters as close to source format as possible.
      *
      * @param requestId client defined unique id for a transformation request. If not unique, {@link IllegalArgumentException} will be thrown.
      * @param mediaSource {@link MediaSource} to provide input frames
@@ -191,6 +197,9 @@ public class MediaTransformer {
     /**
      * Transform using specific track transformation instructions. This allows things muxing/demuxing tracks, applying
      * different transformations to different tracks, etc.
+     *
+     * If a track renderer has overlay(s), that track will be transcoded with parameters as close to source format as possible.
+     *
      * @param requestId client defined unique id for a transformation request. If not unique, {@link IllegalArgumentException} will be thrown.
      * @param trackTransforms list of track transformation instructions
      * @param listener {@link TransformationListener} implementation, to get updates on transformation status/result/progress
@@ -203,6 +212,29 @@ public class MediaTransformer {
                           @IntRange(from = GRANULARITY_NONE) int granularity) {
         if (futureMap.containsKey(requestId)) {
             throw new IllegalArgumentException("Request with id " + requestId + " already exists");
+        }
+
+        int trackCount = trackTransforms.size();
+        for (int trackIndex = 0; trackIndex < trackCount; trackIndex++) {
+            TrackTransform trackTransform = trackTransforms.get(trackIndex);
+            if (trackTransform.getTargetFormat() == null
+                && trackTransform.getRenderer() != null
+                && trackTransform.getRenderer().hasFilters()) {
+                MediaFormat targetFormat = createTargetMediaFormat(trackTransform.getMediaSource(),
+                                                                   trackTransform.getSourceTrack());
+                TrackTransform updatedTrackTransform = new TrackTransform.Builder(trackTransform.getMediaSource(),
+                                                                                  trackTransform.getSourceTrack(),
+                                                                                  trackTransform.getMediaTarget())
+                    .setTargetTrack(trackTransform.getTargetTrack())
+                    .setDecoder(trackTransform.getDecoder())
+                    .setEncoder(trackTransform.getEncoder())
+                    .setRenderer(trackTransform.getRenderer())
+                    .setTargetFormat(targetFormat)
+                    .build();
+
+                trackTransforms.remove(trackIndex);
+                trackTransforms.add(trackIndex, updatedTrackTransform);
+            }
         }
 
         TransformationJob transformationJob = new TransformationJob(requestId,
@@ -251,6 +283,45 @@ public class MediaTransformer {
         } catch (MediaSourceException ex) {
             return -1;
         }
+    }
+
+    @Nullable
+    private MediaFormat createTargetMediaFormat(@NonNull MediaSource mediaSource,
+                                                int sourceTrackIndex) {
+        MediaFormat sourceMediaFormat = mediaSource.getTrackFormat(sourceTrackIndex);
+        MediaFormat targetMediaFormat = null;
+
+        String mimeType = null;
+        if (sourceMediaFormat.containsKey(MediaFormat.KEY_MIME)) {
+            mimeType = sourceMediaFormat.getString(MediaFormat.KEY_MIME);
+        }
+
+        if (mimeType != null) {
+            if (mimeType.startsWith("video")) {
+                targetMediaFormat = MediaFormat.createVideoFormat(mimeType,
+                                                                  sourceMediaFormat.getInteger(MediaFormat.KEY_WIDTH),
+                                                                  sourceMediaFormat.getInteger(MediaFormat.KEY_HEIGHT));
+                int targetBitrate = TranscoderUtils.estimateVideoTrackBitrate(mediaSource,
+                                                                              sourceTrackIndex);
+                if (sourceMediaFormat.containsKey(MediaFormat.KEY_BIT_RATE)) {
+                    targetBitrate = sourceMediaFormat.getInteger(MediaFormat.KEY_BIT_RATE);
+                }
+                targetMediaFormat.setInteger(MediaFormat.KEY_BIT_RATE, targetBitrate);
+
+                int targetKeyFrameInterval = DEFAULT_KEY_FRAME_INTERVAL;
+                if (sourceMediaFormat.containsKey(MediaFormat.KEY_I_FRAME_INTERVAL)) {
+                    targetKeyFrameInterval = sourceMediaFormat.getInteger(MediaFormat.KEY_I_FRAME_INTERVAL);
+                }
+                targetMediaFormat.setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, targetKeyFrameInterval);
+            } else if (mimeType.startsWith("audio")) {
+                targetMediaFormat = MediaFormat.createAudioFormat(mimeType,
+                                                                  sourceMediaFormat.getInteger(MediaFormat.KEY_SAMPLE_RATE),
+                                                                  sourceMediaFormat.getInteger(MediaFormat.KEY_CHANNEL_COUNT));
+                targetMediaFormat.setInteger(MediaFormat.KEY_BIT_RATE, sourceMediaFormat.getInteger(MediaFormat.KEY_BIT_RATE));
+            }
+        }
+
+        return targetMediaFormat;
     }
 
     static class ProgressHandler extends Handler {

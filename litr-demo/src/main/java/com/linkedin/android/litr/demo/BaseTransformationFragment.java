@@ -20,7 +20,7 @@ import com.linkedin.android.litr.demo.data.AudioTrackFormat;
 import com.linkedin.android.litr.demo.data.GenericTrackFormat;
 import com.linkedin.android.litr.demo.data.SourceMedia;
 import com.linkedin.android.litr.demo.data.VideoTrackFormat;
-import com.linkedin.android.litr.utils.TransformationUtil;
+import com.linkedin.android.litr.utils.TranscoderUtils;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -59,7 +59,7 @@ public class BaseTransformationFragment extends Fragment {
     @NonNull
     protected void updateSourceMedia(@NonNull SourceMedia sourceMedia, @NonNull Uri uri) {
         sourceMedia.uri = uri;
-        sourceMedia.size = TransformationUtil.getSize(getContext(), uri);
+        sourceMedia.size = TranscoderUtils.getSize(getContext(), uri);
 
         try {
             MediaExtractor mediaExtractor = new MediaExtractor();
