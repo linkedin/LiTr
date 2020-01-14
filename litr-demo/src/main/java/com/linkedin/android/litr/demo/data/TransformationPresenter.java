@@ -21,7 +21,6 @@ import androidx.annotation.Nullable;
 import androidx.core.content.FileProvider;
 import com.linkedin.android.litr.MediaTransformer;
 import com.linkedin.android.litr.TrackTransform;
-import com.linkedin.android.litr.TransformationListener;
 import com.linkedin.android.litr.codec.MediaCodecDecoder;
 import com.linkedin.android.litr.codec.MediaCodecEncoder;
 import com.linkedin.android.litr.exception.MediaTransformationException;
@@ -54,34 +53,61 @@ public class TransformationPresenter {
     }
 
     public void startTransformation(@NonNull SourceMedia sourceMedia,
-                                    @Nullable VideoTarget videoTarget,
-                                    @Nullable AudioTarget audioTarget,
-                                    @Nullable OverlayTarget overlayTarget,
+                                    @NonNull TargetMedia targetMedia,
                                     @NonNull TransformationState transformationState) {
-        File targetVideoFile = new File(TransformationUtil.getTargetFileDirectory(),
-                                   "transcoded_" + TransformationUtil.getDisplayName(context, sourceMedia.uri));
-        if (targetVideoFile.exists()) {
-            targetVideoFile.delete();
+        if (targetMedia.getIncludedTrackCount() < 1) {
+            return;
         }
 
-        transformationState.targetFile = targetVideoFile;
+        if (targetMedia.targetFile.exists()) {
+            targetMedia.targetFile.delete();
+        }
 
         transformationState.requestId = UUID.randomUUID().toString();
         MediaTransformationListener transformationListener = new MediaTransformationListener(context,
                                                                                              transformationState.requestId,
                                                                                              transformationState);
 
-        if ((videoTarget == null || videoTarget.shouldKeepTrack) && (audioTarget == null || audioTarget.shouldKeepTrack)) {
+        try {
+            int videoRotation = 0;
+            for (MediaTrackFormat trackFormat : sourceMedia.tracks) {
+                if (trackFormat.mimeType.startsWith("video")) {
+                    videoRotation = ((VideoTrackFormat) trackFormat).rotation;
+                    break;
+                }
+            }
+            MediaTarget mediaTarget = new MediaMuxerMediaTarget(targetMedia.targetFile.getPath(),
+                                                                targetMedia.getIncludedTrackCount(),
+                                                                videoRotation,
+                                                                MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4);
+
+            List<TrackTransform> trackTransforms = new ArrayList<>(targetMedia.tracks.size());
+            MediaSource mediaSource = new MediaExtractorMediaSource(context, sourceMedia.uri);
+
+            for (TargetTrack targetTrack : targetMedia.tracks) {
+                if (!targetTrack.shouldInclude) {
+                    continue;
+                }
+                TrackTransform.Builder trackTransformBuilder = new TrackTransform.Builder(mediaSource,
+                                                                                          targetTrack.sourceTrackIndex,
+                                                                                          mediaTarget)
+                    .setTargetTrack(trackTransforms.size())
+                    .setTargetFormat(targetTrack.shouldTranscode ? createMediaFormat(targetTrack) : null)
+                    .setEncoder(new MediaCodecEncoder())
+                    .setDecoder(new MediaCodecDecoder());
+                if (targetTrack.format instanceof VideoTrackFormat) {
+                    trackTransformBuilder.setRenderer(new GlVideoRenderer(createGlFilters(sourceMedia, (TargetVideoTrack) targetTrack)));
+                }
+
+                trackTransforms.add(trackTransformBuilder.build());
+            }
+
             mediaTransformer.transform(transformationState.requestId,
-                                       sourceMedia.uri,
-                                       transformationState.targetFile.getAbsolutePath(),
-                                       createMediaFormat(sourceMedia, videoTarget),
-                                       createMediaFormat(sourceMedia, audioTarget),
+                                       trackTransforms,
                                        transformationListener,
-                                       MediaTransformer.GRANULARITY_DEFAULT,
-                                       createGlFilters(sourceMedia, overlayTarget));
-        } else {
-            performTrackTransformation(sourceMedia, videoTarget, audioTarget, overlayTarget, transformationState, transformationListener);
+                                       MediaTransformer.GRANULARITY_DEFAULT);
+        } catch (MediaTransformationException ex) {
+            Log.e(TAG, "Exception when trying to perform track operation", ex);
         }
     }
 
@@ -102,82 +128,24 @@ public class TransformationPresenter {
         }
     }
 
-    private void performTrackTransformation(@NonNull SourceMedia sourceMedia,
-                                            @Nullable VideoTarget videoTarget,
-                                            @Nullable AudioTarget audioTarget,
-                                            @Nullable OverlayTarget overlayTarget,
-                                            @NonNull TransformationState transformationState,
-                                            @NonNull TransformationListener transformationListener) {
-        int trackCount = 0;
-        if (videoTarget != null && videoTarget.shouldKeepTrack) {
-            trackCount++;
-        }
-        if (audioTarget != null && audioTarget.shouldKeepTrack) {
-            trackCount++;
-        }
-
-        try {
-            if (trackCount >= 1) {
-                MediaTarget mediaTarget = new MediaMuxerMediaTarget(transformationState.targetFile.getAbsolutePath(),
-                                                                    trackCount,
-                                                                    sourceMedia.videoRotation,
-                                                                    MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4);
-
-                List<TrackTransform> trackTransforms = new ArrayList<>(2);
-                int targetTrack = 0;
-                MediaSource mediaSource = new MediaExtractorMediaSource(context, sourceMedia.uri);
-
-                if (videoTarget != null && videoTarget.shouldKeepTrack) {
-                    TrackTransform trackTransform = new TrackTransform.Builder(mediaSource,
-                                                                               sourceMedia.videoTrack,
-                                                                               mediaTarget)
-                        .setTargetFormat(createMediaFormat(sourceMedia, videoTarget))
-                        .setTargetTrack(targetTrack++)
-                        .setEncoder(new MediaCodecEncoder())
-                        .setRenderer(new GlVideoRenderer(createGlFilters(sourceMedia, overlayTarget)))
-                        .setDecoder(new MediaCodecDecoder())
-                        .build();
-                    trackTransforms.add(trackTransform);
-                }
-                if (audioTarget != null && audioTarget.shouldKeepTrack) {
-                    TrackTransform trackTransform = new TrackTransform.Builder(mediaSource,
-                                                                               sourceMedia.audioTrack,
-                                                                               mediaTarget)
-                        .setTargetFormat(createMediaFormat(sourceMedia, audioTarget))
-                        .setTargetTrack(targetTrack)
-                        .setEncoder(new MediaCodecEncoder())
-                        .setDecoder(new MediaCodecDecoder())
-                        .build();
-                    trackTransforms.add(trackTransform);
-                }
-
-                mediaTransformer.transform(transformationState.requestId,
-                                           trackTransforms,
-                                           transformationListener,
-                                           MediaTransformer.GRANULARITY_DEFAULT);
-            }
-        } catch (MediaTransformationException ex) {
-            Log.e(TAG, "Exception when trying to perform track operation", ex);
-        }
-    }
-
     @Nullable
-    private List<GlFilter> createGlFilters(@NonNull SourceMedia sourceMedia, @Nullable OverlayTarget overlayTarget) {
+    private List<GlFilter> createGlFilters(@NonNull SourceMedia sourceMedia, @Nullable TargetVideoTrack targetTrack) {
         List<GlFilter> glFilters = null;
-        if (overlayTarget != null && overlayTarget.shouldApplyOverlay) {
+        if (targetTrack != null && targetTrack.overlay != null) {
             try {
-                Bitmap bitmap = BitmapFactory.decodeStream(context.getContentResolver().openInputStream(overlayTarget.uri));
+                Bitmap bitmap = BitmapFactory.decodeStream(context.getContentResolver().openInputStream(targetTrack.overlay));
                 if (bitmap != null) {
                     float overlayWidth = 0.56f;
                     float overlayHeight;
-                    if (sourceMedia.videoRotation == 90 || sourceMedia.videoRotation == 270) {
-                        float overlayWidthPixels = overlayWidth * sourceMedia.videoHeight;
+                    VideoTrackFormat sourceVideoTrackFormat = (VideoTrackFormat) sourceMedia.tracks.get(targetTrack.sourceTrackIndex);
+                    if (sourceVideoTrackFormat.rotation == 90 || sourceVideoTrackFormat.rotation == 270) {
+                        float overlayWidthPixels = overlayWidth * sourceVideoTrackFormat.height;
                         float overlayHeightPixels = overlayWidthPixels * bitmap.getHeight() / bitmap.getWidth();
-                        overlayHeight = overlayHeightPixels / sourceMedia.videoWidth;
+                        overlayHeight = overlayHeightPixels / sourceVideoTrackFormat.width;
                     } else {
-                        float overlayWidthPixels = overlayWidth * sourceMedia.videoWidth;
+                        float overlayWidthPixels = overlayWidth * sourceVideoTrackFormat.width;
                         float overlayHeightPixels = overlayWidthPixels * bitmap.getHeight() / bitmap.getWidth();
-                        overlayHeight = overlayHeightPixels / sourceMedia.videoHeight;
+                        overlayHeight = overlayHeightPixels / sourceVideoTrackFormat.height;
                     }
 
                     PointF position = new PointF(0.6f, 0.4f);
@@ -185,7 +153,7 @@ public class TransformationPresenter {
                     float rotation = 30;
 
                     GlFilter filter = TransformationUtil.createGlFilter(context,
-                                                                        overlayTarget.uri,
+                                                                        targetTrack.overlay,
                                                                         size,
                                                                         position,
                                                                         rotation);
@@ -202,32 +170,27 @@ public class TransformationPresenter {
     }
 
     @Nullable
-    private MediaFormat createMediaFormat(@NonNull SourceMedia sourceMedia, @Nullable VideoTarget videoTarget) {
-        MediaFormat targetVideoFormat = null;
-        if (videoTarget != null && videoTarget.shouldTranscodeVideo) {
-            targetVideoFormat = new MediaFormat();
-            targetVideoFormat.setString(MediaFormat.KEY_MIME, "video/avc");
-            targetVideoFormat.setInteger(MediaFormat.KEY_WIDTH, Integer.parseInt(videoTarget.targetWidth));
-            targetVideoFormat.setInteger(MediaFormat.KEY_HEIGHT, Integer.parseInt(videoTarget.targetHeight));
-            targetVideoFormat.setInteger(MediaFormat.KEY_BIT_RATE, (int) (Float.parseFloat(videoTarget.targetBitrate) * 1000000));
-            targetVideoFormat.setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, Integer.parseInt(videoTarget.targetKeyFrameInterval));
-            targetVideoFormat.setInteger(MediaFormat.KEY_FRAME_RATE, sourceMedia.videoFrameRate);
+    private MediaFormat createMediaFormat(@Nullable TargetTrack targetTrack) {
+        MediaFormat mediaFormat = null;
+        if (targetTrack != null && targetTrack.format != null) {
+            mediaFormat = new MediaFormat();
+            if (targetTrack.format.mimeType.startsWith("video")) {
+                VideoTrackFormat trackFormat = (VideoTrackFormat) targetTrack.format;
+                mediaFormat.setString(MediaFormat.KEY_MIME, "video/avc");
+                mediaFormat.setInteger(MediaFormat.KEY_WIDTH, trackFormat.width);
+                mediaFormat.setInteger(MediaFormat.KEY_HEIGHT, trackFormat.height);
+                mediaFormat.setInteger(MediaFormat.KEY_BIT_RATE, trackFormat.bitrate);
+                mediaFormat.setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, trackFormat.keyFrameInterval);
+                mediaFormat.setInteger(MediaFormat.KEY_FRAME_RATE, trackFormat.frameRate);
+            } else if (targetTrack.format.mimeType.startsWith("audio")) {
+                AudioTrackFormat trackFormat = (AudioTrackFormat) targetTrack.format;
+                mediaFormat.setString(MediaFormat.KEY_MIME, trackFormat.mimeType);
+                mediaFormat.setInteger(MediaFormat.KEY_CHANNEL_COUNT, trackFormat.channelCount);
+                mediaFormat.setInteger(MediaFormat.KEY_SAMPLE_RATE, trackFormat.samplingRate);
+                mediaFormat.setInteger(MediaFormat.KEY_BIT_RATE, trackFormat.bitrate);
+            }
         }
 
-        return targetVideoFormat;
-    }
-
-    @Nullable
-    private MediaFormat createMediaFormat(@NonNull SourceMedia sourceMedia, @Nullable AudioTarget audioTarget) {
-        MediaFormat targetAudioFormat = null;
-        if (audioTarget != null && audioTarget.shouldTranscodeAudio) {
-            targetAudioFormat = new MediaFormat();
-            targetAudioFormat.setString(MediaFormat.KEY_MIME, sourceMedia.audioMimeType);
-            targetAudioFormat.setInteger(MediaFormat.KEY_CHANNEL_COUNT,sourceMedia.audioChannelCount);
-            targetAudioFormat.setInteger(MediaFormat.KEY_SAMPLE_RATE, sourceMedia.audioSamplingRate);
-            targetAudioFormat.setInteger(MediaFormat.KEY_BIT_RATE, Integer.parseInt(audioTarget.targetBitrate) * 1000);
-        }
-
-        return targetAudioFormat;
+        return mediaFormat;
     }
 }

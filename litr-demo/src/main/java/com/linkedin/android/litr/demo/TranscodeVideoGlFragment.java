@@ -14,17 +14,19 @@ import android.view.View;
 import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import com.linkedin.android.litr.MediaTransformer;
-import com.linkedin.android.litr.demo.data.AudioTarget;
-import com.linkedin.android.litr.demo.data.OverlayTarget;
 import com.linkedin.android.litr.demo.data.SourceMedia;
+import com.linkedin.android.litr.demo.data.TargetMedia;
+import com.linkedin.android.litr.demo.data.TranscodingConfigPresenter;
 import com.linkedin.android.litr.demo.data.TransformationPresenter;
 import com.linkedin.android.litr.demo.data.TransformationState;
-import com.linkedin.android.litr.demo.data.VideoTarget;
 import com.linkedin.android.litr.demo.databinding.FragmentTranscodeVideoGlBinding;
+import com.linkedin.android.litr.utils.TransformationUtil;
 
-public class TranscodeVideoGlFragment extends Fragment implements MediaPickerTarget {
+import java.io.File;
+
+public class TranscodeVideoGlFragment extends BaseTransformationFragment implements MediaPickerListener {
 
     private FragmentTranscodeVideoGlBinding binding;
 
@@ -48,54 +50,46 @@ public class TranscodeVideoGlFragment extends Fragment implements MediaPickerTar
                              ViewGroup container, Bundle savedInstanceState) {
         binding = FragmentTranscodeVideoGlBinding.inflate(inflater, container, false);
 
+        SourceMedia sourceMedia = new SourceMedia();
+        binding.setSourceMedia(sourceMedia);
+
         binding.sectionPickVideo.buttonPickVideo.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                pickMedia(MediaPickerFragment.PICK_VIDEO);
+                pickVideo(TranscodeVideoGlFragment.this);
             }
         });
 
-        binding.sectionPickOverlay.buttonPickVideoOverlay.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                pickMedia(MediaPickerFragment.PICK_OVERLAY);
-            }
-        });
-
-        binding.setVideoTarget(new VideoTarget());
-        binding.setAudioTarget(new AudioTarget());
-        binding.setOverlayTarget(new OverlayTarget());
         binding.setTransformationState(new TransformationState());
-        binding.setPresenter(new TransformationPresenter(getContext(), mediaTransformer));
+        binding.setTransformationPresenter(new TransformationPresenter(getContext(), mediaTransformer));
+
+        binding.tracks.setLayoutManager(new LinearLayoutManager(getContext()));
+
+        TargetMedia targetMedia = new TargetMedia();
+        TranscodingConfigPresenter transcodingConfigPresenter = new TranscodingConfigPresenter(this, targetMedia);
+        binding.setTranscodingConfigPresenter(transcodingConfigPresenter);
+        binding.setTargetMedia(targetMedia);
 
         return binding.getRoot();
     }
 
     @Override
-    public void onMediaPicked(@NonNull SourceMedia sourceMedia) {
-        binding.setSourceMedia(sourceMedia);
+    public void onMediaPicked(@NonNull Uri uri) {
+        SourceMedia sourceMedia = binding.getSourceMedia();
+        updateSourceMedia(sourceMedia, uri);
+        File targetFile = new File(TransformationUtil.getTargetFileDirectory(),
+                              "transcoded_" + TransformationUtil.getDisplayName(getContext(), sourceMedia.uri));
+        binding.getTargetMedia().setTargetFile(targetFile);
+        binding.getTargetMedia().setTracks(sourceMedia.tracks);
+
         binding.getTransformationState().setState(TransformationState.STATE_IDLE);
         binding.getTransformationState().setStats(null);
-    }
 
-    @Override
-    public void onOverlayPicked(@NonNull Uri uri, long size) {
-        OverlayTarget overlayTarget = binding.getOverlayTarget();
-        overlayTarget.setUri(uri);
-        overlayTarget.setSize(size);
-    }
-
-    private void pickMedia(int mediaType) {
-        MediaPickerFragment mediaPickerFragment = new MediaPickerFragment();
-        Bundle arguments = new Bundle();
-        arguments.putInt(MediaPickerFragment.KEY_PICK_TYPE, mediaType);
-        mediaPickerFragment.setArguments(arguments);
-        mediaPickerFragment.setTargetFragment(this, mediaType);
-
-        getActivity().getSupportFragmentManager().beginTransaction()
-                     .add(mediaPickerFragment, "MediaPickerFragment")
-                     .addToBackStack(null)
-                     .commit();
+        MediaTrackAdapter mediaTrackAdapter = new MediaTrackAdapter(binding.getTranscodingConfigPresenter(),
+                                                                    sourceMedia,
+                                                                    binding.getTargetMedia());
+        binding.tracks.setAdapter(mediaTrackAdapter);
+        binding.tracks.setNestedScrollingEnabled(false);
     }
 
 }

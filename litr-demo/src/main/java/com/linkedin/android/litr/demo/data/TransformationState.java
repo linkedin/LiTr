@@ -11,7 +11,6 @@ import androidx.annotation.IntDef;
 import androidx.annotation.Nullable;
 import androidx.databinding.BaseObservable;
 
-import java.io.File;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
@@ -30,7 +29,6 @@ public class TransformationState extends BaseObservable {
     @interface State {}
 
     public String requestId;
-    public File targetFile;
 
     public int state;
     public int progress;

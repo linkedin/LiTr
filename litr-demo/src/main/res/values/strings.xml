@@ -6,9 +6,10 @@
 <resources>
     <string name="app_name">LiTr</string>
 
-    <string name="demo_case_transcode_video_gl">Transcode Video (GL Renderer)</string>
-    <string name="demo_case_extract_track">Extract Track</string>
+    <string name="demo_case_transcode_video_gl">Transcode Video/Audio (GL Renderer)</string>
 
+    <string name="include">Include</string>
+    <string name="overlay">Overlay</string>
     <string name="apply_overlay">Apply Overlay</string>
     <string name="transcode_video">Transcode Video</string>
     <string name="transcode_audio">Transcode Audio</string>
@@ -17,6 +18,8 @@
     <string name="pick_video_overlay">Pick Video Overlay</string>
     <string name="source_path" formatted="true">Uri: %s</string>
     <string name="size" formatted="true">Size: %.2f MB</string>
+
+    <string name="track_info" formatted="true">Track %d: %s</string>
 
     <string name="default_video_mime_type">video/avc</string>
 

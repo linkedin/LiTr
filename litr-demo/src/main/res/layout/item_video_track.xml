@@ -4,102 +4,81 @@
 <!-- -->
 <!-- Licensed under the BSD 2-Clause License (the "License").  See License in the project root -->
 <!-- for license information. -->
-<layout>
+<layout xmlns:app="http://schemas.android.com/apk/res-auto">
     <data>
         <import type="android.view.View"/>
+        <import type="com.linkedin.android.litr.demo.data.Converter"/>
 
         <variable
-            name="sourceMedia"
-            type="com.linkedin.android.litr.demo.data.SourceMedia" />
+            name="videoTrack"
+            type="com.linkedin.android.litr.demo.data.VideoTrackFormat" />
 
         <variable
-            name="videoTarget"
-            type="com.linkedin.android.litr.demo.data.VideoTarget" />
+            name="targetTrack"
+            type="com.linkedin.android.litr.demo.data.TargetVideoTrack" />
+
+        <variable
+            name="presenter"
+            type="com.linkedin.android.litr.demo.data.TranscodingConfigPresenter" />
+
     </data>
 
     <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-        android:orientation="vertical"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_marginTop="@dimen/section_margin">
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
 
-        <Switch
-            android:id="@+id/switch_transcode_video"
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textStyle="bold"
+            android:text="@{String.format(@string/track_info, videoTrack.index, videoTrack.mimeType)}"/>
+
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/transcode_video"
-            android:textStyle="bold"
-            android:enabled="@{sourceMedia != null}"
-            android:padding="@dimen/cell_padding"
-            android:checked="@={videoTarget.shouldTranscodeVideo}"
-            android:onCheckedChanged="@{(switch, checked) -> videoTarget.onCheckedChanged(switch, checked)}"/>
+            android:orientation="horizontal">
+
+            <CheckBox
+                android:id="@+id/switch_include"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/include"
+                android:textStyle="bold"
+                android:padding="@dimen/cell_padding"
+                android:checked="@={targetTrack.shouldInclude}"
+                android:onCheckedChanged="@{(switch, checked) -> presenter.onIncludeTrackChanged(targetTrack, checked)}"/>
+
+            <CheckBox
+                android:id="@+id/switch_transcode"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/transcode"
+                android:textStyle="bold"
+                android:padding="@dimen/cell_padding"
+                android:checked="@={targetTrack.shouldTranscode}"
+                android:visibility="@{targetTrack.shouldInclude ? View.VISIBLE : View.GONE}"
+                android:onCheckedChanged="@{(switch, checked) -> presenter.onTranscodeTrackChanged(targetTrack, checked)}"/>
+
+            <CheckBox
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/overlay"
+                android:textStyle="bold"
+                android:padding="@dimen/cell_padding"
+                android:checked="@={targetTrack.shouldApplyOverlay}"
+                android:visibility="@{targetTrack.shouldInclude ? View.VISIBLE : View.GONE}"
+                android:onCheckedChanged="@{(switch, checked) -> presenter.onApplyOverlayChanged(targetTrack, checked)}"/>
+
+        </LinearLayout>
 
         <TableLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:visibility="@{videoTarget.shouldTranscodeVideo ? View.VISIBLE : View.GONE}">
-
-            <TableRow
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content">
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="@string/track"
-                    android:paddingStart="@dimen/cell_padding"
-                    android:paddingEnd="@dimen/cell_padding"/>
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@{sourceMedia != null ? Integer.toString(sourceMedia.videoTrack) : null}"
-                    android:textAlignment="textEnd"
-                    android:paddingStart="@dimen/cell_padding"
-                    android:paddingEnd="@dimen/cell_padding"/>
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@{sourceMedia != null ? Integer.toString(sourceMedia.videoTrack) : null}"
-                    android:textAlignment="textEnd"
-                    android:paddingStart="@dimen/cell_padding"
-                    android:paddingEnd="@dimen/cell_padding"
-                    android:paddingTop="0dp"
-                    android:paddingBottom="@dimen/edit_text_padding"/>
-            </TableRow>
-
-            <TableRow
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content">
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="@string/mime_type"
-                    android:paddingStart="@dimen/cell_padding"
-                    android:paddingEnd="@dimen/cell_padding"/>
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@{sourceMedia != null ? sourceMedia.videoMimeType : null}"
-                    android:textAlignment="textEnd"
-                    android:paddingStart="@dimen/cell_padding"
-                    android:paddingEnd="@dimen/cell_padding"/>
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/default_video_mime_type"
-                    android:textAlignment="textEnd"
-                    android:paddingStart="@dimen/cell_padding"
-                    android:paddingEnd="@dimen/cell_padding"
-                    android:paddingTop="0dp"
-                    android:paddingBottom="@dimen/edit_text_padding"/>
-            </TableRow>
+            android:visibility="@{targetTrack.shouldInclude &amp;&amp; targetTrack.shouldTranscode ? View.VISIBLE : View.GONE}">
 
             <TableRow
                 android:layout_width="match_parent"
@@ -116,7 +95,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@{sourceMedia != null ? Integer.toString(sourceMedia.videoWidth) : null}"
+                    android:text="@{videoTrack != null ? Integer.toString(videoTrack.width) : null}"
                     android:textAlignment="textEnd"
                     android:paddingStart="@dimen/cell_padding"
                     android:paddingEnd="@dimen/cell_padding"/>
@@ -125,15 +104,14 @@
                     android:id="@+id/target_video_width"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@={videoTarget.targetWidth}"
+                    android:text="@={Converter.integerToString(targetTrack.getTrackFormat().width)}"
                     android:inputType="number"
                     android:textAlignment="textEnd"
                     android:paddingStart="@dimen/cell_padding"
                     android:paddingEnd="@dimen/cell_padding"
                     android:paddingTop="0dp"
                     android:paddingBottom="@dimen/edit_text_padding"
-                    android:textSize="15sp"
-                    android:enabled="@{videoTarget.shouldTranscodeVideo}"/>
+                    android:textSize="15sp"/>
             </TableRow>
 
             <TableRow
@@ -151,7 +129,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@{sourceMedia != null ? Integer.toString(sourceMedia.videoHeight) : null}"
+                    android:text="@{videoTrack != null ? Integer.toString(videoTrack.height) : null}"
                     android:textAlignment="textEnd"
                     android:paddingStart="@dimen/cell_padding"
                     android:paddingEnd="@dimen/cell_padding"/>
@@ -160,15 +138,14 @@
                     android:id="@+id/target_video_height"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@={videoTarget.targetHeight}"
+                    android:text="@={Converter.integerToString(targetTrack.getTrackFormat().height)}"
                     android:inputType="number"
                     android:textAlignment="textEnd"
                     android:paddingStart="@dimen/cell_padding"
                     android:paddingEnd="@dimen/cell_padding"
                     android:paddingTop="0dp"
                     android:paddingBottom="@dimen/edit_text_padding"
-                    android:textSize="15sp"
-                    android:enabled="@{videoTarget.shouldTranscodeVideo}"/>
+                    android:textSize="15sp"/>
             </TableRow>
 
             <TableRow
@@ -186,7 +163,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@{sourceMedia != null ? Integer.toString(sourceMedia.videoBitrate) : null}"
+                    android:text="@{Converter.videoBitrateToString(videoTrack.bitrate)}"
                     android:textAlignment="textEnd"
                     android:paddingStart="@dimen/cell_padding"
                     android:paddingEnd="@dimen/cell_padding"/>
@@ -195,15 +172,14 @@
                     android:id="@+id/target_video_bitrate"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@={videoTarget.targetBitrate}"
+                    android:text="@={Converter.videoBitrateToString(targetTrack.getTrackFormat().bitrate)}"
                     android:inputType="number"
                     android:textAlignment="textEnd"
                     android:paddingStart="@dimen/cell_padding"
                     android:paddingEnd="@dimen/cell_padding"
                     android:paddingTop="0dp"
                     android:paddingBottom="@dimen/edit_text_padding"
-                    android:textSize="15sp"
-                    android:enabled="@{videoTarget.shouldTranscodeVideo}"/>
+                    android:textSize="15sp"/>
             </TableRow>
 
             <TableRow
@@ -221,7 +197,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@{sourceMedia != null ? Integer.toString(sourceMedia.videoKeyFrameInterval) : null}"
+                    android:text="@{videoTrack != null ? Integer.toString(videoTrack.keyFrameInterval) : null}"
                     android:textAlignment="textEnd"
                     android:paddingStart="@dimen/cell_padding"
                     android:paddingEnd="@dimen/cell_padding"/>
@@ -230,15 +206,14 @@
                     android:id="@+id/target_video_key_frame_interval"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@={videoTarget.targetKeyFrameInterval}"
+                    android:text="@={Converter.integerToString(targetTrack.getTrackFormat().keyFrameInterval)}"
                     android:inputType="number"
                     android:textAlignment="textEnd"
                     android:paddingStart="@dimen/cell_padding"
                     android:paddingEnd="@dimen/cell_padding"
                     android:paddingTop="0dp"
                     android:paddingBottom="@dimen/edit_text_padding"
-                    android:textSize="15sp"
-                    android:enabled="@{videoTarget.shouldTranscodeVideo}"/>
+                    android:textSize="15sp"/>
             </TableRow>
 
             <TableRow
@@ -256,7 +231,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@{sourceMedia != null ? Integer.toString(sourceMedia.videoFrameRate) : null}"
+                    android:text="@{videoTrack != null ? Integer.toString(videoTrack.frameRate) : null}"
                     android:textAlignment="textEnd"
                     android:paddingStart="@dimen/cell_padding"
                     android:paddingEnd="@dimen/cell_padding"/>
@@ -265,7 +240,7 @@
                     android:id="@+id/target_video_frame_rate"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@{sourceMedia != null ? Integer.toString(sourceMedia.videoFrameRate) : null}"
+                    android:text="@{Integer.toString(targetTrack.getTrackFormat().frameRate)}"
                     android:textAlignment="textEnd"
                     android:paddingStart="@dimen/cell_padding"
                     android:paddingEnd="@dimen/cell_padding"
@@ -288,7 +263,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@{sourceMedia != null ? Integer.toString(sourceMedia.videoRotation) : null}"
+                    android:text="@{videoTrack != null ? Integer.toString(videoTrack.rotation) : null}"
                     android:textAlignment="textEnd"
                     android:paddingStart="@dimen/cell_padding"
                     android:paddingEnd="@dimen/cell_padding"/>
@@ -297,7 +272,7 @@
                     android:id="@+id/target_video_rotation"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@{sourceMedia != null ? Integer.toString(sourceMedia.videoRotation) : null}"
+                    android:text="@{Integer.toString(targetTrack.getTrackFormat().rotation)}"
                     android:textAlignment="textEnd"
                     android:paddingStart="@dimen/cell_padding"
                     android:paddingEnd="@dimen/cell_padding"
@@ -320,7 +295,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@{sourceMedia != null ? Long.toString(sourceMedia.videoDuration) : null}"
+                    android:text="@{videoTrack != null ? Long.toString(videoTrack.duration) : null}"
                     android:textAlignment="textEnd"
                     android:paddingStart="@dimen/cell_padding"
                     android:paddingEnd="@dimen/cell_padding"/>
@@ -328,7 +303,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@{sourceMedia != null ? Long.toString(sourceMedia.videoDuration) : null}"
+                    android:text="@{Long.toString(targetTrack.getTrackFormat().duration)}"
                     android:textAlignment="textEnd"
                     android:paddingStart="@dimen/cell_padding"
                     android:paddingEnd="@dimen/cell_padding"
@@ -338,5 +313,28 @@
 
         </TableLayout>
 
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:visibility="@{targetTrack.shouldApplyOverlay ? View.VISIBLE : View.GONE}"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/button_pick_video_overlay"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:text="@string/pick_video_overlay"/>
+
+            <ImageView
+                android:layout_width="75dp"
+                android:layout_height="75dp"
+                android:scaleType="centerCrop"
+                android:visibility="@{targetTrack.overlay == null ? View.GONE : View.VISIBLE}"
+                app:overlayThumbnail="@{targetTrack.overlay != null ? targetTrack.overlay.toString() : null}"/>
+
+        </LinearLayout>
     </LinearLayout>
+
 </layout>

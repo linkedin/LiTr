@@ -1,0 +1,130 @@
+/*
+ * Copyright 2019 LinkedIn Corporation
+ * All Rights Reserved.
+ *
+ * Licensed under the BSD 2-Clause License (the "License").  See License in the project root for
+ * license information.
+ */
+package com.linkedin.android.litr.demo;
+
+import android.content.Intent;
+import android.media.MediaExtractor;
+import android.media.MediaFormat;
+import android.net.Uri;
+import android.os.Build;
+import android.util.Log;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
+import com.linkedin.android.litr.demo.data.AudioTrackFormat;
+import com.linkedin.android.litr.demo.data.GenericTrackFormat;
+import com.linkedin.android.litr.demo.data.SourceMedia;
+import com.linkedin.android.litr.demo.data.VideoTrackFormat;
+import com.linkedin.android.litr.utils.TransformationUtil;
+
+import java.io.IOException;
+import java.util.ArrayList;
+
+import static android.app.Activity.RESULT_OK;
+
+public class BaseTransformationFragment extends Fragment {
+
+    private static final String TAG = BaseTransformationFragment.class.getSimpleName();
+
+    private static final int PICK_MEDIA = 42;
+
+    private static final String KEY_ROTATION = Build.VERSION.SDK_INT >= Build.VERSION_CODES.M
+                                               ? MediaFormat.KEY_ROTATION
+                                               : "rotation-degrees";
+
+    private MediaPickerListener mediaPickerListener;
+
+    public void pickVideo(@Nullable MediaPickerListener mediaPickerListener) {
+        pickMedia("video/*", mediaPickerListener);
+    }
+
+    public void pickOverlay(@Nullable MediaPickerListener mediaPickerListener) {
+        pickMedia("image/*", mediaPickerListener);
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (resultCode == RESULT_OK && data.getData() != null) {
+            mediaPickerListener.onMediaPicked(data.getData());
+        }
+    }
+
+    @NonNull
+    protected void updateSourceMedia(@NonNull SourceMedia sourceMedia, @NonNull Uri uri) {
+        sourceMedia.uri = uri;
+        sourceMedia.size = TransformationUtil.getSize(getContext(), uri);
+
+        try {
+            MediaExtractor mediaExtractor = new MediaExtractor();
+            mediaExtractor.setDataSource(getContext(), uri, null);
+            sourceMedia.tracks = new ArrayList<>(mediaExtractor.getTrackCount());
+
+            for (int track = 0; track < mediaExtractor.getTrackCount(); track++) {
+                MediaFormat mediaFormat = mediaExtractor.getTrackFormat(track);
+                String mimeType = mediaFormat.getString(MediaFormat.KEY_MIME);
+                if (mimeType == null) {
+                    continue;
+                }
+
+                if (mimeType.startsWith("video")) {
+                    VideoTrackFormat videoTrack = new VideoTrackFormat(track, mimeType);
+                    videoTrack.width = getInt(mediaFormat, MediaFormat.KEY_WIDTH);
+                    videoTrack.height = getInt(mediaFormat, MediaFormat.KEY_HEIGHT);
+                    videoTrack.duration = getLong(mediaFormat, MediaFormat.KEY_DURATION);
+                    videoTrack.frameRate = getInt(mediaFormat, MediaFormat.KEY_FRAME_RATE);
+                    videoTrack.keyFrameInterval = getInt(mediaFormat, MediaFormat.KEY_I_FRAME_INTERVAL);
+                    videoTrack.rotation = getInt(mediaFormat, KEY_ROTATION);
+                    videoTrack.bitrate = getInt(mediaFormat, MediaFormat.KEY_BIT_RATE);
+                    sourceMedia.tracks.add(videoTrack);
+                } else if (mimeType.startsWith("audio")) {
+                    AudioTrackFormat audioTrack = new AudioTrackFormat(track, mimeType);
+                    audioTrack.channelCount = getInt(mediaFormat, MediaFormat.KEY_CHANNEL_COUNT);
+                    audioTrack.samplingRate = getInt(mediaFormat, MediaFormat.KEY_SAMPLE_RATE);
+                    audioTrack.duration = getLong(mediaFormat, MediaFormat.KEY_DURATION);
+                    audioTrack.bitrate = getInt(mediaFormat, MediaFormat.KEY_BIT_RATE);
+                    sourceMedia.tracks.add(audioTrack);
+                } else {
+                    sourceMedia.tracks.add(new GenericTrackFormat(track, mimeType));
+                }
+            }
+        } catch (IOException ex) {
+            Log.e(TAG, "Failed to extract sourceMedia", ex);
+        }
+
+        sourceMedia.notifyChange();
+    }
+
+    private int getInt(@NonNull MediaFormat mediaFormat, @NonNull String key) {
+        if (mediaFormat.containsKey(key)) {
+            return mediaFormat.getInteger(key);
+        }
+        return -1;
+    }
+
+    private long getLong(@NonNull MediaFormat mediaFormat, @NonNull String key) {
+        if (mediaFormat.containsKey(key)) {
+            return mediaFormat.getLong(key);
+        }
+        return -1;
+    }
+
+    private void pickMedia(@NonNull String type, @Nullable MediaPickerListener mediaPickerListener) {
+        this.mediaPickerListener = mediaPickerListener;
+
+        Intent intent = new Intent();
+        intent.setType(type);
+        intent.setAction(Intent.ACTION_GET_CONTENT);
+        intent.putExtra(Intent.EXTRA_LOCAL_ONLY, true);
+        intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, false);
+        startActivityForResult(Intent.createChooser(intent, getString(R.string.pick_media)),
+                               PICK_MEDIA);
+    }
+
+}

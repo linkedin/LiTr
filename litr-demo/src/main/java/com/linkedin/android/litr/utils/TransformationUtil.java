@@ -101,14 +101,14 @@ public class TransformationUtil {
                 long size = fileDescriptor != null ? fileDescriptor.getParcelFileDescriptor().getStatSize() : 0;
                 return size < 0 ? 0 : size;
             } catch (FileNotFoundException | IllegalStateException e) {
-                Log.e(TAG, "Unable to extract length from uri: " + uri, e);
+                Log.e(TAG, "Unable to extract length from targetFile: " + uri, e);
                 return 0;
             } finally {
                 if (fileDescriptor != null) {
                     try {
                         fileDescriptor.close();
                     } catch (IOException e) {
-                        Log.e(TAG, "Unable to close file descriptor from uri: " + uri, e);
+                        Log.e(TAG, "Unable to close file descriptor from targetFile: " + uri, e);
                     }
                 }
             }

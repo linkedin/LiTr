@@ -9,11 +9,8 @@ package com.linkedin.android.litr.demo;
 
 import android.net.Uri;
 import androidx.annotation.NonNull;
-import com.linkedin.android.litr.demo.data.SourceMedia;
 
-public interface MediaPickerTarget {
+public interface MediaPickerListener {
 
-    void onMediaPicked(@NonNull SourceMedia sourceMedia);
-
-    void onOverlayPicked(@NonNull Uri uri, long size);
+    void onMediaPicked(@NonNull Uri uri);
 }

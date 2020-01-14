@@ -7,100 +7,68 @@
 <layout>
     <data>
         <import type="android.view.View"/>
+        <import type="com.linkedin.android.litr.demo.data.Converter"/>
 
         <variable
-            name="sourceMedia"
-            type="com.linkedin.android.litr.demo.data.SourceMedia" />
+            name="audioTrack"
+            type="com.linkedin.android.litr.demo.data.AudioTrackFormat" />
 
         <variable
-            name="audioTarget"
-            type="com.linkedin.android.litr.demo.data.AudioTarget" />
+            name="targetTrack"
+            type="com.linkedin.android.litr.demo.data.TargetAudioTrack" />
+
+        <variable
+            name="presenter"
+            type="com.linkedin.android.litr.demo.data.TranscodingConfigPresenter" />
+
     </data>
 
     <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-        android:orientation="vertical"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_marginTop="@dimen/section_margin">
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
 
-        <Switch
-            android:id="@+id/switch_transcode_audio"
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textStyle="bold"
+            android:text="@{String.format(@string/track_info, audioTrack.index, audioTrack.mimeType)}"/>
+
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/transcode_audio"
-            android:textStyle="bold"
-            android:enabled="@{sourceMedia != null}"
-            android:padding="@dimen/cell_padding"
-            android:onCheckedChanged="@{(switch, checked) -> audioTarget.onCheckedChanged(switch, checked)}"
-            android:visibility="@{(sourceMedia != null &amp;&amp; sourceMedia.audioMimeType != null) ? View.VISIBLE : View.GONE}"/>
+            android:orientation="horizontal">
+
+            <CheckBox
+                android:id="@+id/switch_include"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/include"
+                android:textStyle="bold"
+                android:padding="@dimen/cell_padding"
+                android:checked="@={targetTrack.shouldInclude}"
+                android:onCheckedChanged="@{(switch, checked) -> presenter.onIncludeTrackChanged(targetTrack, checked)}"/>
+
+            <CheckBox
+                android:id="@+id/switch_transcode"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/transcode"
+                android:textStyle="bold"
+                android:padding="@dimen/cell_padding"
+                android:checked="@={targetTrack.shouldTranscode}"
+                android:visibility="@{targetTrack.shouldInclude ? View.VISIBLE : View.GONE}"
+                android:onCheckedChanged="@{(switch, checked) -> presenter.onTranscodeTrackChanged(targetTrack, checked)}"/>
+
+        </LinearLayout>
 
         <TableLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:visibility="@{audioTarget.shouldTranscodeAudio ? View.VISIBLE : View.GONE}">
-
-            <TableRow
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content">
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="@string/track"
-                    android:paddingStart="@dimen/cell_padding"
-                    android:paddingEnd="@dimen/cell_padding"/>
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@{sourceMedia != null ? Integer.toString(sourceMedia.audioTrack) : null}"
-                    android:textAlignment="textEnd"
-                    android:paddingStart="@dimen/cell_padding"
-                    android:paddingEnd="@dimen/cell_padding"/>
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@{sourceMedia != null ? Integer.toString(sourceMedia.audioTrack) : null}"
-                    android:textAlignment="textEnd"
-                    android:paddingStart="@dimen/cell_padding"
-                    android:paddingEnd="@dimen/cell_padding"
-                    android:paddingTop="0dp"
-                    android:paddingBottom="@dimen/edit_text_padding"/>
-            </TableRow>
-
-            <TableRow
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content">
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="@string/mime_type"
-                    android:paddingStart="@dimen/cell_padding"
-                    android:paddingEnd="@dimen/cell_padding"/>
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@{sourceMedia != null ? sourceMedia.audioMimeType : null}"
-                    android:textAlignment="textEnd"
-                    android:paddingStart="@dimen/cell_padding"
-                    android:paddingEnd="@dimen/cell_padding"/>
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@{sourceMedia != null ? sourceMedia.audioMimeType : null}"
-                    android:textAlignment="textEnd"
-                    android:paddingStart="@dimen/cell_padding"
-                    android:paddingEnd="@dimen/cell_padding"
-                    android:paddingTop="0dp"
-                    android:paddingBottom="@dimen/edit_text_padding"/>
-            </TableRow>
+            android:visibility="@{targetTrack.shouldInclude &amp;&amp; targetTrack.shouldTranscode ? View.VISIBLE : View.GONE}">
 
             <TableRow
                 android:layout_width="match_parent"
@@ -117,7 +85,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@{sourceMedia != null ? Integer.toString(sourceMedia.audioChannelCount) : null}"
+                    android:text="@{audioTrack != null ? Integer.toString(audioTrack.channelCount) : null}"
                     android:textAlignment="textEnd"
                     android:paddingStart="@dimen/cell_padding"
                     android:paddingEnd="@dimen/cell_padding"/>
@@ -126,7 +94,7 @@
                     android:id="@+id/target_audio_channel_count"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@{sourceMedia != null ? Integer.toString(sourceMedia.audioChannelCount) : null}"
+                    android:text="@{audioTrack != null ? Integer.toString(audioTrack.channelCount) : null}"
                     android:textAlignment="textEnd"
                     android:paddingStart="@dimen/cell_padding"
                     android:paddingEnd="@dimen/cell_padding"
@@ -149,7 +117,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@{sourceMedia != null ? Integer.toString(sourceMedia.audioSamplingRate) : null}"
+                    android:text="@{audioTrack != null ? Integer.toString(audioTrack.samplingRate) : null}"
                     android:textAlignment="textEnd"
                     android:paddingStart="@dimen/cell_padding"
                     android:paddingEnd="@dimen/cell_padding"/>
@@ -158,7 +126,7 @@
                     android:id="@+id/target_audio_sample_rate"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@{sourceMedia != null ? Integer.toString(sourceMedia.audioSamplingRate) : null}"
+                    android:text="@{audioTrack != null ? Integer.toString(audioTrack.samplingRate) : null}"
                     android:textAlignment="textEnd"
                     android:paddingStart="@dimen/cell_padding"
                     android:paddingEnd="@dimen/cell_padding"
@@ -181,7 +149,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@{sourceMedia != null ? Integer.toString(sourceMedia.audioBitrate) : null}"
+                    android:text="@{Converter.audioBitrateToString(audioTrack.bitrate)}"
                     android:textAlignment="textEnd"
                     android:paddingStart="@dimen/cell_padding"
                     android:paddingEnd="@dimen/cell_padding"/>
@@ -190,15 +158,14 @@
                     android:id="@+id/target_audio_bitate"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@={audioTarget.targetBitrate}"
+                    android:text="@={Converter.audioBitrateToString(targetTrack.getTrackFormat().bitrate)}"
                     android:textAlignment="textEnd"
                     android:inputType="number"
                     android:textSize="15sp"
                     android:paddingStart="@dimen/cell_padding"
                     android:paddingEnd="@dimen/cell_padding"
                     android:paddingTop="0dp"
-                    android:paddingBottom="@dimen/edit_text_padding"
-                    android:enabled="@{audioTarget.shouldTranscodeAudio}"/>
+                    android:paddingBottom="@dimen/edit_text_padding"/>
             </TableRow>
 
             <TableRow
@@ -216,7 +183,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@{sourceMedia != null ? Long.toString(sourceMedia.audioDuration) : null}"
+                    android:text="@{audioTrack != null ? Long.toString(audioTrack.duration) : null}"
                     android:textAlignment="textEnd"
                     android:paddingStart="@dimen/cell_padding"
                     android:paddingEnd="@dimen/cell_padding"/>
@@ -224,7 +191,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@{sourceMedia != null ? Long.toString(sourceMedia.audioDuration) : null}"
+                    android:text="@{audioTrack != null ? Long.toString(audioTrack.duration) : null}"
                     android:textAlignment="textEnd"
                     android:paddingStart="@dimen/cell_padding"
                     android:paddingEnd="@dimen/cell_padding"
@@ -235,4 +202,5 @@
         </TableLayout>
 
     </LinearLayout>
+
 </layout>

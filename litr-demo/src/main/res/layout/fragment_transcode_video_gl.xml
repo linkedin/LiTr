@@ -15,28 +15,24 @@
             type="com.linkedin.android.litr.demo.data.SourceMedia" />
 
         <variable
-            name="videoTarget"
-            type="com.linkedin.android.litr.demo.data.VideoTarget" />
-
-        <variable
-            name="audioTarget"
-            type="com.linkedin.android.litr.demo.data.AudioTarget" />
-
-        <variable
-            name="overlayTarget"
-            type="com.linkedin.android.litr.demo.data.OverlayTarget" />
+            name="targetMedia"
+            type="com.linkedin.android.litr.demo.data.TargetMedia" />
 
         <variable
             name="transformationState"
             type="com.linkedin.android.litr.demo.data.TransformationState" />
 
         <variable
-            name="presenter"
+            name="transcodingConfigPresenter"
+            type="com.linkedin.android.litr.demo.data.TranscodingConfigPresenter" />
+
+        <variable
+            name="transformationPresenter"
             type="com.linkedin.android.litr.demo.data.TransformationPresenter" />
 
     </data>
 
-    <ScrollView
+    <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
@@ -51,37 +47,20 @@
                 android:layout_height="wrap_content"
                 app:sourceMedia="@{sourceMedia}"/>
 
-            <include layout="@layout/section_transcode_video"
-                android:id="@+id/section_transcode_video"
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/tracks"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:visibility="@{(sourceMedia != null &amp;&amp; sourceMedia.videoMimeType != null) ? View.VISIBLE : View.GONE}"
-                app:sourceMedia="@{sourceMedia}"
-                app:videoTarget="@{videoTarget}"/>
-
-            <include layout="@layout/section_transcode_audio"
-                android:id="@+id/section_transcode_audio"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:visibility="@{(sourceMedia != null &amp;&amp; sourceMedia.audioMimeType != null) ? View.VISIBLE : View.GONE}"
-                app:sourceMedia="@{sourceMedia}"
-                app:audioTarget="@{audioTarget}"/>
-
-            <include layout="@layout/section_pick_overlay"
-                android:id="@+id/section_pick_overlay"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:visibility="@{(sourceMedia != null &amp;&amp; sourceMedia.videoMimeType != null) ? View.VISIBLE : View.GONE}"
-                app:overlayTarget="@{overlayTarget}"/>
+                android:padding="@dimen/cell_padding"/>
 
             <Button
                 android:id="@+id/button_transcode"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="@string/transcode"
-                android:enabled="@{sourceMedia != null &amp;&amp; (videoTarget.shouldTranscodeVideo || audioTarget.shouldTranscodeAudio) &amp;&amp; (transformationState.state != transformationState.STATE_RUNNING)}"
+                android:enabled="@{sourceMedia != null &amp;&amp; targetMedia != null &amp;&amp; targetMedia.getIncludedTrackCount() > 0 &amp;&amp; (transformationState.state != transformationState.STATE_RUNNING)}"
                 android:padding="@dimen/cell_padding"
-                android:onClick="@{() -> presenter.startTransformation(sourceMedia, videoTarget, audioTarget, overlayTarget, transformationState)}"/>
+                android:onClick="@{() -> transformationPresenter.startTransformation(sourceMedia, targetMedia, transformationState)}"/>
 
             <include layout="@layout/section_transformation_progress"
                 android:id="@+id/section_transformation_progress"
@@ -89,7 +68,7 @@
                 android:layout_height="wrap_content"
                 android:visibility="@{transformationState.state == transformationState.STATE_IDLE ? View.GONE : View.VISIBLE}"
                 app:transformationState="@{transformationState}"
-                app:presenter="@{presenter}"/>
+                app:presenter="@{transformationPresenter}"/>
 
             <Button
                 android:id="@+id/button_play"
@@ -98,17 +77,17 @@
                 android:text="@string/play"
                 android:enabled="@{transformationState.state == transformationState.STATE_COMPLETED}"
                 android:padding="@dimen/cell_padding"
-                android:onClick="@{() -> presenter.play(transformationState.targetFile)}"/>
+                android:onClick="@{() -> transformationPresenter.play(targetMedia.targetFile)}"/>
 
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:padding="@dimen/cell_padding"
                 android:text="@{transformationState.stats}"
-                android:visibility="@{transformationState.stats == null ? View.GONE : View.VISIBLE}"/>
+                android:visibility="@{transformationState.state == transformationState.STATE_RUNNING || transformationState.stats == null ? View.GONE : View.VISIBLE}"/>
 
         </LinearLayout>
 
-    </ScrollView>
+    </androidx.core.widget.NestedScrollView>
 
 </layout>
