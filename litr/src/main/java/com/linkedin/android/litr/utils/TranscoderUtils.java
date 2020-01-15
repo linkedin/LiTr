@@ -120,7 +120,8 @@ public final class TranscoderUtils {
      * Estimates video track bitrate. On many devices bitrate value is not specified in {@link MediaFormat} for video track.
      * Since not all data required for accurate estimation is available, this method makes several assumptions:
      *  - if multiple video tracks are present, average per-pixel bitrate is assumed to be the same for all tracks
-     *  - if both bitrate and duration are not specified for a track, its size is not accounted for
+     *  - if either bitrate or duration are not specified for a track, its size is not accounted for
+     *
      * @param mediaSource {@link MediaSource} which contains the video track
      * @param trackIndex index of video track
      * @return estimated bitrate in bits per second

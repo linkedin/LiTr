@@ -220,6 +220,8 @@ public class MediaTransformer {
             if (trackTransform.getTargetFormat() == null
                 && trackTransform.getRenderer() != null
                 && trackTransform.getRenderer().hasFilters()) {
+                // target format is null, but track has overlays, which means that we cannot use passthrough transcoder
+                // so we transcode the track using source parameters (resolution, bitrate) as a target
                 MediaFormat targetFormat = createTargetMediaFormat(trackTransform.getMediaSource(),
                                                                    trackTransform.getSourceTrack());
                 TrackTransform updatedTrackTransform = new TrackTransform.Builder(trackTransform.getMediaSource(),
@@ -232,8 +234,7 @@ public class MediaTransformer {
                     .setTargetFormat(targetFormat)
                     .build();
 
-                trackTransforms.remove(trackIndex);
-                trackTransforms.add(trackIndex, updatedTrackTransform);
+                trackTransforms.set(trackIndex, updatedTrackTransform);
             }
         }
 
