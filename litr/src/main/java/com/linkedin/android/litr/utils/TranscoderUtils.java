@@ -135,7 +135,7 @@ public final class TranscoderUtils {
                 if (trackFormat.containsKey(MediaFormat.KEY_BIT_RATE) && trackFormat.containsKey(MediaFormat.KEY_DURATION)) {
                     int bitrate = trackFormat.getInteger(MediaFormat.KEY_BIT_RATE);
                     long duration = trackFormat.getLong(MediaFormat.KEY_DURATION);
-                    unallocatedSize -= bitrate * TimeUnit.MICROSECONDS.toSeconds(duration);
+                    unallocatedSize -= bitrate * TimeUnit.MICROSECONDS.toSeconds(duration) / 8;
                 } else {
                     String mimeType = trackFormat.getString(MediaFormat.KEY_MIME);
                     if (mimeType.startsWith("video")) {
