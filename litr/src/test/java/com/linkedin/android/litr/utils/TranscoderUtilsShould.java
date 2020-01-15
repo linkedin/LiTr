@@ -155,6 +155,17 @@ public class TranscoderUtilsShould {
     }
 
     @Test
+    public void useVideoTrackBitrateAsEstimationWhenPresent() {
+        when(mediaSource.getSize()).thenReturn(VIDEO_BIT_RATE * DURATION_S / 8);
+        when(mediaSource.getTrackCount()).thenReturn(1);
+        when(mediaSource.getTrackFormat(0)).thenReturn(videoMediaFormat);
+
+        int estimatedBitrate = TranscoderUtils.estimateVideoTrackBitrate(mediaSource, 0);
+
+        assertThat(estimatedBitrate, is(VIDEO_BIT_RATE));
+    }
+
+    @Test
     public void estimateVideoTrackBitrateWhenSingleVideoTrack() {
         when(mediaSource.getSize()).thenReturn(VIDEO_BIT_RATE * DURATION_S / 8);
         when(mediaSource.getTrackCount()).thenReturn(1);

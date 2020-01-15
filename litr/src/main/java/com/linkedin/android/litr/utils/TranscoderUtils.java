@@ -126,6 +126,11 @@ public final class TranscoderUtils {
      * @return estimated bitrate in bits per second
      */
     public static int estimateVideoTrackBitrate(@NonNull MediaSource mediaSource, int trackIndex) {
+        MediaFormat videoTrackFormat = mediaSource.getTrackFormat(trackIndex);
+        if (videoTrackFormat.containsKey(MediaFormat.KEY_BIT_RATE)) {
+            return videoTrackFormat.getInteger(MediaFormat.KEY_BIT_RATE);
+        }
+
         long unallocatedSize = mediaSource.getSize();
         long totalPixels = 0;
         int trackCount = mediaSource.getTrackCount();
@@ -147,7 +152,6 @@ public final class TranscoderUtils {
             }
         }
 
-        MediaFormat videoTrackFormat = mediaSource.getTrackFormat(trackIndex);
         long trackPixels = videoTrackFormat.getInteger(MediaFormat.KEY_WIDTH)
             * videoTrackFormat.getInteger(MediaFormat.KEY_HEIGHT)
             * TimeUnit.MICROSECONDS.toSeconds(videoTrackFormat.getLong(MediaFormat.KEY_DURATION));
