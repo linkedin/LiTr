@@ -20,7 +20,7 @@ import com.linkedin.android.litr.exception.TrackTranscoderException;
 import com.linkedin.android.litr.io.MediaSource;
 import com.linkedin.android.litr.io.MediaTarget;
 import com.linkedin.android.litr.render.GlVideoRenderer;
-import com.linkedin.android.litr.render.VideoRenderer;
+import com.linkedin.android.litr.render.Renderer;
 
 /**
  * Transcoder that processes video tracks.
@@ -45,7 +45,7 @@ public class VideoTrackTranscoder extends TrackTranscoder {
                          @NonNull MediaTarget mediaTarget,
                          int targetTrack,
                          @NonNull MediaFormat targetFormat,
-                         @NonNull VideoRenderer renderer,
+                         @NonNull Renderer renderer,
                          @NonNull Decoder decoder,
                          @NonNull Encoder encoder) throws TrackTranscoderException {
         super(mediaSource, sourceTrack, mediaTarget, targetTrack, targetFormat, decoder, encoder);
@@ -75,18 +75,9 @@ public class VideoTrackTranscoder extends TrackTranscoder {
             duration = sourceVideoFormat.getLong(MediaFormat.KEY_DURATION);
             targetVideoFormat.setLong(MediaFormat.KEY_DURATION, (long) duration);
         }
-        // clear the rotation flag, we don't want any auto-rotation issues
-        int rotation = 0;
-        if (sourceVideoFormat.containsKey(KEY_ROTATION)) {
-            rotation = sourceVideoFormat.getInteger(KEY_ROTATION);
-        }
-        float aspectRatio = 1;
-        if (targetVideoFormat.containsKey(MediaFormat.KEY_WIDTH) && targetVideoFormat.containsKey(MediaFormat.KEY_HEIGHT)) {
-            aspectRatio = (float) targetVideoFormat.getInteger(MediaFormat.KEY_WIDTH) / targetVideoFormat.getInteger(MediaFormat.KEY_HEIGHT);
-        }
 
         encoder.init(targetFormat);
-        renderer.init(encoder.createInputSurface(), rotation, aspectRatio);
+        renderer.init(encoder.createInputSurface(), sourceVideoFormat, targetVideoFormat);
         decoder.init(sourceVideoFormat, renderer.getInputSurface());
     }
 

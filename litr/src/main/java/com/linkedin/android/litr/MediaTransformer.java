@@ -32,7 +32,7 @@ import com.linkedin.android.litr.io.MediaMuxerMediaTarget;
 import com.linkedin.android.litr.io.MediaSource;
 import com.linkedin.android.litr.io.MediaTarget;
 import com.linkedin.android.litr.render.GlVideoRenderer;
-import com.linkedin.android.litr.render.VideoRenderer;
+import com.linkedin.android.litr.render.Renderer;
 import com.linkedin.android.litr.utils.TranscoderUtils;
 
 import java.util.ArrayList;
@@ -109,7 +109,7 @@ public class MediaTransformer {
                                                                 mediaSource.getTrackCount(),
                                                                 mediaSource.getOrientationHint(),
                                                                 MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4);
-            VideoRenderer renderer = new GlVideoRenderer(filters);
+            Renderer renderer = new GlVideoRenderer(filters);
             Decoder decoder = new MediaCodecDecoder();
             Encoder encoder = new MediaCodecEncoder();
             transform(requestId,
@@ -137,7 +137,7 @@ public class MediaTransformer {
      * @param requestId client defined unique id for a transformation request. If not unique, {@link IllegalArgumentException} will be thrown.
      * @param mediaSource {@link MediaSource} to provide input frames
      * @param decoder {@link Decoder} to decode input frames
-     * @param videoRenderer {@link VideoRenderer} to draw (with optional filters) decoder's output frame onto encoder's input frame
+     * @param videoRenderer {@link Renderer} to draw (with optional filters) decoder's output frame onto encoder's input frame
      * @param encoder {@link Encoder} to encode output frames into target format
      * @param mediaTarget {@link MediaTarget} to write/mux output frames
      * @param targetVideoFormat target format parameters for video track(s), null to keep them as is
@@ -149,7 +149,7 @@ public class MediaTransformer {
     public void transform(@NonNull String requestId,
                           @NonNull MediaSource mediaSource,
                           @NonNull Decoder decoder,
-                          @NonNull VideoRenderer videoRenderer,
+                          @NonNull Renderer videoRenderer,
                           @NonNull Encoder encoder,
                           @NonNull MediaTarget mediaTarget,
                           @Nullable MediaFormat targetVideoFormat,

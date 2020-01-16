@@ -20,9 +20,11 @@
 // modified: added filters
 package com.linkedin.android.litr.render;
 
+import android.media.MediaFormat;
 import android.opengl.GLES11Ext;
 import android.opengl.GLES20;
 import android.opengl.Matrix;
+import android.os.Build;
 import android.view.Surface;
 import androidx.annotation.Nullable;
 import com.linkedin.android.litr.codec.Frame;
@@ -39,7 +41,11 @@ import java.util.List;
  * A renderer that uses OpenGL to draw (and transform) decoder's output frame onto encoder's input frame. Both decoder
  * and encoder are expected to be using {@link Surface}.
  */
-public class GlVideoRenderer implements VideoRenderer {
+public class GlVideoRenderer implements Renderer {
+
+    protected static final String KEY_ROTATION = Build.VERSION.SDK_INT >= Build.VERSION_CODES.M
+                                                 ? MediaFormat.KEY_ROTATION
+                                                 : "rotation-degrees";
 
     private static final int FLOAT_SIZE_BYTES = 4;
     private static final int TRIANGLE_VERTICES_DATA_STRIDE_BYTES = 5 * FLOAT_SIZE_BYTES;
@@ -103,9 +109,22 @@ public class GlVideoRenderer implements VideoRenderer {
     }
 
     @Override
-    public void init(@Nullable Surface outputSurface, int rotation, float aspectRatio) {
+    public void init(@Nullable Surface outputSurface, @Nullable MediaFormat sourceMediaFormat, @Nullable MediaFormat targetMediaFormat) {
         if (outputSurface == null) {
-            throw new IllegalArgumentException("GlRenderer requires an output surface");
+            throw new IllegalArgumentException("GlVideoRenderer requires an output surface");
+        }
+        if (targetMediaFormat == null) {
+            throw new IllegalArgumentException("GlVideoRenderer requires target media format");
+        }
+
+        // clear the rotation flag, we don't want any auto-rotation issues
+        int rotation = 0;
+        if (sourceMediaFormat.containsKey(KEY_ROTATION)) {
+            rotation = sourceMediaFormat.getInteger(KEY_ROTATION);
+        }
+        float aspectRatio = 1;
+        if (targetMediaFormat.containsKey(MediaFormat.KEY_WIDTH) && targetMediaFormat.containsKey(MediaFormat.KEY_HEIGHT)) {
+            aspectRatio = (float) targetMediaFormat.getInteger(MediaFormat.KEY_WIDTH) / targetMediaFormat.getInteger(MediaFormat.KEY_HEIGHT);
         }
 
         this.outputSurface = new VideoRenderOutputSurface(outputSurface);
