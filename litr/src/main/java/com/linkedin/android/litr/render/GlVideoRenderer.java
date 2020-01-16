@@ -119,7 +119,7 @@ public class GlVideoRenderer implements Renderer {
 
         // clear the rotation flag, we don't want any auto-rotation issues
         int rotation = 0;
-        if (sourceMediaFormat.containsKey(KEY_ROTATION)) {
+        if (sourceMediaFormat != null && sourceMediaFormat.containsKey(KEY_ROTATION)) {
             rotation = sourceMediaFormat.getInteger(KEY_ROTATION);
         }
         float aspectRatio = 1;
