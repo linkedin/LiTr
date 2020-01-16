@@ -85,4 +85,10 @@ public interface MediaSource {
      * Free up all resources. Make sure to call this when MediaSource is no longer needed.
      */
     void release();
+
+    /**
+     * Get total size of media source
+     * @return size in bytes, -1 if unknown
+     */
+    long getSize();
 }

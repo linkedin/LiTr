@@ -42,4 +42,10 @@ public interface VideoRenderer {
      * Release the renderer and all it resources.
      */
     void release();
+
+    /**
+     * Check if renderer has filters
+     * @return true if has, false otherwise
+     */
+    boolean hasFilters();
 }

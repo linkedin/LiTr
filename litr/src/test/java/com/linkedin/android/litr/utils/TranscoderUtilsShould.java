@@ -16,6 +16,8 @@ import org.mockito.MockitoAnnotations;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class TranscoderUtilsShould {
@@ -24,8 +26,12 @@ public class TranscoderUtilsShould {
     private static final long MISC_DURATION_S = 25;
     private static final long MISC_DURATION_US = MISC_DURATION_S * 1000 * 1000;
 
+    private static final int VIDEO_BIT_RATE = 19 * 1000 * 1000;
     private static final int AUDIO_BIT_RATE = 96 * 1000;
     private static final int MISC_BIT_RATE = 5 * 1000;
+
+    private static final int VIDEO_WIDTH = 1920;
+    private static final int VIDEO_HEIGHT = 1080;
 
     @Mock private MediaSource mediaSource;
     @Mock private MediaFormat targetVideoFormat;
@@ -47,9 +53,11 @@ public class TranscoderUtilsShould {
         when(videoMediaFormat.containsKey(MediaFormat.KEY_MIME)).thenReturn(true);
         when(videoMediaFormat.getString(MediaFormat.KEY_MIME)).thenReturn("video/avc");
         when(videoMediaFormat.containsKey(MediaFormat.KEY_BIT_RATE)).thenReturn(true);
-        when(videoMediaFormat.getInteger(MediaFormat.KEY_BIT_RATE)).thenReturn(12 * 1000 * 1000);
+        when(videoMediaFormat.getInteger(MediaFormat.KEY_BIT_RATE)).thenReturn(VIDEO_BIT_RATE);
         when(videoMediaFormat.containsKey(MediaFormat.KEY_DURATION)).thenReturn(true);
         when(videoMediaFormat.getLong(MediaFormat.KEY_DURATION)).thenReturn(DURATION_US);
+        when(videoMediaFormat.getInteger(MediaFormat.KEY_WIDTH)).thenReturn(VIDEO_WIDTH);
+        when(videoMediaFormat.getInteger(MediaFormat.KEY_HEIGHT)).thenReturn(VIDEO_HEIGHT);
 
         when(audioMediaFormat.containsKey(MediaFormat.KEY_MIME)).thenReturn(true);
         when(audioMediaFormat.getString(MediaFormat.KEY_MIME)).thenReturn("audio/mp4a-latm");
@@ -144,5 +152,94 @@ public class TranscoderUtilsShould {
         long estimatedSize = TranscoderUtils.getEstimatedTargetVideoFileSize(mediaSource, targetVideoFormat, null);
 
         assertThat(estimatedSize, is(referenceSize));
+    }
+
+    @Test
+    public void useVideoTrackBitrateAsEstimationWhenPresent() {
+        when(mediaSource.getSize()).thenReturn(VIDEO_BIT_RATE * DURATION_S / 8);
+        when(mediaSource.getTrackCount()).thenReturn(1);
+        when(mediaSource.getTrackFormat(0)).thenReturn(videoMediaFormat);
+
+        int estimatedBitrate = TranscoderUtils.estimateVideoTrackBitrate(mediaSource, 0);
+
+        assertThat(estimatedBitrate, is(VIDEO_BIT_RATE));
+    }
+
+    @Test
+    public void estimateVideoTrackBitrateWhenSingleVideoTrack() {
+        when(mediaSource.getSize()).thenReturn(VIDEO_BIT_RATE * DURATION_S / 8);
+        when(mediaSource.getTrackCount()).thenReturn(1);
+        when(mediaSource.getTrackFormat(0)).thenReturn(videoMediaFormat);
+        when(videoMediaFormat.containsKey(MediaFormat.KEY_BIT_RATE)).thenReturn(false);
+
+        int estimatedBitrate = TranscoderUtils.estimateVideoTrackBitrate(mediaSource, 0);
+
+        assertThat(estimatedBitrate, is(VIDEO_BIT_RATE));
+    }
+
+    @Test
+    public void estimateVideoTrackBitrateWhenSingleVideoAndSingleAudioTracks() {
+        long size = (VIDEO_BIT_RATE * DURATION_S + AUDIO_BIT_RATE * DURATION_S) / 8;
+        when(mediaSource.getSize()).thenReturn(size);
+        when(mediaSource.getTrackCount()).thenReturn(2);
+        when(mediaSource.getTrackFormat(0)).thenReturn(videoMediaFormat);
+        when(mediaSource.getTrackFormat(1)).thenReturn(audioMediaFormat);
+        when(videoMediaFormat.containsKey(MediaFormat.KEY_BIT_RATE)).thenReturn(false);
+        when(audioMediaFormat.containsKey(MediaFormat.KEY_BIT_RATE)).thenReturn(true);
+        when(audioMediaFormat.getInteger(MediaFormat.KEY_BIT_RATE)).thenReturn(AUDIO_BIT_RATE);
+
+        int estimatedBitrate = TranscoderUtils.estimateVideoTrackBitrate(mediaSource, 0);
+
+        assertThat(estimatedBitrate, is(VIDEO_BIT_RATE));
+    }
+
+    @Test
+    public void estimateVideoTrackBitrateWhenSingleVideoAndSingleAudioAndSingleMiscTracks() {
+        long size = (VIDEO_BIT_RATE * DURATION_S + AUDIO_BIT_RATE * DURATION_S + MISC_BIT_RATE * DURATION_S) / 8;
+        when(mediaSource.getSize()).thenReturn(size);
+        when(mediaSource.getTrackCount()).thenReturn(3);
+        when(mediaSource.getTrackFormat(0)).thenReturn(videoMediaFormat);
+        when(mediaSource.getTrackFormat(1)).thenReturn(audioMediaFormat);
+        when(mediaSource.getTrackFormat(2)).thenReturn(miscMediaFormat);
+        when(videoMediaFormat.containsKey(MediaFormat.KEY_BIT_RATE)).thenReturn(false);
+        when(audioMediaFormat.containsKey(MediaFormat.KEY_BIT_RATE)).thenReturn(true);
+        when(audioMediaFormat.getInteger(MediaFormat.KEY_BIT_RATE)).thenReturn(AUDIO_BIT_RATE);
+        when(miscMediaFormat.containsKey(MediaFormat.KEY_BIT_RATE)).thenReturn(false);
+
+        int estimatedBitrate = TranscoderUtils.estimateVideoTrackBitrate(mediaSource, 0);
+
+        assertThat(estimatedBitrate, is(VIDEO_BIT_RATE + MISC_BIT_RATE));
+    }
+
+    @Test
+    public void estimateVideoTrackBitrateWhenMultipleVideoTracks() {
+        int videoWidth2 = 1280;
+        int videoHeight2 = 720;
+        int videoDuration2 = 25;
+        long videoDurationUs2 = videoDuration2 * 1000 * 1000;
+
+        long videoBitrate2 = ((long) videoWidth2 * videoHeight2 * VIDEO_BIT_RATE) / (VIDEO_WIDTH * VIDEO_HEIGHT);
+
+        MediaFormat videoMediaFormat2 = mock(MediaFormat.class);
+        when(videoMediaFormat2.containsKey(MediaFormat.KEY_MIME)).thenReturn(true);
+        when(videoMediaFormat2.getString(MediaFormat.KEY_MIME)).thenReturn("video/avc");
+        when(videoMediaFormat2.containsKey(MediaFormat.KEY_DURATION)).thenReturn(true);
+        when(videoMediaFormat2.getLong(MediaFormat.KEY_DURATION)).thenReturn(videoDurationUs2);
+        when(videoMediaFormat2.getInteger(MediaFormat.KEY_WIDTH)).thenReturn(videoWidth2);
+        when(videoMediaFormat2.getInteger(MediaFormat.KEY_HEIGHT)).thenReturn(videoHeight2);
+        when(videoMediaFormat2.containsKey(MediaFormat.KEY_BIT_RATE)).thenReturn(false);
+
+        when(videoMediaFormat.containsKey(MediaFormat.KEY_DURATION)).thenReturn(false);
+
+        long size = (VIDEO_BIT_RATE * DURATION_S + videoBitrate2 * videoDuration2) / 8;
+        when(mediaSource.getSize()).thenReturn(size);
+        when(mediaSource.getTrackCount()).thenReturn(2);
+        when(mediaSource.getTrackFormat(0)).thenReturn(videoMediaFormat);
+        when(mediaSource.getTrackFormat(1)).thenReturn(videoMediaFormat2);
+
+        int estimatedBitrate = TranscoderUtils.estimateVideoTrackBitrate(mediaSource, 0);
+
+        // estimation is affected by integer division, so let's account for that
+        assertEquals(estimatedBitrate, VIDEO_BIT_RATE, 1);
     }
 }

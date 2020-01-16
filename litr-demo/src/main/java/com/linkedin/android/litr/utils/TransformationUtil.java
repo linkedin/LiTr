@@ -9,7 +9,6 @@ package com.linkedin.android.litr.utils;
 
 import android.content.ContentResolver;
 import android.content.Context;
-import android.content.res.AssetFileDescriptor;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.PointF;
@@ -32,7 +31,6 @@ import com.linkedin.android.litr.filter.video.gl.BitmapOverlayFilter;
 import com.linkedin.android.litr.filter.video.gl.FrameSequenceAnimationOverlayFilter;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.concurrent.TimeUnit;
@@ -58,7 +56,7 @@ public class TransformationUtil {
                 BitmapPool bitmapPool = new LruBitmapPool(10);
                 GifBitmapProvider gifBitmapProvider = new GifBitmapProvider(bitmapPool);
                 final GifDecoder gifDecoder = new StandardGifDecoder(gifBitmapProvider);
-                gifDecoder.read(inputStream, (int) getSize(context, overlayUri));
+                gifDecoder.read(inputStream, (int) TranscoderUtils.getSize(context, overlayUri));
 
                 AnimationFrameProvider animationFrameProvider = new AnimationFrameProvider() {
                     @Override
@@ -91,33 +89,6 @@ public class TransformationUtil {
         }
 
         return filter;
-    }
-
-    public static long getSize(@NonNull Context context, @NonNull Uri uri) {
-        if (ContentResolver.SCHEME_CONTENT.equals(uri.getScheme())) {
-            AssetFileDescriptor fileDescriptor = null;
-            try {
-                fileDescriptor = context.getContentResolver().openAssetFileDescriptor(uri, "r");
-                long size = fileDescriptor != null ? fileDescriptor.getParcelFileDescriptor().getStatSize() : 0;
-                return size < 0 ? 0 : size;
-            } catch (FileNotFoundException | IllegalStateException e) {
-                Log.e(TAG, "Unable to extract length from targetFile: " + uri, e);
-                return 0;
-            } finally {
-                if (fileDescriptor != null) {
-                    try {
-                        fileDescriptor.close();
-                    } catch (IOException e) {
-                        Log.e(TAG, "Unable to close file descriptor from targetFile: " + uri, e);
-                    }
-                }
-            }
-        } else if (ContentResolver.SCHEME_FILE.equals(uri.getScheme()) && uri.getPath() != null) {
-            File file = new File(uri.getPath());
-            return file.length();
-        } else {
-            return 0;
-        }
     }
 
     @NonNull

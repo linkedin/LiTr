@@ -7,7 +7,11 @@
  */
 package com.linkedin.android.litr.utils;
 
+import android.content.ContentResolver;
+import android.content.Context;
+import android.content.res.AssetFileDescriptor;
 import android.media.MediaFormat;
+import android.net.Uri;
 import android.util.Log;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -15,6 +19,9 @@ import androidx.annotation.VisibleForTesting;
 import com.linkedin.android.litr.TrackTransform;
 import com.linkedin.android.litr.io.MediaSource;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -107,6 +114,85 @@ public final class TranscoderUtils {
         }
 
         return getEstimatedTargetFileSize(trackTransforms);
+    }
+
+    /**
+     * Estimates video track bitrate. On many devices bitrate value is not specified in {@link MediaFormat} for video track.
+     * Since not all data required for accurate estimation is available, this method makes several assumptions:
+     *  - if multiple video tracks are present, average per-pixel bitrate is assumed to be the same for all tracks
+     *  - if either bitrate or duration are not specified for a track, its size is not accounted for
+     *
+     * @param mediaSource {@link MediaSource} which contains the video track
+     * @param trackIndex index of video track
+     * @return estimated bitrate in bits per second
+     */
+    public static int estimateVideoTrackBitrate(@NonNull MediaSource mediaSource, int trackIndex) {
+        MediaFormat videoTrackFormat = mediaSource.getTrackFormat(trackIndex);
+        if (videoTrackFormat.containsKey(MediaFormat.KEY_BIT_RATE)) {
+            return videoTrackFormat.getInteger(MediaFormat.KEY_BIT_RATE);
+        }
+
+        long unallocatedSize = mediaSource.getSize();
+        long totalPixels = 0;
+        int trackCount = mediaSource.getTrackCount();
+        for (int track = 0; track < trackCount; track++) {
+            MediaFormat trackFormat = mediaSource.getTrackFormat(track);
+            if (trackFormat.containsKey(MediaFormat.KEY_MIME)) {
+                if (trackFormat.containsKey(MediaFormat.KEY_BIT_RATE) && trackFormat.containsKey(MediaFormat.KEY_DURATION)) {
+                    int bitrate = trackFormat.getInteger(MediaFormat.KEY_BIT_RATE);
+                    long duration = trackFormat.getLong(MediaFormat.KEY_DURATION);
+                    unallocatedSize -= bitrate * TimeUnit.MICROSECONDS.toSeconds(duration) / 8;
+                } else {
+                    String mimeType = trackFormat.getString(MediaFormat.KEY_MIME);
+                    if (mimeType.startsWith("video")) {
+                        totalPixels += trackFormat.getInteger(MediaFormat.KEY_WIDTH)
+                            * trackFormat.getInteger(MediaFormat.KEY_HEIGHT)
+                            * TimeUnit.MICROSECONDS.toSeconds(trackFormat.getLong(MediaFormat.KEY_DURATION));
+                    }
+                }
+            }
+        }
+
+        long trackPixels = videoTrackFormat.getInteger(MediaFormat.KEY_WIDTH)
+            * videoTrackFormat.getInteger(MediaFormat.KEY_HEIGHT)
+            * TimeUnit.MICROSECONDS.toSeconds(videoTrackFormat.getLong(MediaFormat.KEY_DURATION));
+
+        long trackSize = unallocatedSize * trackPixels / totalPixels;
+
+        return (int) (trackSize * 8 / TimeUnit.MICROSECONDS.toSeconds(videoTrackFormat.getLong(MediaFormat.KEY_DURATION)));
+    }
+
+    /**
+     * Get size of data abstracted by uri
+     * @param context context to access uri
+     * @param uri uri
+     * @return size in bytes, -1 if unknown
+     */
+    public static long getSize(@NonNull Context context, @NonNull Uri uri) {
+        if (ContentResolver.SCHEME_CONTENT.equals(uri.getScheme())) {
+            AssetFileDescriptor fileDescriptor = null;
+            try {
+                fileDescriptor = context.getContentResolver().openAssetFileDescriptor(uri, "r");
+                long size = fileDescriptor != null ? fileDescriptor.getParcelFileDescriptor().getStatSize() : 0;
+                return size < 0 ? -1 : size;
+            } catch (FileNotFoundException | IllegalStateException e) {
+                Log.e(TAG, "Unable to extract length from targetFile: " + uri, e);
+                return -1;
+            } finally {
+                if (fileDescriptor != null) {
+                    try {
+                        fileDescriptor.close();
+                    } catch (IOException e) {
+                        Log.e(TAG, "Unable to close file descriptor from targetFile: " + uri, e);
+                    }
+                }
+            }
+        } else if (ContentResolver.SCHEME_FILE.equals(uri.getScheme()) && uri.getPath() != null) {
+            File file = new File(uri.getPath());
+            return file.length();
+        } else {
+            return -1;
+        }
     }
 
     @Nullable
