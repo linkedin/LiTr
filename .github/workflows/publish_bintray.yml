@@ -19,6 +19,6 @@ jobs:
         java-version: 1.8
     - name: Build with Gradle
       env:
-        bintrayUser: ${{ secrets.bintrayUsername }}
+        bintrayUser: ${{ secrets.bintrayUser }}
         bintrayApiKey: ${{ secrets.bintrayApiKey }}
       run: ./gradlew bintrayUpload
