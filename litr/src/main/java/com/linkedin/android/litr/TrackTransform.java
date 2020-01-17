@@ -14,7 +14,7 @@ import com.linkedin.android.litr.codec.Decoder;
 import com.linkedin.android.litr.codec.Encoder;
 import com.linkedin.android.litr.io.MediaSource;
 import com.linkedin.android.litr.io.MediaTarget;
-import com.linkedin.android.litr.render.VideoRenderer;
+import com.linkedin.android.litr.render.Renderer;
 
 /**
  * Transformation instruction for a specific track. Must be constructed using a {@link Builder}.
@@ -22,7 +22,7 @@ import com.linkedin.android.litr.render.VideoRenderer;
 public class TrackTransform {
     private final MediaSource mediaSource;
     private final Decoder decoder;
-    private final VideoRenderer renderer;
+    private final Renderer renderer;
     private final Encoder encoder;
     private final MediaTarget mediaTarget;
 
@@ -32,7 +32,7 @@ public class TrackTransform {
 
     private TrackTransform(@NonNull MediaSource mediaSource,
                            @Nullable Decoder decoder,
-                           @Nullable VideoRenderer renderer,
+                           @Nullable Renderer renderer,
                            @Nullable Encoder encoder,
                            @NonNull MediaTarget mediaTarget,
                            @Nullable MediaFormat targetFormat,
@@ -67,11 +67,11 @@ public class TrackTransform {
     }
 
     /**
-     * Get {@link VideoRenderer} for a track
-     * @return {@link VideoRenderer} for a track, null if none
+     * Get {@link Renderer} for a track
+     * @return {@link Renderer} for a track, null if none
      */
     @Nullable
-    public VideoRenderer getRenderer() {
+    public Renderer getRenderer() {
         return renderer;
     }
 
@@ -125,7 +125,7 @@ public class TrackTransform {
         private final MediaTarget mediaTarget;
 
         private Decoder decoder;
-        private VideoRenderer renderer;
+        private Renderer renderer;
         private Encoder encoder;
         private MediaFormat targetFormat;
         private int targetTrack;
@@ -148,7 +148,7 @@ public class TrackTransform {
         }
 
         @NonNull
-        public Builder setRenderer(@Nullable VideoRenderer renderer) {
+        public Builder setRenderer(@Nullable Renderer renderer) {
             this.renderer = renderer;
             return this;
         }

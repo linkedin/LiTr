@@ -169,7 +169,7 @@ public class VideoTrackTranscoderShould {
         verify(decoder, never()).stop();
         verify(encoder).start();
         verify(decoder).start();
-        verify(renderer).init(surface, 0, (float) TARGET_WIDTH / TARGET_HEIGHT);
+        verify(renderer).init(surface, sourceMediaFormat, targetVideoFormat);
     }
 
     @Test

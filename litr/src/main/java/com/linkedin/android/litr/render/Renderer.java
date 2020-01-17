@@ -7,22 +7,23 @@
  */
 package com.linkedin.android.litr.render;
 
+import android.media.MediaFormat;
 import android.view.Surface;
 import androidx.annotation.Nullable;
 import com.linkedin.android.litr.codec.Frame;
 
 /**
- * Common interface for video frame renderer
+ * Common interface for renderer
  */
-public interface VideoRenderer {
+public interface Renderer {
 
     /**
      * Initialize the renderer. Called during track transformer initialization.
      * @param outputSurface {@link Surface} to render onto, null for non OpenGL renderer
-     * @param rotation source frame rotation
-     * @param aspectRatio source video frame aspect ratio
+     * @param sourceMediaFormat source {@link MediaFormat}
+     * @param targetMediaFormat target {@link MediaFormat}
      */
-    void init(@Nullable Surface outputSurface, int rotation, float aspectRatio);
+    void init(@Nullable Surface outputSurface, @Nullable MediaFormat sourceMediaFormat, @Nullable MediaFormat targetMediaFormat);
 
     /**
      * Get renderer's input surface. Renderer creates it internally.

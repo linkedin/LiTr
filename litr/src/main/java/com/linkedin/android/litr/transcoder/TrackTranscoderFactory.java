@@ -20,7 +20,7 @@ import com.linkedin.android.litr.codec.MediaCodecEncoder;
 import com.linkedin.android.litr.exception.TrackTranscoderException;
 import com.linkedin.android.litr.io.MediaSource;
 import com.linkedin.android.litr.io.MediaTarget;
-import com.linkedin.android.litr.render.VideoRenderer;
+import com.linkedin.android.litr.render.Renderer;
 
 @RestrictTo(RestrictTo.Scope.LIBRARY)
 public class TrackTranscoderFactory {
@@ -40,7 +40,7 @@ public class TrackTranscoderFactory {
                                   int targetTrack,
                                   @NonNull MediaSource mediaSource,
                                   @Nullable Decoder decoder,
-                                  @Nullable VideoRenderer renderer,
+                                  @Nullable Renderer renderer,
                                   @Nullable Encoder encoder,
                                   @NonNull MediaTarget mediaTarget,
                                   @Nullable MediaFormat targetFormat) throws TrackTranscoderException {

@@ -16,7 +16,7 @@ import com.linkedin.android.litr.exception.InsufficientDiskSpaceException;
 import com.linkedin.android.litr.exception.TrackTranscoderException;
 import com.linkedin.android.litr.io.MediaSource;
 import com.linkedin.android.litr.io.MediaTarget;
-import com.linkedin.android.litr.render.VideoRenderer;
+import com.linkedin.android.litr.render.Renderer;
 import com.linkedin.android.litr.transcoder.PassthroughTranscoder;
 import com.linkedin.android.litr.transcoder.TrackTranscoder;
 import com.linkedin.android.litr.transcoder.TrackTranscoderFactory;
@@ -71,7 +71,7 @@ public class TransformationJobShould {
 
     @Mock private MediaSource mediaSource;
     @Mock private Decoder decoder;
-    @Mock private VideoRenderer renderer;
+    @Mock private Renderer renderer;
     @Mock private Encoder encoder;
     @Mock private MediaTarget mediaTarget;
     @Mock private VideoTrackTranscoder videoTrackTranscoder;
