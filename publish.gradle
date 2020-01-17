@@ -93,7 +93,7 @@ bintray {
         githubRepo = 'linkedin/LiTr'
 
         version {
-            name = project.version
+            name = project.ext.releaseVersion
             released = new Date()
         }
 

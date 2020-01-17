@@ -1,15 +1,17 @@
 apply plugin: 'com.android.library'
 
+apply from:'../constants.gradle'
+
 android {
-    compileSdkVersion 29
+    compileSdkVersion project.ext.compileSdkVersion
     buildToolsVersion "29.0.2"
 
 
     defaultConfig {
-        minSdkVersion 18
-        targetSdkVersion 28
-        versionCode 4
-        versionName '1.1.1'
+        minSdkVersion project.ext.minSdkVersion
+        targetSdkVersion project.ext.targetSdkVersion
+        versionCode project.ext.releaseVersionCode
+        versionName project.ext.releaseVersion
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles 'consumer-rules.pro'
@@ -30,8 +32,8 @@ dependencies {
     implementation 'androidx.annotation:annotation:1.1.0'
 }
 
-group "com.linkedin.android.litr"
-version '1.1.1'
+group project.ext.bintrayGroupId
+version project.ext.releaseVersion
 description 'Video/Audio filter pack for LiTr'
 
 apply from:'../publish.gradle'

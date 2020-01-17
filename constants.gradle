@@ -1,0 +1,8 @@
+project.ext {
+    releaseVersion = '1.2.0'
+    releaseVersionCode = 10020000
+    minSdkVersion = 18
+    targetSdkVersion = 28
+    compileSdkVersion = 29
+    bintrayGroupId = "com.linkedin.android.litr"
+}
