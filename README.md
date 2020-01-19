@@ -6,6 +6,8 @@ In its current iteration LiTr supports:
  - changing resolution and/or bitrate of a video track(s)
  - changing bitrate of an audio track(s)
  - overlaying bitmap watermark onto video track(s)
+ - including/excluding tracks, which allows muxing/demuxing tracks
+ - transforming tracks individually (e.g. apply overlay to one video track, but not the other)  
  
 By default, LiTr uses Android MediaCodec stack for hardware accelerated decoding/encoding and OpenGL for rendering. It also uses MediaExtractor and MediaMuxer to read/write media. 
  
