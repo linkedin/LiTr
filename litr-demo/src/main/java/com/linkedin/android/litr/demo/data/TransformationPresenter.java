@@ -12,6 +12,7 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.PointF;
+import android.media.MediaCodecInfo;
 import android.media.MediaFormat;
 import android.media.MediaMuxer;
 import android.net.Uri;
@@ -182,6 +183,7 @@ public class TransformationPresenter {
                 mediaFormat.setInteger(MediaFormat.KEY_BIT_RATE, trackFormat.bitrate);
                 mediaFormat.setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, trackFormat.keyFrameInterval);
                 mediaFormat.setInteger(MediaFormat.KEY_FRAME_RATE, trackFormat.frameRate);
+                mediaFormat.setInteger(MediaFormat.KEY_COLOR_FORMAT, MediaCodecInfo.CodecCapabilities.COLOR_FormatSurface);
             } else if (targetTrack.format.mimeType.startsWith("audio")) {
                 AudioTrackFormat trackFormat = (AudioTrackFormat) targetTrack.format;
                 mediaFormat.setString(MediaFormat.KEY_MIME, trackFormat.mimeType);
