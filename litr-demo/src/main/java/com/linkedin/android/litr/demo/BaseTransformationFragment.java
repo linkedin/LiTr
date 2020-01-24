@@ -80,7 +80,7 @@ public class BaseTransformationFragment extends Fragment {
                     videoTrack.duration = getLong(mediaFormat, MediaFormat.KEY_DURATION);
                     videoTrack.frameRate = getInt(mediaFormat, MediaFormat.KEY_FRAME_RATE);
                     videoTrack.keyFrameInterval = getInt(mediaFormat, MediaFormat.KEY_I_FRAME_INTERVAL);
-                    videoTrack.rotation = getInt(mediaFormat, KEY_ROTATION);
+                    videoTrack.rotation = getInt(mediaFormat, KEY_ROTATION, 0);
                     videoTrack.bitrate = getInt(mediaFormat, MediaFormat.KEY_BIT_RATE);
                     sourceMedia.tracks.add(videoTrack);
                 } else if (mimeType.startsWith("audio")) {
@@ -102,10 +102,14 @@ public class BaseTransformationFragment extends Fragment {
     }
 
     private int getInt(@NonNull MediaFormat mediaFormat, @NonNull String key) {
+        return getInt(mediaFormat, key, -1);
+    }
+
+    private int getInt(@NonNull MediaFormat mediaFormat, @NonNull String key, int defaultValue) {
         if (mediaFormat.containsKey(key)) {
             return mediaFormat.getInteger(key);
         }
-        return -1;
+        return defaultValue;
     }
 
     private long getLong(@NonNull MediaFormat mediaFormat, @NonNull String key) {
