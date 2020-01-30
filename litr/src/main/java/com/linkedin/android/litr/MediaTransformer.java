@@ -80,6 +80,13 @@ public class MediaTransformer {
     }
 
     /**
+     * Internal constructor, meant to be used only by {@link MockMediaTransformer}
+     */
+    MediaTransformer() {
+        context = null;
+    }
+
+    /**
      * Transform video and audio track(s): change resolution, frame rate, bitrate, etc. Video track transformation
      * uses default hardware accelerated codecs and OpenGL renderer.
      *
