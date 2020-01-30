@@ -8,6 +8,7 @@
 package com.linkedin.android.litr.codec;
 
 import android.media.MediaCodec;
+import android.media.MediaCodecInfo;
 import android.media.MediaCodecList;
 import android.media.MediaFormat;
 import android.os.Build;
@@ -33,6 +34,11 @@ public class MediaCodecEncoder implements Encoder {
     public void init(@NonNull MediaFormat targetFormat) throws TrackTranscoderException {
         mediaCodec = null;
         MediaCodecList mediaCodecList = null;
+
+        // unless specified otherwise, we use default color format for the surface
+        if (!targetFormat.containsKey(MediaFormat.KEY_COLOR_FORMAT)) {
+            targetFormat.setInteger(MediaFormat.KEY_COLOR_FORMAT, MediaCodecInfo.CodecCapabilities.COLOR_FormatSurface);
+        }
 
         try {
             if (Build.VERSION.SDK_INT > Build.VERSION_CODES.LOLLIPOP) {
