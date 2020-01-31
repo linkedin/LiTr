@@ -68,22 +68,30 @@ public class MediaTransformer {
     private Map<String, Future<?>> futureMap;
 
     /**
-     * Instantiate MediaTransformer
+     * Instantiate MediaTransformer. Listener callbacks will be done on main UI thread.
+     * All transformations will be done on a single thread.
      * @param context context with access to source and target URIs and other resources
      */
     public MediaTransformer(@NonNull Context context) {
-        this.context = context.getApplicationContext();
-
-        futureMap = new HashMap<>(DEFAULT_FUTURE_MAP_SIZE);
-        handler = new ProgressHandler(Looper.getMainLooper(), futureMap);
-        executorService = Executors.newSingleThreadExecutor();
+        this(context, Looper.getMainLooper(), Executors.newSingleThreadExecutor());
     }
 
     /**
-     * Internal constructor, meant to be used only by {@link MockMediaTransformer}
+     * Instantiate MediaTransformer
+     * @param context context with access to source and target URIs and other resources
+     * @param looper {@link Looper} of a thread to marshal listener callbacks to, null for current thread.
+     * @param executorService {@link ExecutorService} to use for transformation jobs
      */
-    MediaTransformer() {
-        context = null;
+    public MediaTransformer(@NonNull Context context, @Nullable Looper looper, @Nullable ExecutorService executorService) {
+        this.context = context.getApplicationContext();
+
+        futureMap = new HashMap<>(DEFAULT_FUTURE_MAP_SIZE);
+        this.executorService = executorService;
+        if (looper != null) {
+            handler = new ProgressHandler(looper, futureMap);
+        } else {
+            handler = new ProgressHandler(futureMap);
+        }
     }
 
     /**
@@ -347,6 +355,10 @@ public class MediaTransformer {
         // however, we should revisit this when (if) we implement thread pool with multiple worker threads
         private TransformationListener listener;
         private List<TrackTransformationInfo> trackTransformationInfos;
+
+        private ProgressHandler(@NonNull Map<String, Future<?>> futureMap) {
+            this.futureMap = futureMap;
+        }
 
         private ProgressHandler(Looper mainLooper, @NonNull Map<String, Future<?>> futureMap) {
             super(mainLooper);
