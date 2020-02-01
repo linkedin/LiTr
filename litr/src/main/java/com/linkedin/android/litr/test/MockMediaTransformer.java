@@ -67,6 +67,20 @@ public class MockMediaTransformer extends MediaTransformer {
         playEvents(listener);
     }
 
+
+    @Override
+    public void cancel(@NonNull String requestId) {}
+
+    @Override
+    public void release() {}
+
+    @Override
+    public long getEstimatedTargetVideoSize(@NonNull Uri inputUri,
+                                            @NonNull MediaFormat targetVideoFormat,
+                                            @Nullable MediaFormat targetAudioFormat) {
+        return 0;
+    }
+
     private void playEvents(@NonNull TransformationListener transformationListener) {
         if (transformationEvents == null) {
             // nothing to do
