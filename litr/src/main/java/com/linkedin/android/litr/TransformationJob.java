@@ -49,17 +49,17 @@ class TransformationJob implements Runnable {
     private final List<TrackTransform> trackTransforms;
 
     private final String jobId;
-    private final MarshallingTransformationListener callbackHandler;
+    private final MarshallingTransformationListener marshallingTransformationListener;
 
     TransformationJob(@NonNull String jobId,
                       List<TrackTransform> trackTransforms,
                       @IntRange(from = GRANULARITY_NONE) int granularity,
-                      @NonNull MarshallingTransformationListener callbackHandler) {
+                      @NonNull MarshallingTransformationListener marshallingTransformationListener) {
 
         this.jobId = jobId;
         this.trackTransforms = trackTransforms;
         this.granularity = granularity;
-        this.callbackHandler = callbackHandler;
+        this.marshallingTransformationListener = marshallingTransformationListener;
 
         lastProgress = 0;
 
@@ -96,7 +96,7 @@ class TransformationJob implements Runnable {
 
         boolean completed = false;
 
-        callbackHandler.onStarted(jobId);
+        marshallingTransformationListener.onStarted(jobId);
         lastProgress = 0;
 
         // process a frame from active track transcoder, until EoS (end of stream) is reached on each track
@@ -116,13 +116,13 @@ class TransformationJob implements Runnable {
     @VisibleForTesting
     void cancel() {
         release(false);
-        callbackHandler.onCancelled(jobId, statsCollector.getStats());
+        marshallingTransformationListener.onCancelled(jobId, statsCollector.getStats());
     }
 
     @VisibleForTesting
     protected void error(@Nullable Throwable cause) {
         release(false);
-        callbackHandler.onError(jobId, cause, statsCollector.getStats());
+        marshallingTransformationListener.onError(jobId, cause, statsCollector.getStats());
     }
 
     @VisibleForTesting
@@ -210,7 +210,7 @@ class TransformationJob implements Runnable {
 
         if ((granularity == GRANULARITY_NONE && totalProgress != lastProgress)
             || (granularity != GRANULARITY_NONE && totalProgress >= lastProgress + 1.0f / granularity)) {
-            callbackHandler.onProgress(jobId, totalProgress);
+            marshallingTransformationListener.onProgress(jobId, totalProgress);
             lastProgress = totalProgress;
         }
 
@@ -243,7 +243,7 @@ class TransformationJob implements Runnable {
         }
 
         if (success) {
-            callbackHandler.onCompleted(jobId, statsCollector.getStats());
+            marshallingTransformationListener.onCompleted(jobId, statsCollector.getStats());
         }
     }
 
