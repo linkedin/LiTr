@@ -39,7 +39,6 @@ import static junit.framework.Assert.assertFalse;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyFloat;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -65,8 +64,7 @@ public class TransformationJobShould {
     @Mock private MediaFormat sourceVideoFormat;
     @Mock private MediaFormat sourceAudioFormat;
     @Mock private MediaFormat targetAudioFormat;
-    @Mock private TransformationListener listener;
-    @Mock private MediaTransformer.ProgressHandler handler;
+    @Mock private MarshallingTransformationListener marshallingTransformationListener;
 
 
     @Mock private MediaSource mediaSource;
@@ -158,9 +156,8 @@ public class TransformationJobShould {
 
         transformationJob = spy(new TransformationJob(JOB_ID,
                                                       trackTransforms,
-                                                      listener,
                                                       MAX_PROGRESS,
-                                                      handler));
+                                                      marshallingTransformationListener));
         transformationJob.trackTranscoderFactory = trackTranscoderFactory;
         transformationJob.diskUtil = diskUtil;
         transformationJob.statsCollector = statsCollector;
@@ -203,7 +200,7 @@ public class TransformationJobShould {
     public void transformWhenNoErrors() throws Exception {
         transformationJob.transform();
 
-        verify(handler).onCompleted(eq(listener), eq(JOB_ID), ArgumentMatchers.<TrackTransformationInfo>anyList());
+        verify(marshallingTransformationListener).onCompleted(eq(JOB_ID), ArgumentMatchers.<TrackTransformationInfo>anyList());
         verify(statsCollector).addSourceTrack(sourceVideoFormat);
         verify(statsCollector).addSourceTrack(sourceAudioFormat);
     }
@@ -222,9 +219,8 @@ public class TransformationJobShould {
         try {
             TransformationJob transformationJob = new TransformationJob(JOB_ID,
                                                                         Collections.<TrackTransform>emptyList(),
-                                                                        listener,
                                                                         MAX_PROGRESS,
-                                                                        handler);
+                                                                        marshallingTransformationListener);
             transformationJob.createTrackTranscoders();
         } catch (TrackTranscoderException e) {
             assertThat(e.getError(), is(TrackTranscoderException.Error.NO_TRACKS_FOUND));
@@ -290,7 +286,7 @@ public class TransformationJobShould {
         loadTrackTranscoders();
         boolean completed = transformationJob.processNextFrame();
 
-        verify(handler).onProgress(listener, JOB_ID, 1.0f);
+        verify(marshallingTransformationListener).onProgress(JOB_ID, 1.0f);
         assertTrue(completed);
         verify(statsCollector).increaseTrackProcessingDuration(eq(0), anyLong());
         verify(statsCollector).increaseTrackProcessingDuration(eq(1), anyLong());
@@ -309,7 +305,7 @@ public class TransformationJobShould {
 
         boolean completed = transformationJob.processNextFrame();
 
-        verify(handler).onProgress(listener, JOB_ID, 0.75f);
+        verify(marshallingTransformationListener).onProgress(JOB_ID, 0.75f);
         assertFalse(completed);
         assertThat(transformationJob.lastProgress, is(0.75f));
         verify(statsCollector).increaseTrackProcessingDuration(eq(0), anyLong());
@@ -332,7 +328,7 @@ public class TransformationJobShould {
 
         transformationJob.processNextFrame();
 
-        verify(handler, never()).onProgress(any(TransformationListener.class), anyString(), anyFloat());
+        verify(marshallingTransformationListener, never()).onProgress(anyString(), anyFloat());
         verify(statsCollector).increaseTrackProcessingDuration(eq(0), anyLong());
         verify(statsCollector).increaseTrackProcessingDuration(eq(1), anyLong());
     }
@@ -353,7 +349,7 @@ public class TransformationJobShould {
 
         transformationJob.processNextFrame();
 
-        verify(handler).onProgress(listener, JOB_ID, currentProgress);
+        verify(marshallingTransformationListener).onProgress(JOB_ID, currentProgress);
         verify(statsCollector).increaseTrackProcessingDuration(eq(0), anyLong());
         verify(statsCollector).increaseTrackProcessingDuration(eq(1), anyLong());
     }
@@ -368,7 +364,7 @@ public class TransformationJobShould {
         verify(audioTrackTranscoder).stop();
         verify(mediaSource).release();
         verify(mediaTarget).release();
-        verify(handler).onCompleted(eq(listener), eq(JOB_ID), ArgumentMatchers.<TrackTransformationInfo>anyList());
+        verify(marshallingTransformationListener).onCompleted(eq(JOB_ID), ArgumentMatchers.<TrackTransformationInfo>anyList());
         verify(statsCollector).setTargetFormat(0, videoTrackTranscoder.getTargetMediaFormat());
         verify(statsCollector).setTargetFormat(1, audioTrackTranscoder.getTargetMediaFormat());
         verify(statsCollector).getStats();
@@ -381,7 +377,7 @@ public class TransformationJobShould {
         TrackTranscoderException exception = new TrackTranscoderException(TrackTranscoderException.Error.CODEC_IN_RELEASED_STATE);
         transformationJob.error(exception);
 
-        verify(handler).onError(eq(listener), eq(JOB_ID), eq(exception), ArgumentMatchers.<TrackTransformationInfo>anyList());
+        verify(marshallingTransformationListener).onError(eq(JOB_ID), eq(exception), ArgumentMatchers.<TrackTransformationInfo>anyList());
         verify(statsCollector).setTargetFormat(0, videoTrackTranscoder.getTargetMediaFormat());
         verify(statsCollector).setTargetFormat(1, audioTrackTranscoder.getTargetMediaFormat());
         verify(statsCollector).getStats();
@@ -395,7 +391,7 @@ public class TransformationJobShould {
 
         transformationJob.cancel();
 
-        verify(handler).onCancelled(eq(listener), eq(JOB_ID), trackTransformationInfosCaptor.capture());
+        verify(marshallingTransformationListener).onCancelled(eq(JOB_ID), trackTransformationInfosCaptor.capture());
         verify(statsCollector).setTargetFormat(0, videoTrackTranscoder.getTargetMediaFormat());
         verify(statsCollector).setTargetFormat(1, audioTrackTranscoder.getTargetMediaFormat());
         assertThat(trackTransformationInfosCaptor.getValue(), is(trackTransformationInfos));

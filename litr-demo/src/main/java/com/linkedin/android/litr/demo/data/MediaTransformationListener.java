@@ -23,9 +23,9 @@ public class MediaTransformationListener implements TransformationListener {
     private final String requestId;
     private final TransformationState transformationState;
 
-    MediaTransformationListener(@NonNull Context context,
-                                @NonNull String requestId,
-                                @NonNull TransformationState transformationState) {
+    public MediaTransformationListener(@NonNull Context context,
+                                       @NonNull String requestId,
+                                       @NonNull TransformationState transformationState) {
         this.context = context;
         this.requestId = requestId;
         this.transformationState = transformationState;

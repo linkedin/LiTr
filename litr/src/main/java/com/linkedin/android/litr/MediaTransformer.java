@@ -11,15 +11,11 @@ import android.content.Context;
 import android.media.MediaFormat;
 import android.media.MediaMuxer;
 import android.net.Uri;
-import android.os.Bundle;
-import android.os.Handler;
 import android.os.Looper;
-import android.os.Message;
 import android.util.Log;
 import androidx.annotation.IntRange;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import com.linkedin.android.litr.analytics.TrackTransformationInfo;
 import com.linkedin.android.litr.codec.Decoder;
 import com.linkedin.android.litr.codec.Encoder;
 import com.linkedin.android.litr.codec.MediaCodecDecoder;
@@ -63,7 +59,7 @@ public class MediaTransformer {
     private final Context context;
 
     private ExecutorService executorService;
-    private ProgressHandler handler;
+    private Looper looper;
 
     private Map<String, Future<?>> futureMap;
 
@@ -79,19 +75,15 @@ public class MediaTransformer {
     /**
      * Instantiate MediaTransformer
      * @param context context with access to source and target URIs and other resources
-     * @param looper {@link Looper} of a thread to marshal listener callbacks to, null for current thread.
+     * @param looper {@link Looper} of a thread to marshal listener callbacks to, null for calling back on an ExecutorService thread.
      * @param executorService {@link ExecutorService} to use for transformation jobs
      */
     public MediaTransformer(@NonNull Context context, @Nullable Looper looper, @Nullable ExecutorService executorService) {
         this.context = context.getApplicationContext();
 
         futureMap = new HashMap<>(DEFAULT_FUTURE_MAP_SIZE);
+        this.looper = looper;
         this.executorService = executorService;
-        if (looper != null) {
-            handler = new ProgressHandler(looper, futureMap);
-        } else {
-            handler = new ProgressHandler(futureMap);
-        }
     }
 
     /**
@@ -255,9 +247,8 @@ public class MediaTransformer {
 
         TransformationJob transformationJob = new TransformationJob(requestId,
                                                                     trackTransforms,
-                                                                    listener,
                                                                     granularity,
-                                                                    handler);
+                                                                    new MarshallingTransformationListener(futureMap, listener, looper));
         Future<?> future = executorService.submit(transformationJob);
 
         futureMap.put(requestId, future);
@@ -334,143 +325,5 @@ public class MediaTransformer {
         }
 
         return targetMediaFormat;
-    }
-
-    static class ProgressHandler extends Handler {
-        private static final int EVENT_STARTED = 0;
-        private static final int EVENT_COMPLETED = 1;
-        private static final int EVENT_ERROR = 2;
-        private static final int EVENT_PROGRESS = 3;
-        private static final int EVENT_CANCELLED = 4;
-
-        private static final String KEY_JOB_ID = "jobId";
-        private static final String KEY_PROGRESS = "progress";
-        private static final String KEY_THROWABLE = "throwable";
-
-        private final Map<String, Future<?>> futureMap;
-
-        private Bundle data = new Bundle();
-
-        // we define these as member variables to prevent frequent object creation
-        // however, we should revisit this when (if) we implement thread pool with multiple worker threads
-        private TransformationListener listener;
-        private List<TrackTransformationInfo> trackTransformationInfos;
-
-        private ProgressHandler(@NonNull Map<String, Future<?>> futureMap) {
-            this.futureMap = futureMap;
-        }
-
-        private ProgressHandler(Looper mainLooper, @NonNull Map<String, Future<?>> futureMap) {
-            super(mainLooper);
-            this.futureMap = futureMap;
-        }
-
-        @Override
-        public void handleMessage(@NonNull Message message) {
-            if (listener == null) {
-                // client is not interested in knowing the result of transcoding. Strange, but possible.
-                return;
-            }
-
-            Bundle data = message.getData();
-            String jobId = data.getString(KEY_JOB_ID);
-            if (jobId == null) {
-                throw new IllegalArgumentException("Handler message doesn't contain an id!");
-            }
-            switch (message.what) {
-                case EVENT_STARTED: {
-                    listener.onStarted(jobId);
-                    break;
-                }
-                case EVENT_COMPLETED: {
-                    listener.onCompleted(jobId, trackTransformationInfos);
-                    break;
-                }
-                case EVENT_CANCELLED: {
-                    listener.onCancelled(jobId, trackTransformationInfos);
-                    break;
-                }
-                case EVENT_ERROR: {
-                    Throwable cause = (Throwable) data.getSerializable(KEY_THROWABLE);
-                    listener.onError(jobId, cause, trackTransformationInfos);
-                    break;
-                }
-                case EVENT_PROGRESS: {
-                    float progress = data.getFloat(KEY_PROGRESS);
-                    listener.onProgress(jobId, progress);
-                    break;
-                }
-                default:
-                    Log.e(TAG, "Unknown event received: " + message.what);
-            }
-        }
-
-        void onStarted(@NonNull final TransformationListener listener,
-                       @NonNull String jobId) {
-            this.listener = listener;
-            this.trackTransformationInfos = null;
-
-            Message msg = Message.obtain(this, EVENT_STARTED);
-            data.putString(KEY_JOB_ID, jobId);
-            msg.setData(data);
-            msg.sendToTarget();
-        }
-
-        void onCompleted(@NonNull final TransformationListener listener,
-                         @NonNull String jobId,
-                         @NonNull final List<TrackTransformationInfo> trackTransformationInfos) {
-            futureMap.remove(jobId);
-
-            this.listener = listener;
-            this.trackTransformationInfos = trackTransformationInfos;
-
-            Message msg = Message.obtain(this, EVENT_COMPLETED);
-            data.putString(KEY_JOB_ID, jobId);
-            msg.setData(data);
-            msg.sendToTarget();
-        }
-
-        void onCancelled(@NonNull final TransformationListener listener,
-                         @NonNull final String jobId,
-                         @NonNull final List<TrackTransformationInfo> trackTransformationInfos) {
-            futureMap.remove(jobId);
-
-            this.listener = listener;
-            this.trackTransformationInfos = trackTransformationInfos;
-
-            Message msg = Message.obtain(this, EVENT_CANCELLED);
-            data.putString(KEY_JOB_ID, jobId);
-            msg.setData(data);
-            msg.sendToTarget();
-        }
-
-        void onError(@NonNull final TransformationListener listener,
-                     @NonNull final String jobId,
-                     @Nullable final Throwable cause,
-                     @NonNull final List<TrackTransformationInfo> trackTransformationInfos) {
-            futureMap.remove(jobId);
-
-            this.listener = listener;
-            this.trackTransformationInfos = trackTransformationInfos;
-
-            Message msg = Message.obtain(this, EVENT_ERROR);
-            data.putString(KEY_JOB_ID, jobId);
-            data.putSerializable(KEY_THROWABLE, cause);
-            msg.setData(data);
-            msg.sendToTarget();
-        }
-
-        void onProgress(@NonNull final TransformationListener listener,
-                        @NonNull String jobId,
-                        float progress) {
-            this.listener = listener;
-            this.trackTransformationInfos = null;
-
-            Message msg = Message.obtain(this, EVENT_PROGRESS);
-            data.putString(KEY_JOB_ID, jobId);
-            data.putFloat(KEY_PROGRESS, progress);
-            msg.setData(data);
-            msg.sendToTarget();
-        }
     }
 }

@@ -7,6 +7,7 @@
     <string name="app_name">LiTr</string>
 
     <string name="demo_case_transcode_video_gl">Transcode Video/Audio (GL Renderer)</string>
+    <string name="demo_case_mock_transcode_video">Mock Transcode Video</string>
 
     <string name="include">Include</string>
     <string name="overlay">Overlay</string>
