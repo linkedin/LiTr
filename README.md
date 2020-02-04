@@ -16,7 +16,7 @@ By default, LiTr uses Android MediaCodec stack for hardware accelerated decoding
 Simply grab via Gradle:
 
 ```groovy
- implementation 'com.linkedin.android.litr:litr:1.2.2'
+ implementation 'com.linkedin.android.litr:litr:1.2.3'
 ``` 
 ...or Maven:
 
@@ -24,7 +24,7 @@ Simply grab via Gradle:
 <dependency>
   <groupId>com.linkedin.android.litr</groupId>
   <artifactId>litr</artifactId>
-  <version>1.2.2</version>
+  <version>1.2.3</version>
 </dependency>
 
 ```
@@ -55,7 +55,7 @@ Few notable things related to transformation:
  - target formats will be applied to all tracks of that type, non video or audio tracks will be copied "as is"
  - passing `null` target format means that you don't want to modify track(s) of that type
  - transformation is performed asynchronously, listener will be called with any transformation progress or state changes
- - listener callbacks happen on a UI thread, it is safe to update UI in listener implementation
+ - by default listener callbacks happen on a UI thread, it is safe to update UI in listener implementation. It is also possible to have them on a non-UI transformation thread, for example, if any "heavy" works needs to be done in listener implementation.
  - if you want to modify video frames, pass in a list of `GlFilter`s, which will be applied in order
  - client can call `transform` multiple times, to queue transformation requests
  - video will be written into MP4 container, we recommend using H.264 ("video/avc" MIME type) for target encoding
@@ -121,7 +121,7 @@ When using your own component implementations, make sure that output of a compon
 You can use custom filters to modify video frames. Write your own in OpenGL as an implementation of `GlFilter` interface, or use existing one from "filter pack" library, which is available via Gradle:
 
 ```groovy
- implementation 'com.linkedin.android.litr:litr-filters:1.2.2'
+ implementation 'com.linkedin.android.litr:litr-filters:1.2.3'
 ``` 
 ...or Maven:
 
@@ -129,7 +129,7 @@ You can use custom filters to modify video frames. Write your own in OpenGL as a
 <dependency>
   <groupId>com.linkedin.android.litr</groupId>
   <artifactId>litr-filters</artifactId>
-  <version>1.2.2</version>
+  <version>1.2.3</version>
 </dependency>
 
 ```
