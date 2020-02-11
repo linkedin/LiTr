@@ -45,7 +45,7 @@ public class AudioTrackTranscoderShould {
     private static final int AUDIO_TRACK = 0;
     private static final int BUFFER_INDEX = 0;
     private static final int BUFFER_SIZE = 42;
-    private static final float DURATION = 84f;
+    private static final long DURATION = 84;
     private static final long CURRENT_PRESENTATION_TIME = 42L;
     private static final float CURRENT_PROGRESS = 0.5f;
 

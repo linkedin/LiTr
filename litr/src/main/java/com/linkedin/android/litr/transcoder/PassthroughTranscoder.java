@@ -65,7 +65,9 @@ public class PassthroughTranscoder extends TrackTranscoder {
         // TranscoderJob expects the first result to be RESULT_OUTPUT_MEDIA_FORMAT_CHANGED, so that it can start the mediaMuxer
         if (!targetTrackAdded) {
             targetFormat = mediaSource.getTrackFormat(sourceTrack);
-            duration = targetFormat.getLong(MediaFormat.KEY_DURATION);
+            if (duration > 0) {
+                targetFormat.setLong(MediaFormat.KEY_DURATION, duration);
+            }
 
             targetTrack = mediaMuxer.addTrack(targetFormat, targetTrack);
             targetTrackAdded = true;
@@ -98,7 +100,9 @@ public class PassthroughTranscoder extends TrackTranscoder {
                     outputFlags = MediaCodec.BUFFER_FLAG_SYNC_FRAME;
                 }
             }
-            progress = ((float) sampleTime) / duration;
+            if (duration > 0) {
+                progress = ((float) sampleTime) / duration;
+            }
             outputBufferInfo.set(0, bytesRead, sampleTime, outputFlags);
             mediaMuxer.writeSampleData(targetTrack, outputBuffer, outputBufferInfo);
             mediaSource.advance();
