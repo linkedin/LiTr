@@ -59,13 +59,6 @@ public class AudioTrackTranscoder extends TrackTranscoder {
         sourceAudioFormat = mediaSource.getTrackFormat(sourceTrack);
 
         encoder.init(targetFormat);
-
-        // extract and store the duration, we will use it to track transcoding progress
-        if (sourceAudioFormat.containsKey(MediaFormat.KEY_DURATION)) {
-            duration = sourceAudioFormat.getLong(MediaFormat.KEY_DURATION);
-            targetFormat.setLong(MediaFormat.KEY_DURATION, (long) duration);
-        }
-
         decoder.init(sourceAudioFormat, null);
     }
 

@@ -70,11 +70,6 @@ public class VideoTrackTranscoder extends TrackTranscoder {
             int sourceFrameRate = sourceVideoFormat.getInteger(MediaFormat.KEY_FRAME_RATE);
             targetVideoFormat.setInteger(MediaFormat.KEY_FRAME_RATE, sourceFrameRate);
         }
-        // extract and store the duration, we will use it to track transcoding progress
-        if (sourceVideoFormat.containsKey(MediaFormat.KEY_DURATION)) {
-            duration = sourceVideoFormat.getLong(MediaFormat.KEY_DURATION);
-            targetVideoFormat.setLong(MediaFormat.KEY_DURATION, (long) duration);
-        }
 
         encoder.init(targetFormat);
         renderer.init(encoder.createInputSurface(), sourceVideoFormat, targetVideoFormat);
