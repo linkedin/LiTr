@@ -16,7 +16,7 @@ By default, LiTr uses Android MediaCodec stack for hardware accelerated decoding
 Simply grab via Gradle:
 
 ```groovy
- implementation 'com.linkedin.android.litr:litr:1.2.3'
+ implementation 'com.linkedin.android.litr:litr:1.2.4'
 ``` 
 ...or Maven:
 
@@ -24,7 +24,7 @@ Simply grab via Gradle:
 <dependency>
   <groupId>com.linkedin.android.litr</groupId>
   <artifactId>litr</artifactId>
-  <version>1.2.3</version>
+  <version>1.2.4</version>
 </dependency>
 
 ```
@@ -121,7 +121,7 @@ When using your own component implementations, make sure that output of a compon
 You can use custom filters to modify video frames. Write your own in OpenGL as an implementation of `GlFilter` interface, or use existing one from "filter pack" library, which is available via Gradle:
 
 ```groovy
- implementation 'com.linkedin.android.litr:litr-filters:1.2.3'
+ implementation 'com.linkedin.android.litr:litr-filters:1.2.4'
 ``` 
 ...or Maven:
 
@@ -129,7 +129,7 @@ You can use custom filters to modify video frames. Write your own in OpenGL as a
 <dependency>
   <groupId>com.linkedin.android.litr</groupId>
   <artifactId>litr-filters</artifactId>
-  <version>1.2.3</version>
+  <version>1.2.4</version>
 </dependency>
 
 ```
@@ -138,7 +138,7 @@ You can pass in a list of filters when transforming a video. Keep in mind that f
 
 ## Using in Tests
 
-`MediaTransformer` is very intentionally not a singleton, to allow easy mocking of it in client code.
+`MediaTransformer` is very intentionally not a singleton, to allow easy mocking of it in unit tests. There is also `MockMediaTransformer` for UI tests, which can synchronously "play back" a sequence of listener callbacks.
 
 ## Testing
 
