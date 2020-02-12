@@ -2,6 +2,7 @@ name: Publish Release to Bintray
 
 on:
   release:
+    types: [published]
     branches:
     - master
     
