@@ -40,7 +40,7 @@ public abstract class TrackTranscoder {
 
     @Nullable protected MediaFormat targetFormat;
 
-    protected float duration = UNDEFINED_VALUE;
+    protected long duration = UNDEFINED_VALUE;
     protected float progress;
 
     TrackTranscoder(@NonNull MediaSource mediaSource,
@@ -57,6 +57,14 @@ public abstract class TrackTranscoder {
         this.targetFormat = targetFormat;
         this.decoder = decoder;
         this.encoder = encoder;
+
+        MediaFormat sourceMedia = mediaSource.getTrackFormat(sourceTrack);
+        if (sourceMedia.containsKey(MediaFormat.KEY_DURATION)) {
+            duration = sourceMedia.getLong(MediaFormat.KEY_DURATION);
+            if (targetFormat != null) {
+                targetFormat.setLong(MediaFormat.KEY_DURATION, duration);
+            }
+        }
     }
 
     public abstract void start() throws TrackTranscoderException;

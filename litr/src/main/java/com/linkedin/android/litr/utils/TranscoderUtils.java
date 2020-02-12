@@ -51,7 +51,7 @@ public final class TranscoderUtils {
         long maxDurationUs = 0;
         for (TrackTransform trackTransform : trackTransforms) {
             MediaFormat trackFormat = trackTransform.getMediaSource().getTrackFormat(trackTransform.getSourceTrack());
-            long durationUs = trackFormat.getLong(MediaFormat.KEY_DURATION);
+            long durationUs = getDuration(trackFormat);
             maxDurationUs = Math.max(durationUs, maxDurationUs);
         }
 
@@ -75,7 +75,7 @@ public final class TranscoderUtils {
             }
 
             if (bitrate < 0) {
-                Log.d(TAG, "Bitrate is not available, cannot use that track to estimate sie");
+                Log.d(TAG, "Bitrate is not available, cannot use that track to estimate size");
                 bitrate = 0;
             }
 
