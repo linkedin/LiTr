@@ -46,7 +46,7 @@ class MarshallingTransformationListener {
         this.listener = listener;
 
         if (looper != null) {
-            handler = new MarshallingHandler(listener);
+            handler = new MarshallingHandler(looper, listener);
         }
     }
 
@@ -127,7 +127,8 @@ class MarshallingTransformationListener {
 
         private final TransformationListener listener;
 
-        private MarshallingHandler(@NonNull TransformationListener listener) {
+        private MarshallingHandler(@NonNull Looper looper, @NonNull TransformationListener listener) {
+            super(looper);
             this.listener = listener;
         }
 
