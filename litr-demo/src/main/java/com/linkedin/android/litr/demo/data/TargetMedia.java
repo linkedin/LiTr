@@ -7,6 +7,8 @@
  */
 package com.linkedin.android.litr.demo.data;
 
+import android.net.Uri;
+
 import androidx.annotation.NonNull;
 import androidx.databinding.BaseObservable;
 
@@ -24,6 +26,7 @@ public class TargetMedia extends BaseObservable {
 
     public File targetFile;
     public List<TargetTrack> tracks = new ArrayList<>();
+    public Uri backgroundImageUri;
 
     public void setTracks(@NonNull List<MediaTrackFormat> sourceTracks) {
         tracks = new ArrayList<>(sourceTracks.size());

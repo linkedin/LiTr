@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2019 LinkedIn Corporation -->
+<!-- All Rights Reserved. -->
+<!-- -->
+<!-- Licensed under the BSD 2-Clause License (the "License").  See License in the project root -->
+<!-- for license information. -->
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <data>
+        <import type="android.view.View"/>
+
+        <variable
+            name="sourceMedia"
+            type="com.linkedin.android.litr.demo.data.SourceMedia" />
+
+        <variable
+            name="targetMedia"
+            type="com.linkedin.android.litr.demo.data.TargetMedia" />
+
+        <variable
+            name="transformationState"
+            type="com.linkedin.android.litr.demo.data.TransformationState" />
+
+        <variable
+            name="targetVideoConfiguration"
+            type="com.linkedin.android.litr.demo.data.TargetVideoConfiguration" />
+
+        <variable
+            name="transformationPresenter"
+            type="com.linkedin.android.litr.demo.data.TransformationPresenter" />
+
+    </data>
+
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <include layout="@layout/section_pick_video"
+                android:id="@+id/section_pick_video"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:sourceMedia="@{sourceMedia}"/>
+
+            <Button
+                android:id="@+id/button_pick_background"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/pick_background"
+                android:enabled="@{sourceMedia != null &amp;&amp; (transformationState.state != transformationState.STATE_RUNNING)}"
+                android:padding="@dimen/cell_padding"/>
+
+            <include layout="@layout/section_target_video_configuration"
+                android:id="@+id/section_target_video"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="@dimen/cell_padding"
+                app:sourceMedia="@{sourceMedia}"
+                app:targetVideoConfiguration="@{targetVideoConfiguration}"/>
+
+            <Button
+                android:id="@+id/button_transcode"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/transcode"
+                android:enabled="@{sourceMedia != null &amp;&amp; targetMedia != null &amp;&amp; targetMedia.getIncludedTrackCount() > 0 &amp;&amp; (transformationState.state != transformationState.STATE_RUNNING)}"
+                android:padding="@dimen/cell_padding"
+                android:onClick="@{() -> transformationPresenter.startVideoOverlayTransformation(sourceMedia, targetMedia, targetVideoConfiguration, transformationState)}"/>
+
+            <include layout="@layout/section_transformation_progress"
+                android:id="@+id/section_transformation_progress"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:visibility="@{transformationState.state == transformationState.STATE_IDLE ? View.GONE : View.VISIBLE}"
+                app:transformationState="@{transformationState}"
+                app:presenter="@{transformationPresenter}"/>
+
+            <Button
+                android:id="@+id/button_play"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/play"
+                android:enabled="@{transformationState.state == transformationState.STATE_COMPLETED}"
+                android:padding="@dimen/cell_padding"
+                android:onClick="@{() -> transformationPresenter.play(targetMedia.targetFile)}"/>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:padding="@dimen/cell_padding"
+                android:text="@{transformationState.stats}"
+                android:visibility="@{transformationState.state == transformationState.STATE_RUNNING || transformationState.stats == null ? View.GONE : View.VISIBLE}"/>
+
+        </LinearLayout>
+
+    </androidx.core.widget.NestedScrollView>
+
+</layout>

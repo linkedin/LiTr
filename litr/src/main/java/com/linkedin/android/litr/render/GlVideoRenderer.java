@@ -135,9 +135,11 @@ public class GlVideoRenderer implements Renderer {
                 .order(ByteOrder.nativeOrder()).asFloatBuffer();
         triangleVertices.put(triangleVerticesData).position(0);
 
-        // clear the rotation flag, we don't want any auto-rotation issues
+        // prioritize target video rotation value, fall back to source video rotation value
         int rotation = 0;
-        if (sourceMediaFormat != null && sourceMediaFormat.containsKey(KEY_ROTATION)) {
+        if (targetMediaFormat.containsKey(KEY_ROTATION)) {
+            rotation = targetMediaFormat.getInteger(KEY_ROTATION);
+        } else if (sourceMediaFormat != null && sourceMediaFormat.containsKey(KEY_ROTATION)) {
             rotation = sourceMediaFormat.getInteger(KEY_ROTATION);
         }
         float aspectRatio = 1;

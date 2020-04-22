@@ -47,6 +47,10 @@ public class BaseTransformationFragment extends Fragment {
         pickMedia("image/*", mediaPickerListener);
     }
 
+    public void pickBackground(@Nullable MediaPickerListener mediaPickerListener) {
+        pickMedia("image/*", mediaPickerListener);
+    }
+
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);

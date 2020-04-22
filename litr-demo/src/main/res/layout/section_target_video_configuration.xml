@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2019 LinkedIn Corporation -->
+<!-- All Rights Reserved. -->
+<!-- -->
+<!-- Licensed under the BSD 2-Clause License (the "License").  See License in the project root -->
+<!-- for license information. -->
+<layout xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <data>
+
+        <variable
+            name="sourceMedia"
+            type="com.linkedin.android.litr.demo.data.SourceMedia" />
+
+        <variable
+            name="targetVideoConfiguration"
+            type="com.linkedin.android.litr.demo.data.TargetVideoConfiguration" />
+    </data>
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/target_video"
+            android:padding="@dimen/cell_padding"
+            android:textStyle="bold"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/rotation"
+                android:paddingStart="@dimen/cell_padding"
+                android:paddingEnd="@dimen/cell_padding"/>
+
+            <Spinner
+                android:id="@+id/spinner_aspect_ratio"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:spinnerMode="dropdown"
+                android:entries="@array/rotation_array"
+                android:enabled="@{sourceMedia != null &amp;&amp; sourceMedia.uri != null}"
+                android:onItemSelected="@{(parent,view,pos,id)->targetVideoConfiguration.onRotationSelected(parent,view,pos,id)}"/>
+        </LinearLayout>
+
+    </LinearLayout>
+
+</layout>

@@ -7,6 +7,7 @@
     <string name="app_name">LiTr</string>
 
     <string name="demo_case_transcode_video_gl">Transcode Video/Audio (GL Renderer)</string>
+    <string name="demo_case_free_transform_video_gl">Free Transform Video (GL Renderer)</string>
     <string name="demo_case_mock_transcode_video">Mock Transcode Video</string>
 
     <string name="include">Include</string>
@@ -24,6 +25,10 @@
 
     <string name="default_video_mime_type">video/avc</string>
 
+    <string name="target_video">Target Video</string>
+    <string name="aspect_ratio">Aspect Ratio</string>
+
+    <string name="pick_background">Pick Background</string>
     <string name="transcode">Transcode</string>
     <string name="cancel">Cancel</string>
 
@@ -108,5 +113,12 @@
     <string name="stats_decoder" formatted="true">Decoder: %s\n</string>
     <string name="stats_encoder" formatted="true">Encoder: %s\n</string>
     <string name="stats_transformation_duration" formatted="true">Transformation duration: %d ms\n</string>
+
+    <string-array name="rotation_array">
+        <item>0</item>
+        <item>90</item>
+        <item>180</item>
+        <item>270</item>
+    </string-array>
 
 </resources>
