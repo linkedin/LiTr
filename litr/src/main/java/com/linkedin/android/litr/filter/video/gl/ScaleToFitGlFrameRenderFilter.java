@@ -70,14 +70,14 @@ public class ScaleToFitGlFrameRenderFilter implements GlFrameRenderFilter {
     };
 
     private float[] mvpMatrix = new float[16];
-    private float[] inputTextureTransformMatrix = new float[16];
+    private float[] inputFrameTextureMatrix = new float[16];
 
     private int glProgram;
     private int mvpMatrixHandle;
     private int uStMatrixHandle;
     private int aPositionHandle;
     private int aTextureHandle;
-    private int inputTextureId;
+    private int inputFrameTextureHandle;
 
     @Override
     public void init(@NonNull float[] vpMatrix, int vpMatrixOffset) {
@@ -85,7 +85,7 @@ public class ScaleToFitGlFrameRenderFilter implements GlFrameRenderFilter {
                 triangleVerticesData.length * FLOAT_SIZE_BYTES)
                 .order(ByteOrder.nativeOrder()).asFloatBuffer();
         triangleVertices.put(triangleVerticesData).position(0);
-        Matrix.setIdentityM(inputTextureTransformMatrix, 0);
+        Matrix.setIdentityM(inputFrameTextureMatrix, 0);
 
         mvpMatrix = vpMatrix;
 
@@ -110,9 +110,9 @@ public class ScaleToFitGlFrameRenderFilter implements GlFrameRenderFilter {
     }
 
     @Override
-    public void initInputFrameTexture(int textureId, @NonNull float[] transformMatrix) {
-        inputTextureId = textureId;
-        inputTextureTransformMatrix = transformMatrix;
+    public void initInputFrameTexture(int textureHandle, @NonNull float[] transformMatrix) {
+        inputFrameTextureHandle = textureHandle;
+        inputFrameTextureMatrix = transformMatrix;
     }
 
     @Override
@@ -121,7 +121,7 @@ public class ScaleToFitGlFrameRenderFilter implements GlFrameRenderFilter {
         GLES20.glUseProgram(glProgram);
         GlRenderUtils.checkGlError("glUseProgram");
         GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
-        GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, inputTextureId);
+        GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, inputFrameTextureHandle);
         triangleVertices.position(TRIANGLE_VERTICES_DATA_POS_OFFSET);
         GLES20.glVertexAttribPointer(aPositionHandle, 3, GLES20.GL_FLOAT, false,
                 TRIANGLE_VERTICES_DATA_STRIDE_BYTES, triangleVertices);
@@ -135,7 +135,7 @@ public class ScaleToFitGlFrameRenderFilter implements GlFrameRenderFilter {
         GLES20.glEnableVertexAttribArray(aTextureHandle);
         GlRenderUtils.checkGlError("glEnableVertexAttribArray aTextureHandle");
         GLES20.glUniformMatrix4fv(mvpMatrixHandle, 1, false, mvpMatrix, 0);
-        GLES20.glUniformMatrix4fv(uStMatrixHandle, 1, false, inputTextureTransformMatrix, 0);
+        GLES20.glUniformMatrix4fv(uStMatrixHandle, 1, false, inputFrameTextureMatrix, 0);
         GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, 4);
         GlRenderUtils.checkGlError("glDrawArrays");
     }

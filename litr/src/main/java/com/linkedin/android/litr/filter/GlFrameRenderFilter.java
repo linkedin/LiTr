@@ -18,8 +18,8 @@ public interface GlFrameRenderFilter extends GlFilter {
 
     /**
      * Initialize texture associated with {@link android.graphics.SurfaceTexture} if input video frames
-     * @param textureId texture id of input video texture
+     * @param textureHandle texture handle of input video texture
      * @param transformMatrix transform matrix of input video texture
      */
-    void initInputFrameTexture(int textureId, @NonNull float[] transformMatrix);
+    void initInputFrameTexture(int textureHandle, @NonNull float[] transformMatrix);
 }
