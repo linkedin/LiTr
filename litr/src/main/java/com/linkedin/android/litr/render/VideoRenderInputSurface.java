@@ -90,8 +90,11 @@ class VideoRenderInputSurface implements SurfaceTexture.OnFrameAvailableListener
         return textureId;
     }
 
-    void getTransformMatrix(@NonNull float[] transformMatrix) {
+    @NonNull
+    float[] getTransformMatrix() {
+        float[] transformMatrix = new float[16];
         surfaceTexture.getTransformMatrix(transformMatrix);
+        return transformMatrix;
     }
 
     /**
