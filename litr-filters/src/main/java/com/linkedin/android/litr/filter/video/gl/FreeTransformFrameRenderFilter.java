@@ -11,7 +11,7 @@ import com.linkedin.android.litr.filter.GlFrameRenderFilter;
 import com.linkedin.android.litr.render.GlRenderUtils;
 
 /**
- * Implementation of {@link GlFrameRenderFilter} which can transform (scale, rotate, translate)
+ * Implementation of GlFrameRenderFilter which can transform (scale, rotate, translate)
  * source video frame when rendering it onto targetVideoFrame
  */
 public class FreeTransformFrameRenderFilter implements GlFrameRenderFilter {
