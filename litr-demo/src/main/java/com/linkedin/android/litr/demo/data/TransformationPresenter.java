@@ -202,6 +202,42 @@ public class TransformationPresenter {
         }
     }
 
+    public void applyWatermark(@NonNull SourceMedia sourceMedia,
+                               @NonNull TargetMedia targetMedia,
+                               @NonNull TransformationState transformationState) {
+        if (targetMedia.targetFile.exists()) {
+            targetMedia.targetFile.delete();
+        }
+
+        transformationState.requestId = UUID.randomUUID().toString();
+        MediaTransformationListener transformationListener = new MediaTransformationListener(context,
+                transformationState.requestId,
+                transformationState);
+
+        List<GlFilter> watermarkImageFilter = null;
+        for (TargetTrack targetTrack : targetMedia.tracks) {
+            if (targetTrack instanceof TargetVideoTrack) {
+                watermarkImageFilter = createGlFilters(
+                        sourceMedia,
+                        (TargetVideoTrack) targetTrack,
+                        0.2f,
+                        new PointF(0.8f, 0.8f),
+                        0);
+                break;
+            }
+        }
+
+        mediaTransformer.transform(
+                transformationState.requestId,
+                sourceMedia.uri,
+                targetMedia.targetFile.getPath(),
+                null,
+                null,
+                transformationListener,
+                MediaTransformer.GRANULARITY_DEFAULT,
+                watermarkImageFilter);
+    }
+
     public void cancelTransformation(@NonNull String requestId) {
         mediaTransformer.cancel(requestId);
     }

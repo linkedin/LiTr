@@ -10,6 +10,7 @@ package com.linkedin.android.litr.demo.data;
 import android.net.Uri;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.databinding.BaseObservable;
 
 import java.io.File;
@@ -73,6 +74,25 @@ public class TargetMedia extends BaseObservable {
             }
         }
         return trackCount;
+    }
+
+    public void setOverlayImageUri(@NonNull Uri overlayImageUri) {
+        for (TargetTrack targetTrack : tracks) {
+            if (targetTrack instanceof TargetVideoTrack) {
+                ((TargetVideoTrack) targetTrack).overlay = overlayImageUri;
+            }
+        }
+        notifyChange();
+    }
+
+    @Nullable
+    public Uri getVideoOverlay() {
+        for (TargetTrack targetTrack : tracks) {
+            if ((targetTrack instanceof TargetVideoTrack) && ((TargetVideoTrack) targetTrack).overlay != null) {
+                return ((TargetVideoTrack) targetTrack).overlay;
+            }
+        }
+        return null;
     }
 
 }
