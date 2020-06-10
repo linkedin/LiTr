@@ -65,22 +65,18 @@ public class ScaleToFitGlFrameRenderFilter implements GlFrameRenderFilter {
 
         mvpMatrix = vpMatrix;
 
-        // Let's use features of VP matrix to extract frame aspect ratio and orientation from it
-        // and scale/rotate source video frame to match the size/orientation of target video frame
+        // Let's use features of VP matrix to extract frame aspect ratio from it
+        // and scale source video frame to match the size of target video frame
         float videoAspectRatio;
-        float videoRotation;
         if (vpMatrix[0] == 0) {
             // portrait video
             videoAspectRatio = 1 / Math.abs(vpMatrix[4]);
-            videoRotation = vpMatrix[4] > 0 ? 270 : 90;
-            Matrix.scaleM(mvpMatrix, 0, 1, -videoAspectRatio, 1);
+            Matrix.scaleM(mvpMatrix, 0, 1, videoAspectRatio, 1);
         } else {
             // landscape video
             videoAspectRatio = 1 / Math.abs(vpMatrix[0]);
-            videoRotation = vpMatrix[0] > 0 ? 0 : 180;
-            Matrix.scaleM(mvpMatrix, 0, videoAspectRatio, -1, 1);
+            Matrix.scaleM(mvpMatrix, 0, videoAspectRatio, 1, 1);
         }
-        Matrix.rotateM(mvpMatrix, vpMatrixOffset, videoRotation, 0, 0, 1);
 
         initGl();
     }
