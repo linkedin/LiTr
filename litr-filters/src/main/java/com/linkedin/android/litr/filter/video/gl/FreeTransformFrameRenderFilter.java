@@ -45,10 +45,22 @@ public class FreeTransformFrameRenderFilter implements GlFrameRenderFilter {
     private int uStMatrixHandle;
     private int inputTextureId;
 
-    private final float videoRotation;
     private final PointF position;
     private final PointF size;
     private final float rotation;
+
+    /**
+     * Create frame render filter with source video frame, then scale, then position and then rotate the bitmap around its center as specified.
+     * @param size size in X and Y direction, relative to target video frame
+     * @param position position of source video frame  center, in relative coordinate in 0 - 1 range
+     *                 in fourth quadrant (0,0 is top left corner)
+     * @param rotation rotation angle of overlay, relative to target video frame, counter-clockwise, in degrees
+     */
+    public FreeTransformFrameRenderFilter(@NonNull PointF size, @NonNull PointF position, float rotation) {
+        this.size = size;
+        this.position = position;
+        this.rotation = rotation;
+    }
 
     /**
      * Create frame render filter with source video frame, then scale, then position and then rotate the bitmap around its center as specified.
@@ -57,9 +69,10 @@ public class FreeTransformFrameRenderFilter implements GlFrameRenderFilter {
      * @param position position of source video frame  center, in relative coordinate in 0 - 1 range
      *                 in fourth quadrant (0,0 is top left corner)
      * @param rotation rotation angle of overlay, relative to target video frame, counter-clockwise, in degrees
+     * @deprecated use FreeTransformFrameRenderFilter(PointF, PointF, float)
      */
+    @Deprecated
     public FreeTransformFrameRenderFilter(int videoRotation, @NonNull PointF size, @NonNull PointF position, float rotation) {
-        this.videoRotation = videoRotation;
         this.size = size;
         this.position = position;
         this.rotation = rotation;
@@ -117,8 +130,7 @@ public class FreeTransformFrameRenderFilter implements GlFrameRenderFilter {
         Matrix.setIdentityM(modelMatrix, 0);
         Matrix.translateM(modelMatrix, 0, translateX, translateY, 0);
         Matrix.rotateM(modelMatrix, 0, rotation, 0, 0, 1);
-        Matrix.scaleM(modelMatrix, 0, scaleX, -scaleY, 1);
-        Matrix.rotateM(modelMatrix, 0, videoRotation, 0, 0, 1);
+        Matrix.scaleM(modelMatrix, 0, scaleX, scaleY, 1);
 
         // last, we multiply the model matrix by the view matrix to get final MVP matrix for an overlay
         mvpMatrix = new float[16];

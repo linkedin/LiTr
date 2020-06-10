@@ -141,14 +141,6 @@ public class TransformationPresenter {
                 transformationState);
 
         try {
-            int videoRotation = 0;
-            for (MediaTrackFormat trackFormat : sourceMedia.tracks) {
-                if (trackFormat.mimeType.startsWith("video")) {
-                    videoRotation = ((VideoTrackFormat) trackFormat).rotation;
-                    break;
-                }
-            }
-
             MediaTarget mediaTarget = new MediaMuxerMediaTarget(targetMedia.targetFile.getPath(),
                     targetMedia.getIncludedTrackCount(),
                     targetVideoConfiguration.rotation,
@@ -184,7 +176,7 @@ public class TransformationPresenter {
                         filters.add(backgroundImageFilter);
                     }
 
-                    GlFrameRenderFilter frameRenderFilter = new FreeTransformFrameRenderFilter(videoRotation, new PointF(0.3164f, 1.0f), new PointF(0.5f, 0.5f), 0);
+                    GlFrameRenderFilter frameRenderFilter = new FreeTransformFrameRenderFilter(new PointF(0.25f, 0.25f), new PointF(0.65f, 0.55f), 30);
                     filters.add(frameRenderFilter);
 
                     trackTransformBuilder.setRenderer(new GlVideoRenderer(filters));

@@ -94,6 +94,8 @@ public class GlVideoRenderer implements Renderer {
     private int aPositionHandle;
     private int aTextureHandle;
 
+    private boolean inputSurfaceTextureInitialized;
+
     /**
      * Create an instance of GlVideoRenderer. If filter list has a {@link GlFrameRenderFilter}, that filter
      * will be used to render video frames. Otherwise, default {@link ScaleToFitGlFrameRenderFilter}
@@ -155,9 +157,6 @@ public class GlVideoRenderer implements Renderer {
 
         for (GlFilter filter : filters) {
             filter.init(Arrays.copyOf(mvpMatrix, mvpMatrix.length), 0);
-            if (filter instanceof GlFrameRenderFilter) {
-                ((GlFrameRenderFilter) filter).initInputFrameTexture(inputSurface.getTextureId(), inputSurface.getTransformMatrix());
-            }
         }
     }
 
@@ -193,6 +192,8 @@ public class GlVideoRenderer implements Renderer {
      * Draws the data from SurfaceTexture onto the current EGL surface.
      */
     private void drawFrame(long presentationTimeNs) {
+        initInputSurfaceTexture();
+
         GLES20.glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         GLES20.glClear(GLES20.GL_DEPTH_BUFFER_BIT | GLES20.GL_COLOR_BUFFER_BIT);
 
@@ -275,6 +276,17 @@ public class GlVideoRenderer implements Renderer {
         GlRenderUtils.checkGlError("glGetAttribLocation aTextureCoord");
         if (aTextureHandle == -1) {
             throw new RuntimeException("Could not get attrib location for aTextureCoord");
+        }
+    }
+
+    private void initInputSurfaceTexture() {
+        if (!inputSurfaceTextureInitialized) {
+            for (GlFilter filter : filters) {
+                if (filter instanceof GlFrameRenderFilter) {
+                    ((GlFrameRenderFilter) filter).initInputFrameTexture(inputSurface.getTextureId(), inputSurface.getTransformMatrix());
+                }
+            }
+            inputSurfaceTextureInitialized = true;
         }
     }
 }
