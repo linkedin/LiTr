@@ -75,6 +75,7 @@ abstract class BaseOverlayGlFilter implements GlFilter {
     @CallSuper
     public void init(@NonNull float[] vpMatrix, int vpMatrixOffset) {
         Matrix.setIdentityM(stMatrix, 0);
+        Matrix.scaleM(stMatrix, 0, 1, -1, 1);
 
         // Let's use features of VP matrix to extract frame aspect ratio and orientation from it
         // for 90 and 270 degree rotations (portrait orientation) top left element will be zero
@@ -122,7 +123,7 @@ abstract class BaseOverlayGlFilter implements GlFilter {
         Matrix.setIdentityM(modelMatrix, 0);
         Matrix.translateM(modelMatrix, 0, translateX, translateY, 0);
         Matrix.rotateM(modelMatrix, 0, rotation, 0, 0, 1);
-        Matrix.scaleM(modelMatrix, 0, scaleX, -scaleY, 1);
+        Matrix.scaleM(modelMatrix, 0, scaleX, scaleY, 1);
 
         // last, we multiply the model matrix by the view matrix to get final MVP matrix for an overlay
         mvpMatrix = new float[16];
