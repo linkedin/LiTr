@@ -1,3 +1,10 @@
+/*
+ * Copyright 2019 LinkedIn Corporation
+ * All Rights Reserved.
+ *
+ * Licensed under the BSD 2-Clause License (the "License").  See License in the project root for
+ * license information.
+ */
 package com.linkedin.android.litr.filter.video.gl;
 
 import android.graphics.PointF;
@@ -8,6 +15,7 @@ import android.opengl.Matrix;
 import androidx.annotation.NonNull;
 
 import com.linkedin.android.litr.filter.GlFrameRenderFilter;
+import com.linkedin.android.litr.filter.util.GlFilterUtil;
 import com.linkedin.android.litr.render.GlRenderUtils;
 
 /**
@@ -82,60 +90,9 @@ public class FreeTransformFrameRenderFilter implements GlFrameRenderFilter {
     public void init(@NonNull float[] vpMatrix, int vpMatrixOffset) {
         Matrix.setIdentityM(inputTextureTransformMatrix, 0);
 
-        // Let's use features of VP matrix to extract frame aspect ratio and orientation from it
-        // for 90 and 270 degree rotations (portrait orientation) top left element will be zero
-        boolean isPortraitVideo = vpMatrix[0] == 0;
-
-        // orthogonal projection matrix is basically a scaling matrix, which scales along X axis.
-        // 0 and 180 degree rotations keep the scaling factor in top left element (they don't move it)
-        // 90 and 270 degree rotations move it to one position right in top row
-        // Inverting scaling factor gives us the aspect ratio.
-        // Scale can be negative if video is flipped, so we use absolute value.
-        float videoAspectRatio;
-        if (isPortraitVideo) {
-            videoAspectRatio = 1 / Math.abs(vpMatrix[4]);
-        } else {
-            videoAspectRatio = 1 / Math.abs(vpMatrix[0]);
-        }
-
-        // Size is respective to video frame, and frame will later be scaled by perspective and view matrices.
-        // So we have to adjust the scale accordingly.
-        float scaleX;
-        float scaleY;
-        if (isPortraitVideo) {
-            scaleX = size.x;
-            scaleY = size.y * videoAspectRatio;
-        } else {
-            scaleX = size.x * videoAspectRatio;
-            scaleY = size.y;
-        }
-
-        // Position values are in relative (0, 1) range, which means they have to be mapped from (-1, 1) range
-        // and adjusted for aspect ratio.
-        float translateX;
-        float translateY;
-        if (isPortraitVideo) {
-            translateX = position.x * 2 - 1;
-            translateY = (1 - position.y * 2) * videoAspectRatio;
-        } else {
-            translateX = (position.x * 2 - 1) * videoAspectRatio;
-            translateY = 1 - position.y * 2;
-        }
-
-        // Matrix operations in OpenGL are done in reverse.
-        // First, we have to rotate the video into correct orientation (portrait/landscape)
-        // Then, we scale (and flip vertically) first, then rotate
-        // around the center, and then translate into desired position.
-        float[] modelMatrix = new float[16];
-        Matrix.setIdentityM(modelMatrix, 0);
-        Matrix.translateM(modelMatrix, 0, translateX, translateY, 0);
-        Matrix.rotateM(modelMatrix, 0, rotation, 0, 0, 1);
-        Matrix.scaleM(modelMatrix, 0, scaleX, scaleY, 1);
-
         // last, we multiply the model matrix by the view matrix to get final MVP matrix for an overlay
-        mvpMatrix = new float[16];
+        mvpMatrix = GlFilterUtil.createFilterMvpMatrix(vpMatrix, size, position, rotation);
         mvpMatrixOffset = vpMatrixOffset;
-        Matrix.multiplyMM(this.mvpMatrix, this.mvpMatrixOffset, vpMatrix, 0, modelMatrix, 0);
 
         initGl();
     }
