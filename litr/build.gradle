@@ -34,6 +34,6 @@ dependencies {
 
 group project.ext.bintrayGroupId
 version project.ext.releaseVersion
-description 'Video/Audio filter pack for LiTr'
+description 'LiTr media transformation library for Android'
 
 apply from: '../publish.gradle'
