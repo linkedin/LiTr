@@ -5,4 +5,5 @@ project.ext {
     targetSdkVersion = 28
     compileSdkVersion = 29
     bintrayGroupId = "com.linkedin.android.litr"
+    buildToolsVersion = "29.0.2"
 }
