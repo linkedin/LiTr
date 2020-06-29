@@ -48,7 +48,7 @@ public class VideoTrackTranscoder extends TrackTranscoder {
                          @NonNull Renderer renderer,
                          @NonNull Decoder decoder,
                          @NonNull Encoder encoder) throws TrackTranscoderException {
-        super(mediaSource, sourceTrack, mediaTarget, targetTrack, targetFormat, decoder, encoder);
+        super(mediaSource, sourceTrack, mediaTarget, targetTrack, targetFormat, renderer, decoder, encoder);
 
         lastExtractFrameResult = RESULT_FRAME_PROCESSED;
         lastDecodeFrameResult = RESULT_FRAME_PROCESSED;
