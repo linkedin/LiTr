@@ -20,6 +20,8 @@ import com.linkedin.android.litr.codec.MediaCodecEncoder;
 import com.linkedin.android.litr.exception.TrackTranscoderException;
 import com.linkedin.android.litr.io.MediaSource;
 import com.linkedin.android.litr.io.MediaTarget;
+import com.linkedin.android.litr.render.GlVideoRenderer;
+import com.linkedin.android.litr.render.PassthroughSoftwareRenderer;
 import com.linkedin.android.litr.render.Renderer;
 
 @RestrictTo(RestrictTo.Scope.LIBRARY)
@@ -84,13 +86,20 @@ public class TrackTranscoderFactory {
                                             decoder,
                                             encoder);
         } else if (trackMimeType.startsWith("audio")) {
+            Decoder audioDecoder = new MediaCodecDecoder();
+            Encoder audioEncoder = new MediaCodecEncoder();
+            Renderer audioRenderer = renderer == null
+                    ? new PassthroughSoftwareRenderer(audioEncoder)
+                    : renderer;
+
             return new AudioTrackTranscoder(mediaSource,
                                             sourceTrack,
                                             mediaTarget,
                                             targetTrack,
                                             targetFormat,
-                                            new MediaCodecDecoder(),
-                                            new MediaCodecEncoder());
+                                            audioRenderer,
+                                            audioDecoder,
+                                            audioEncoder);
         } else {
             Log.i(TAG, "Unsupported track mime type: " + trackMimeType + ", will use passthrough transcoder");
             return new PassthroughTranscoder(mediaSource, sourceTrack, mediaTarget, targetTrack);
