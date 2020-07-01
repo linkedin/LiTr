@@ -1,6 +1,6 @@
 package com.linkedin.android.litr.shader;
 
-public class Shaders {
+public class FragmentShaders {
 
     public static final String GRAYSCALE_SHADER = "#extension GL_OES_EGL_image_external : require\n" +
             "precision mediump float;\n" +
@@ -12,6 +12,6 @@ public class Shaders {
             "  gl_FragColor = vec4(vec3(luminance), 1.0);\n" +
             "}\n";
 
-    private Shaders() {
+    private FragmentShaders() {
     }
 }
