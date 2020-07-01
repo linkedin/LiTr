@@ -26,6 +26,7 @@ import android.opengl.Matrix;
 import android.os.Build;
 import android.view.Surface;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.linkedin.android.litr.codec.Frame;
@@ -78,6 +79,7 @@ public class GlVideoRenderer implements Renderer {
     private VideoRenderInputSurface inputSurface;
     private VideoRenderOutputSurface outputSurface;
     private List<GlFilter> filters;
+    private final String fragmentShader;
 
     private FloatBuffer triangleVertices;
     private final float[] triangleVerticesData = {
@@ -103,6 +105,18 @@ public class GlVideoRenderer implements Renderer {
      * @param filters optional list of OpenGL filters to applied to output video frames
      */
     public GlVideoRenderer(@Nullable List<GlFilter> filters) {
+        this(FRAGMENT_SHADER, filters);
+    }
+
+    /**
+     * Create an instance of GlVideoRenderer. If filter list has a {@link GlFrameRenderFilter}, that filter
+     * will be used to render video frames. Otherwise, default {@link ScaleToFitGlFrameRenderFilter}
+     * will be used at lowest Z level to render video frames.
+     * @param fragmentShader allow to override default fragment shade to apply some customizations
+     * @param filters optional list of OpenGL filters to applied to output video frames
+     */
+    public GlVideoRenderer(@NonNull String fragmentShader, @Nullable List<GlFilter> filters) {
+        this.fragmentShader = fragmentShader;
         this.filters = new ArrayList<>();
         if (filters == null) {
             this.filters.add(new ScaleToFitGlFrameRenderFilter());
@@ -263,7 +277,7 @@ public class GlVideoRenderer implements Renderer {
      * Initializes GL state.  Call this after the EGL surface has been created and made current.
      */
     private void initGl() {
-        glProgram = GlRenderUtils.createProgram(VERTEX_SHADER, FRAGMENT_SHADER);
+        glProgram = GlRenderUtils.createProgram(VERTEX_SHADER, fragmentShader);
         if (glProgram == 0) {
             throw new RuntimeException("failed creating glProgram");
         }
