@@ -30,9 +30,9 @@ public class SolidBackgroundColorFilter implements GlFilter {
      * @param color color value
      */
     public SolidBackgroundColorFilter(@ColorInt int color) {
-        this.red = Color.red(color);
-        this.green = Color.green(color);
-        this.blue = Color.blue(color);
+        this.red = Color.red(color) / 255f;
+        this.green = Color.green(color) / 255f;
+        this.blue = Color.blue(color) / 255f;
     }
 
     /**
