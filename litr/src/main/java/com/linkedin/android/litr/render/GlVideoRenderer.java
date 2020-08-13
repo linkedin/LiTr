@@ -31,7 +31,7 @@ import androidx.annotation.Nullable;
 import com.linkedin.android.litr.codec.Frame;
 import com.linkedin.android.litr.filter.GlFilter;
 import com.linkedin.android.litr.filter.GlFrameRenderFilter;
-import com.linkedin.android.litr.filter.video.gl.GlVideoFrameRenderFilter;
+import com.linkedin.android.litr.filter.video.gl.DefaultVideoFrameRenderFilter;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -57,14 +57,14 @@ public class GlVideoRenderer implements Renderer {
 
     /**
      * Create an instance of GlVideoRenderer. If filter list has a {@link GlFrameRenderFilter}, that filter
-     * will be used to render video frames. Otherwise, default {@link GlVideoFrameRenderFilter}
+     * will be used to render video frames. Otherwise, default {@link DefaultVideoFrameRenderFilter}
      * will be used at lowest Z level to render video frames.
      * @param filters optional list of OpenGL filters to applied to output video frames
      */
     public GlVideoRenderer(@Nullable List<GlFilter> filters) {
         this.filters = new ArrayList<>();
         if (filters == null) {
-            this.filters.add(new GlVideoFrameRenderFilter());
+            this.filters.add(new DefaultVideoFrameRenderFilter());
             return;
         }
 
@@ -77,7 +77,7 @@ public class GlVideoRenderer implements Renderer {
         }
         if (!hasFrameRenderFilter) {
             // if client provided filters don't have a frame render filter, insert default frame filter
-            this.filters.add(new GlVideoFrameRenderFilter());
+            this.filters.add(new DefaultVideoFrameRenderFilter());
         }
         this.filters.addAll(filters);
     }

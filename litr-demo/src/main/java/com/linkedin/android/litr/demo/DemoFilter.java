@@ -10,11 +10,11 @@ package com.linkedin.android.litr.demo;
 import androidx.annotation.NonNull;
 
 import com.linkedin.android.litr.filter.GlFilter;
-import com.linkedin.android.litr.filter.video.gl.GlVideoFrameRenderFilter;
+import com.linkedin.android.litr.filter.video.gl.DefaultVideoFrameRenderFilter;
 import com.linkedin.android.litr.filter.video.gl.GrayscaleFilter;
 
 enum DemoFilter {
-    NONE("No Filter", new GlVideoFrameRenderFilter()),
+    NONE("No Filter", new DefaultVideoFrameRenderFilter()),
     GRAYSCALE("Grayscale", new GrayscaleFilter());
 
     public String name;
@@ -24,7 +24,6 @@ enum DemoFilter {
         this.name = name;
         this.filter = filter;
     }
-
 
     @NonNull
     @Override

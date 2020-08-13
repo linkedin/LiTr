@@ -30,8 +30,6 @@ import androidx.annotation.NonNull;
 import com.linkedin.android.litr.filter.GlFrameRenderFilter;
 import com.linkedin.android.litr.filter.util.GlFilterUtil;
 import com.linkedin.android.litr.render.GlRenderUtils;
-import com.linkedin.android.litr.shader.FragmentShaders;
-import com.linkedin.android.litr.shader.VertexShaders;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -41,7 +39,31 @@ import java.nio.FloatBuffer;
  * Implementation of GlFrameRenderFilter, which renders source video frame onto target video frame,
  * optionally applying pixel and geometric transformation.
  */
-public class GlVideoFrameRenderFilter implements GlFrameRenderFilter {
+public abstract class BaseFrameRenderFilter implements GlFrameRenderFilter {
+
+    protected static final String DEFAULT_VERTEX_SHADER =
+            "uniform mat4 uMVPMatrix;\n" +
+            "uniform mat4 uSTMatrix;\n" +
+            "attribute vec4 aPosition;\n" +
+            "attribute vec4 aTextureCoord;\n" +
+            "varying vec2 vTextureCoord;\n" +
+
+            "void main()\n" +
+            "{\n" +
+                "gl_Position = uMVPMatrix * aPosition;\n" +
+                "vTextureCoord = (uSTMatrix * aTextureCoord).xy;\n" +
+            "}";
+
+    protected static final String DEFAULT_FRAGMENT_SHADER =
+            "#extension GL_OES_EGL_image_external : require\n" +
+            "precision mediump float;\n" +      // highp here doesn't seem to matter
+            "varying vec2 vTextureCoord;\n" +
+            "uniform samplerExternalOES sTexture;\n" +
+
+            "void main()\n" +
+            "{\n" +
+                "gl_FragColor = texture2D(sTexture, vTextureCoord);\n" +
+            "}";
 
     private static final int FLOAT_SIZE_BYTES = 4;
     private static final int TRIANGLE_VERTICES_DATA_STRIDE_BYTES = 5 * FLOAT_SIZE_BYTES;
@@ -75,32 +97,13 @@ public class GlVideoFrameRenderFilter implements GlFrameRenderFilter {
     private int aTextureHandle;
 
     /**
-     * Create most basic filter, which scales source frame to fit target frame, with no pixel modification.
-     */
-    public GlVideoFrameRenderFilter() {
-        this(VertexShaders.DEFAULT_SHADER, FragmentShaders.DEFAULT_SHADER);
-    }
-
-    /**
      * Create filter which scales source frame to fit target frame, apply vertex and frame shaders. Can be used for
      * things like pixel modification.
      * @param vertexShader vertex shader
      * @param fragmentShader fragment shader
      */
-    public GlVideoFrameRenderFilter(@NonNull String vertexShader, @NonNull String fragmentShader) {
+    protected BaseFrameRenderFilter(@NonNull String vertexShader, @NonNull String fragmentShader) {
         this(vertexShader, fragmentShader, new PointF(1f, 1f), new PointF(0.5f, 0.5f), 0);
-    }
-
-    /**
-     * Create frame render filter with source video frame, then scale, then position and then rotate the bitmap around its center as specified.
-     * No pixel data is modified.
-     * @param size size in X and Y direction, relative to target video frame
-     * @param position position of source video frame  center, in relative coordinate in 0 - 1 range
-     *                 in fourth quadrant (0,0 is top left corner)
-     * @param rotation rotation angle of overlay, relative to target video frame, counter-clockwise, in degrees
-     */
-    public GlVideoFrameRenderFilter(@NonNull PointF size, @NonNull PointF position, float rotation) {
-        this(VertexShaders.DEFAULT_SHADER, FragmentShaders.DEFAULT_SHADER, size, position, rotation);
     }
 
     /**
@@ -113,11 +116,11 @@ public class GlVideoFrameRenderFilter implements GlFrameRenderFilter {
      *                 in fourth quadrant (0,0 is top left corner)
      * @param rotation rotation angle of overlay, relative to target video frame, counter-clockwise, in degrees
      */
-    public GlVideoFrameRenderFilter(@NonNull String vertexShader,
-                                    @NonNull String fragmentShader,
-                                    @NonNull PointF size,
-                                    @NonNull PointF position,
-                                    float rotation) {
+    protected BaseFrameRenderFilter(@NonNull String vertexShader,
+                                 @NonNull String fragmentShader,
+                                 @NonNull PointF size,
+                                 @NonNull PointF position,
+                                 float rotation) {
         this.vertexShader = vertexShader;
         this.fragmentShader = fragmentShader;
         this.size = size;
@@ -169,12 +172,16 @@ public class GlVideoFrameRenderFilter implements GlFrameRenderFilter {
         GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
         GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, inputFrameTextureHandle);
 
+        applyCustomGlAttributes();
+
         GLES20.glUniformMatrix4fv(mvpMatrixHandle, 1, false, mvpMatrix, mvpMatrixOffset);
         GLES20.glUniformMatrix4fv(uStMatrixHandle, 1, false, inputFrameTextureMatrix, 0);
 
         GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, 4);
         GlRenderUtils.checkGlError("glDrawArrays");
     }
+
+    abstract protected void applyCustomGlAttributes();
 
     /**
      * Initializes GL state.  Call this after the EGL surface has been created and made current.
