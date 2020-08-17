@@ -183,6 +183,18 @@ public abstract class BaseFrameRenderFilter implements GlFrameRenderFilter {
 
     abstract protected void applyCustomGlAttributes();
 
+    protected int getHandle(@NonNull String name) {
+        int handle = GLES20.glGetAttribLocation(glProgram, name);
+        if (handle == -1) {
+            handle = GLES20.glGetUniformLocation(glProgram, name);
+        }
+        if (handle == -1) {
+            throw new IllegalStateException("Could not get attrib or uniform location for " + name);
+        }
+
+        return handle;
+    }
+
     /**
      * Initializes GL state.  Call this after the EGL surface has been created and made current.
      */
