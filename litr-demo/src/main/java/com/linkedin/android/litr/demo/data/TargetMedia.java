@@ -13,6 +13,8 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.databinding.BaseObservable;
 
+import com.linkedin.android.litr.filter.GlFilter;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -28,6 +30,7 @@ public class TargetMedia extends BaseObservable {
     public File targetFile;
     public List<TargetTrack> tracks = new ArrayList<>();
     public Uri backgroundImageUri;
+    public GlFilter filter;
 
     public void setTracks(@NonNull List<MediaTrackFormat> sourceTracks) {
         tracks = new ArrayList<>(sourceTracks.size());

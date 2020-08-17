@@ -40,6 +40,7 @@ import com.linkedin.android.litr.utils.TransformationUtil;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
@@ -228,6 +229,29 @@ public class TransformationPresenter {
                 transformationListener,
                 MediaTransformer.GRANULARITY_DEFAULT,
                 watermarkImageFilter);
+    }
+
+    public void applyFilter(@NonNull SourceMedia sourceMedia,
+                            @NonNull TargetMedia targetMedia,
+                            @NonNull TransformationState transformationState) {
+        if (targetMedia.targetFile.exists()) {
+            targetMedia.targetFile.delete();
+        }
+
+        transformationState.requestId = UUID.randomUUID().toString();
+        MediaTransformationListener transformationListener = new MediaTransformationListener(context,
+                transformationState.requestId,
+                transformationState);
+
+        mediaTransformer.transform(
+                transformationState.requestId,
+                sourceMedia.uri,
+                targetMedia.targetFile.getPath(),
+                null,
+                null,
+                transformationListener,
+                MediaTransformer.GRANULARITY_DEFAULT,
+                Collections.singletonList(targetMedia.filter));
     }
 
     public void cancelTransformation(@NonNull String requestId) {
