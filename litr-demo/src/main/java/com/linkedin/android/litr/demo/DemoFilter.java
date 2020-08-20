@@ -7,15 +7,25 @@
  */
 package com.linkedin.android.litr.demo;
 
+import android.graphics.PointF;
+
 import androidx.annotation.NonNull;
 
 import com.linkedin.android.litr.filter.GlFilter;
+import com.linkedin.android.litr.filter.video.gl.BrightnessFilter;
+import com.linkedin.android.litr.filter.video.gl.BulgeDistortionFilter;
+import com.linkedin.android.litr.filter.video.gl.ContrastFilter;
+import com.linkedin.android.litr.filter.video.gl.CrossHatchFilter;
 import com.linkedin.android.litr.filter.video.gl.DefaultVideoFrameRenderFilter;
 import com.linkedin.android.litr.filter.video.gl.GrayscaleFilter;
 
 enum DemoFilter {
     NONE("No Filter", new DefaultVideoFrameRenderFilter()),
-    GRAYSCALE("Grayscale", new GrayscaleFilter());
+    BRIGHTNESS("Brightness", new BrightnessFilter(0.25f)),
+    CONTRAST("Contrast", new ContrastFilter(1.7f)),
+    CROSS_HATCH("Cross Hatch", new CrossHatchFilter(0.03f, 0.003f)),
+    GRAYSCALE("Grayscale", new GrayscaleFilter()),
+    BULGE_DISTORTION("Bulge Distortion", new BulgeDistortionFilter(new PointF(0.5f, 0.5f), 0.25f, 0.5f));
 
     public String name;
     public GlFilter filter;
