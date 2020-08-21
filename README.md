@@ -179,6 +179,7 @@ This project is licensed under the BSD 2-Clause License - see the [LICENSE](LICE
 ## Acknowledgments
 
 * A huge thank you to [ypresto](https://github.com/ypresto/) for his pioneering work on [android-transcoder](https://github.com/ypresto/android-transcoder) project, which was an inspiration and heavy influence on LiTr
+* A special thank you to [MasayukiSuda](https://github.com/MasayukiSuda) for his work on [Mp4Composer-android](https://github.com/MasayukiSuda/Mp4Composer-android) project, whose filters now power LiTr
 * A thank you to Google's AOSP CTS team for writing Surface to Surface rendering implementation in OpenGL, which became a foundation for GlRenderer in LiTr 
 * A shout out to my awesome colleagues Amita Sahasrabudhe, Long Peng and Keerthi Korrapati for contributions and code reviews
 * A shout out to our designer Mauroof Ahmed for giving LiTr a visual identity
