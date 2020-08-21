@@ -20,12 +20,18 @@ import com.linkedin.android.litr.filter.video.gl.DefaultVideoFrameRenderFilter;
 import com.linkedin.android.litr.filter.video.gl.ExposureFilter;
 import com.linkedin.android.litr.filter.video.gl.GammaFilter;
 import com.linkedin.android.litr.filter.video.gl.GrayscaleFilter;
+import com.linkedin.android.litr.filter.video.gl.HalftoneFilter;
+import com.linkedin.android.litr.filter.video.gl.HazeFilter;
+import com.linkedin.android.litr.filter.video.gl.OpacityFilter;
+import com.linkedin.android.litr.filter.video.gl.ShadowsHighlightsFilter;
 import com.linkedin.android.litr.filter.video.gl.HueFilter;
 import com.linkedin.android.litr.filter.video.gl.InversionFilter;
 import com.linkedin.android.litr.filter.video.gl.PosterizationFilter;
 import com.linkedin.android.litr.filter.video.gl.SaturationFilter;
 import com.linkedin.android.litr.filter.video.gl.SepiaFilter;
+import com.linkedin.android.litr.filter.video.gl.SolarizeFilter;
 import com.linkedin.android.litr.filter.video.gl.VibranceFilter;
+import com.linkedin.android.litr.filter.video.gl.WhiteBalanceFilter;
 
 enum DemoFilter {
     NONE("No Filter", new DefaultVideoFrameRenderFilter()),
@@ -36,12 +42,18 @@ enum DemoFilter {
     EXPOSURE("Exposure", new ExposureFilter(1.0f)),
     GAMMA("Gamma", new GammaFilter(2.0f)),
     GRAYSCALE("Grayscale", new GrayscaleFilter()),
+    HALFTONE("Halftone", new HalftoneFilter(0.01f, 1.0f)),
+    HAZE("Haze", new HazeFilter(0.2f, 0.0f)),
     HUE("Hue", new HueFilter(90f)),
     INVERSION("Inversion", new InversionFilter()),
+    OPACITY("Opacity", new OpacityFilter(0.7f)),
     POSTERIZATION("Posterization", new PosterizationFilter(10)),
     SATURATION("Saturation", new SaturationFilter(2.0f)),
     SEPIA("Sepia", new SepiaFilter()),
-    VIBRANCE("Vibrance", new VibranceFilter(1.0f));
+    SOLARIZE("Solarize", new SolarizeFilter(0.5f)),
+    SHADOWS_HIGHLIGHTS("Shadows/Highlights", new ShadowsHighlightsFilter(1.0f, 0.0f)),
+    VIBRANCE("Vibrance", new VibranceFilter(1.0f)),
+    WHITE_BALANCE("White Balance", new WhiteBalanceFilter(3000f, 0.5f));
 
     public String name;
     public GlFilter filter;
