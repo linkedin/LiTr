@@ -34,6 +34,8 @@ import com.linkedin.android.litr.filter.video.gl.SharpenFilter;
 import com.linkedin.android.litr.filter.video.gl.SolarizeFilter;
 import com.linkedin.android.litr.filter.video.gl.SphereRefractionFilter;
 import com.linkedin.android.litr.filter.video.gl.SwirlFilter;
+import com.linkedin.android.litr.filter.video.gl.ToonFilter;
+import com.linkedin.android.litr.filter.video.gl.WeakPixelInclusionFilter;
 import com.linkedin.android.litr.filter.video.gl.VibranceFilter;
 import com.linkedin.android.litr.filter.video.gl.WhiteBalanceFilter;
 import com.linkedin.android.litr.filter.video.gl.ZoomBlurFilter;
@@ -61,7 +63,9 @@ enum DemoFilter {
     SOLARIZE("Solarize", new SolarizeFilter(0.5f)),
     SPHERE_REFRACTION("Sphere Refraction", new SphereRefractionFilter(new PointF(0.5f, 0.5f), 0.5f, 1.0f, 0.71f)),
     SWIRL("Swirl", new SwirlFilter(new PointF(0.5f, 0.5f), 0.5f, 1.0f)),
+    TOON("Toon", new ToonFilter(0.01f, 0.01f, 0.2f, 10f)),
     VIBRANCE("Vibrance", new VibranceFilter(1.0f)),
+    WEAK_PIXEL_INCLUSION("Weak Pixel Inclusion", new WeakPixelInclusionFilter(0.01f, 0.01f)),
     WHITE_BALANCE("White Balance", new WhiteBalanceFilter(3000f, 0.5f)),
     ZOOM_BLUR("Zoom Blur", new ZoomBlurFilter(new PointF(0.5f, 0.5f), 1.0f));
 
