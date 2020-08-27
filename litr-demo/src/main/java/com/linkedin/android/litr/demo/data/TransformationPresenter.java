@@ -35,6 +35,7 @@ import com.linkedin.android.litr.io.MediaMuxerMediaTarget;
 import com.linkedin.android.litr.io.MediaSource;
 import com.linkedin.android.litr.io.MediaTarget;
 import com.linkedin.android.litr.render.GlVideoRenderer;
+import com.linkedin.android.litr.utils.CodecUtils;
 import com.linkedin.android.litr.utils.TransformationUtil;
 
 import java.io.File;
@@ -321,12 +322,19 @@ public class TransformationPresenter {
             mediaFormat = new MediaFormat();
             if (targetTrack.format.mimeType.startsWith("video")) {
                 VideoTrackFormat trackFormat = (VideoTrackFormat) targetTrack.format;
-                mediaFormat.setString(MediaFormat.KEY_MIME, "video/avc");
+                String mimeType = CodecUtils.MIME_TYPE_VIDEO_AVC;
+                mediaFormat.setString(MediaFormat.KEY_MIME, mimeType);
                 mediaFormat.setInteger(MediaFormat.KEY_WIDTH, trackFormat.width);
                 mediaFormat.setInteger(MediaFormat.KEY_HEIGHT, trackFormat.height);
                 mediaFormat.setInteger(MediaFormat.KEY_BIT_RATE, trackFormat.bitrate);
                 mediaFormat.setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, trackFormat.keyFrameInterval);
                 mediaFormat.setInteger(MediaFormat.KEY_FRAME_RATE, trackFormat.frameRate);
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                    int codecProfile = CodecUtils.getHighestSupportedProfile(mimeType, true);
+                    if (codecProfile != CodecUtils.UNDEFINED_VALUE) {
+                        mediaFormat.setInteger(MediaFormat.KEY_PROFILE, codecProfile);
+                    }
+                }
             } else if (targetTrack.format.mimeType.startsWith("audio")) {
                 AudioTrackFormat trackFormat = (AudioTrackFormat) targetTrack.format;
                 mediaFormat.setString(MediaFormat.KEY_MIME, trackFormat.mimeType);
