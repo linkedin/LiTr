@@ -20,13 +20,17 @@ import com.linkedin.android.litr.filter.video.gl.ContrastFilter;
 import com.linkedin.android.litr.filter.video.gl.CrossHatchFilter;
 import com.linkedin.android.litr.filter.video.gl.DefaultVideoFrameRenderFilter;
 import com.linkedin.android.litr.filter.video.gl.ExposureFilter;
+import com.linkedin.android.litr.filter.video.gl.FalseColorFilter;
 import com.linkedin.android.litr.filter.video.gl.GammaFilter;
 import com.linkedin.android.litr.filter.video.gl.GaussianBlurFilter;
+import com.linkedin.android.litr.filter.video.gl.GlassSphereFilter;
 import com.linkedin.android.litr.filter.video.gl.GrayscaleFilter;
 import com.linkedin.android.litr.filter.video.gl.HalftoneFilter;
 import com.linkedin.android.litr.filter.video.gl.HazeFilter;
 import com.linkedin.android.litr.filter.video.gl.HueFilter;
 import com.linkedin.android.litr.filter.video.gl.InversionFilter;
+import com.linkedin.android.litr.filter.video.gl.KuwaharaFilter;
+import com.linkedin.android.litr.filter.video.gl.LevelsFilter;
 import com.linkedin.android.litr.filter.video.gl.OpacityFilter;
 import com.linkedin.android.litr.filter.video.gl.PixelationFilter;
 import com.linkedin.android.litr.filter.video.gl.PosterizationFilter;
@@ -40,6 +44,7 @@ import com.linkedin.android.litr.filter.video.gl.SphereRefractionFilter;
 import com.linkedin.android.litr.filter.video.gl.SwirlFilter;
 import com.linkedin.android.litr.filter.video.gl.ToonFilter;
 import com.linkedin.android.litr.filter.video.gl.VibranceFilter;
+import com.linkedin.android.litr.filter.video.gl.VignetteFilter;
 import com.linkedin.android.litr.filter.video.gl.WeakPixelInclusionFilter;
 import com.linkedin.android.litr.filter.video.gl.WhiteBalanceFilter;
 import com.linkedin.android.litr.filter.video.gl.ZoomBlurFilter;
@@ -53,13 +58,17 @@ enum DemoFilter {
     CGA_COLORSPACE("CGA Colorspace", new CgaColorspaceFilter()),
     CROSS_HATCH("Cross Hatch", new CrossHatchFilter(0.03f, 0.003f)),
     EXPOSURE("Exposure", new ExposureFilter(1.0f)),
+    FALSE_COLOR("False Color", new FalseColorFilter(new float[] {0.0f, 0.0f, 0.5f}, new float[] {1.0f, 0.0f, 0.0f})),
     GAMMA("Gamma", new GammaFilter(2.0f)),
     GAUSSIAN_BLUR("Gaussian Blur", new GaussianBlurFilter(0.01f, 0.01f, 0.2f)),
+    GLASS_SPHERE("Glass Sphere", new GlassSphereFilter(new PointF(0.5f, 0.5f), 0.35f, 1.0f, 0.71f)),
     GRAYSCALE("Grayscale", new GrayscaleFilter()),
     HALFTONE("Halftone", new HalftoneFilter(0.01f, 1.0f)),
     HAZE("Haze", new HazeFilter(0.2f, 0.0f)),
     HUE("Hue", new HueFilter(90f)),
     INVERSION("Inversion", new InversionFilter()),
+    KUWAHARA("Kuwahara", new KuwaharaFilter(6)),
+    LEVELS("Levels", new LevelsFilter(new float[] {0.0f, 0.0f, 0.25f}, new float[] {1.0f, 1.0f, 0.6f}, new float[] {1.0f, 1.0f, 1.0f}, new float[] {0.0f, 0.0f, 0.0f}, new float[] {1.0f, 1.0f, 1.0f})),
     OPACITY("Opacity", new OpacityFilter(0.7f)),
     PIXELATION("Pixelation", new PixelationFilter(0.01f, 0.01f, 1.0f)),
     POSTERIZATION("Posterization", new PosterizationFilter(10)),
@@ -73,6 +82,7 @@ enum DemoFilter {
     SWIRL("Swirl", new SwirlFilter(new PointF(0.5f, 0.5f), 0.5f, 1.0f)),
     TOON("Toon", new ToonFilter(0.01f, 0.01f, 0.2f, 10f)),
     VIBRANCE("Vibrance", new VibranceFilter(1.0f)),
+    VIGNETTE("Vignette", new VignetteFilter(new PointF(0.5f, 0.5f), new float[] {0.0f, 0.0f, 1.0f}, 0.3f, 0.75f)),
     WEAK_PIXEL_INCLUSION("Weak Pixel Inclusion", new WeakPixelInclusionFilter(0.01f, 0.01f)),
     WHITE_BALANCE("White Balance", new WhiteBalanceFilter(3000f, 0.5f)),
     ZOOM_BLUR("Zoom Blur", new ZoomBlurFilter(new PointF(0.5f, 0.5f), 1.0f));
