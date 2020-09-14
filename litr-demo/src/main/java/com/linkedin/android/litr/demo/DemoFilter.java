@@ -16,6 +16,8 @@ import com.linkedin.android.litr.filter.video.gl.BilateralFilter;
 import com.linkedin.android.litr.filter.video.gl.BrightnessFilter;
 import com.linkedin.android.litr.filter.video.gl.BulgeDistortionFilter;
 import com.linkedin.android.litr.filter.video.gl.CgaColorspaceFilter;
+import com.linkedin.android.litr.filter.video.gl.ColorMatrixFilter;
+import com.linkedin.android.litr.filter.video.gl.ColorMonochromeFilter;
 import com.linkedin.android.litr.filter.video.gl.ContrastFilter;
 import com.linkedin.android.litr.filter.video.gl.CrossHatchFilter;
 import com.linkedin.android.litr.filter.video.gl.DefaultVideoFrameRenderFilter;
@@ -55,6 +57,13 @@ enum DemoFilter {
     BRIGHTNESS("Brightness", new BrightnessFilter(0.25f)),
     BULGE_DISTORTION("Bulge Distortion", new BulgeDistortionFilter(new PointF(0.5f, 0.5f), 0.25f, 0.5f)),
     CONTRAST("Contrast", new ContrastFilter(1.7f)),
+    COLOR_MATRIX("Color Matrix", new ColorMatrixFilter(new float[]{
+        0.67f, 0f, 0f, 0f ,
+        0.0f, 0.53f, 0f, 0f,
+        0f, 0f, 0.78f, 0f,
+        0f ,0f ,0f, 0f, 1.0f
+    }, 1.0f)),
+    COLOR_MONOCHROME("Color Monochrome", new ColorMonochromeFilter(new float[]{0.6f, 0.45f, 0.3f},1.0f)),
     CGA_COLORSPACE("CGA Colorspace", new CgaColorspaceFilter()),
     CROSS_HATCH("Cross Hatch", new CrossHatchFilter(0.03f, 0.003f)),
     EXPOSURE("Exposure", new ExposureFilter(1.0f)),
