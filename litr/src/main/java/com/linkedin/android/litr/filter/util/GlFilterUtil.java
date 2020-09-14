@@ -7,10 +7,11 @@
  */
 package com.linkedin.android.litr.filter.util;
 
-import android.graphics.PointF;
 import android.opengl.Matrix;
 
 import androidx.annotation.NonNull;
+
+import com.linkedin.android.litr.filter.Transform;
 
 public class GlFilterUtil {
 
@@ -18,17 +19,12 @@ public class GlFilterUtil {
      * Takes target video VP matrix, along with filter rectangle parameters (size, position, rotation)
      * and calculates filter's MVP matrix
      * @param vpMatrix target video VP matrix, which defines target video canvas
-     * @param size size in X and Y direction, relative to target video frame
-     * @param position position of filter center, in relative coordinate in 0 - 1 range
-     *                 in fourth quadrant (0,0 is top left corner)
-     * @param rotation counter-clockwise rotation, in degrees
+     * @param transform {@link Transform} that defines drawable's positioning within target video frame
      * @return filter MVP matrix
      */
     @NonNull
     public static float[] createFilterMvpMatrix(@NonNull float[] vpMatrix,
-                                                @NonNull PointF size,
-                                                @NonNull PointF position,
-                                                float rotation) {
+                                                @NonNull Transform transform) {
         // Let's use features of VP matrix to extract frame aspect ratio and orientation from it
         // for 90 and 270 degree rotations (portrait orientation) top left element will be zero
         boolean isPortraitVideo = vpMatrix[0] == 0;
@@ -50,11 +46,11 @@ public class GlFilterUtil {
         float scaleX;
         float scaleY;
         if (isPortraitVideo) {
-            scaleX = size.x;
-            scaleY = size.y * videoAspectRatio;
+            scaleX = transform.size.x;
+            scaleY = transform.size.y * videoAspectRatio;
         } else {
-            scaleX = size.x * videoAspectRatio;
-            scaleY = size.y;
+            scaleX = transform.size.x * videoAspectRatio;
+            scaleY = transform.size.y;
         }
 
         // Position values are in relative (0, 1) range, which means they have to be mapped from (-1, 1) range
@@ -62,11 +58,11 @@ public class GlFilterUtil {
         float translateX;
         float translateY;
         if (isPortraitVideo) {
-            translateX = position.x * 2 - 1;
-            translateY = (1 - position.y * 2) * videoAspectRatio;
+            translateX = transform.position.x * 2 - 1;
+            translateY = (1 - transform.position.y * 2) * videoAspectRatio;
         } else {
-            translateX = (position.x * 2 - 1) * videoAspectRatio;
-            translateY = 1 - position.y * 2;
+            translateX = (transform.position.x * 2 - 1) * videoAspectRatio;
+            translateY = 1 - transform.position.y * 2;
         }
 
         // Matrix operations in OpenGL are done in reverse. So here we scale (and flip vertically) first, then rotate
@@ -74,7 +70,7 @@ public class GlFilterUtil {
         float[] modelMatrix = new float[16];
         Matrix.setIdentityM(modelMatrix, 0);
         Matrix.translateM(modelMatrix, 0, translateX, translateY, 0);
-        Matrix.rotateM(modelMatrix, 0, rotation, 0, 0, 1);
+        Matrix.rotateM(modelMatrix, 0, transform.rotation, 0, 0, 1);
         Matrix.scaleM(modelMatrix, 0, scaleX, scaleY, 1);
 
         // last, we multiply the model matrix by the view matrix to get final MVP matrix for an overlay

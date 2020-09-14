@@ -7,10 +7,11 @@
  */
 package com.linkedin.android.litr.filter.video.gl;
 
-import android.graphics.PointF;
 import android.opengl.GLES20;
 
 import androidx.annotation.NonNull;
+
+import com.linkedin.android.litr.filter.Transform;
 
 import java.nio.FloatBuffer;
 
@@ -61,13 +62,10 @@ public class ColorMonochromeFilter extends BaseFrameRenderFilter {
      *
      * @param inputColorRGB contains the color information (i.e. r,g,b) from 0.0 to 1.0
      * @param intensity     value, from range 0.0 to 1.0;
-     * @param size          size in X and Y direction, relative to target video frame
-     * @param position      position of source video frame  center, in relative coordinate in 0 - 1 range
-     *                      in fourth quadrant (0,0 is top left corner)
-     * @param rotation      rotation angle of overlay, relative to target video frame, counter-clockwise, in degrees
+     * @param transform {@link Transform} that defines positioning of source video frame within target video frame
      */
-    public ColorMonochromeFilter(float[] inputColorRGB, float intensity, @NonNull PointF size, @NonNull PointF position, float rotation) {
-        super(DEFAULT_VERTEX_SHADER, FRAGMENT_SHADER, size, position, rotation);
+    public ColorMonochromeFilter(float[] inputColorRGB, float intensity, @NonNull Transform transform) {
+        super(DEFAULT_VERTEX_SHADER, FRAGMENT_SHADER, transform);
 
         this.intensity = intensity;
         this.inputColorRGB = inputColorRGB;

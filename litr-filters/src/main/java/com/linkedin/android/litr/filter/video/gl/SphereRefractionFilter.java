@@ -25,6 +25,8 @@ import android.opengl.GLES20;
 
 import androidx.annotation.NonNull;
 
+import com.linkedin.android.litr.filter.Transform;
+
 /**
  * Frame render filter that applies a sphere refraction effect to video frame
  */
@@ -84,13 +86,10 @@ public class SphereRefractionFilter extends BaseFrameRenderFilter {
      * @param radius radius of distortion, in relative coordinates in 0 - 1 range
      * @param aspectRatio aspect ratio of distortion
      * @param refractiveIndex refractive index
-     * @param size size in X and Y direction, relative to target video frame
-     * @param position position of source video frame  center, in relative coordinate in 0 - 1 range
-     *                 in fourth quadrant (0,0 is top left corner)
-     * @param rotation rotation angle of overlay, relative to target video frame, counter-clockwise, in degrees
+     * @param transform {@link Transform} that defines positioning of source video frame within target video frame
      */
-    public SphereRefractionFilter(@NonNull PointF center, float radius, float aspectRatio, float refractiveIndex, @NonNull PointF size, @NonNull PointF position, float rotation) {
-        super(DEFAULT_VERTEX_SHADER, FRAGMENT_SHADER, size, position, rotation);
+    public SphereRefractionFilter(@NonNull PointF center, float radius, float aspectRatio, float refractiveIndex, @NonNull Transform transform) {
+        super(DEFAULT_VERTEX_SHADER, FRAGMENT_SHADER, transform);
 
         this.center = center;
         this.radius = radius;

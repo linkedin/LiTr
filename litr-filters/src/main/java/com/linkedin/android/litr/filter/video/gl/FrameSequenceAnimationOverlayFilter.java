@@ -8,12 +8,14 @@
 package com.linkedin.android.litr.filter.video.gl;
 
 import android.graphics.Bitmap;
-import android.graphics.PointF;
 import android.graphics.RectF;
 import android.util.Log;
+
 import androidx.annotation.IntRange;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+
+import com.linkedin.android.litr.filter.Transform;
 
 /**
  * An OpenGL filter that overlays a sprite animation (such as animated GIF) on top of all video frames.
@@ -41,13 +43,10 @@ public class FrameSequenceAnimationOverlayFilter extends BaseOverlayGlFilter {
     /**
      * Create filter from an animation, then scale it, then position it, then rotate it around its center
      * @param animationFrameProvider {@link AnimationFrameProvider} which provides animation frames and their durations
-     * @param size size in X and Y direction, relative to video frame
-     * @param position position of top left corner, in relative coordinate in 0 - 1 range
-     *                 in fourth quadrant (0,0 is top left corner)
-     * @param rotation counter-clockwise rotation, in degrees
+     * @param transform {@link Transform} that defines bitmap positioning within target video frame
      */
-    public FrameSequenceAnimationOverlayFilter(@NonNull AnimationFrameProvider animationFrameProvider, @NonNull PointF size, @NonNull PointF position, float rotation) {
-        super(size, position, rotation);
+    public FrameSequenceAnimationOverlayFilter(@NonNull AnimationFrameProvider animationFrameProvider, @NonNull Transform transform) {
+        super(transform);
         this.animationFrameProvider = animationFrameProvider;
     }
 

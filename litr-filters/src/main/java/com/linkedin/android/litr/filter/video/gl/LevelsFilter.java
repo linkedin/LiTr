@@ -17,10 +17,11 @@
  */
 package com.linkedin.android.litr.filter.video.gl;
 
-import android.graphics.PointF;
 import android.opengl.GLES20;
 
 import androidx.annotation.NonNull;
+
+import com.linkedin.android.litr.filter.Transform;
 
 /**
  * Adjust color levels of video pixels
@@ -78,13 +79,10 @@ public class LevelsFilter extends BaseFrameRenderFilter {
      * @param max maximum level
      * @param minOutput minimum target color channel values
      * @param maxOutput maximum target color channel values
-     * @param size size in X and Y direction, relative to target video frame
-     * @param position position of source video frame  center, in relative coordinate in 0 - 1 range
-     *                 in fourth quadrant (0,0 is top left corner)
-     * @param rotation rotation angle of overlay, relative to target video frame, counter-clockwise, in degrees
+     * @param transform {@link Transform} that defines positioning of source video frame within target video frame
      */
-    public LevelsFilter(@NonNull float[] min, @NonNull float[] mid, @NonNull float[] max, @NonNull float[] minOutput, @NonNull float[] maxOutput, @NonNull PointF size, @NonNull PointF position, float rotation) {
-        super(DEFAULT_VERTEX_SHADER, FRAGMENT_SHADER, size, position, rotation);
+    public LevelsFilter(@NonNull float[] min, @NonNull float[] mid, @NonNull float[] max, @NonNull float[] minOutput, @NonNull float[] maxOutput, @NonNull Transform transform) {
+        super(DEFAULT_VERTEX_SHADER, FRAGMENT_SHADER, transform);
 
         this.min = min;
         this.mid = mid;

@@ -29,6 +29,7 @@ import com.linkedin.android.litr.codec.MediaCodecEncoder;
 import com.linkedin.android.litr.exception.MediaTransformationException;
 import com.linkedin.android.litr.filter.GlFilter;
 import com.linkedin.android.litr.filter.GlFrameRenderFilter;
+import com.linkedin.android.litr.filter.Transform;
 import com.linkedin.android.litr.filter.video.gl.DefaultVideoFrameRenderFilter;
 import com.linkedin.android.litr.io.MediaExtractorMediaSource;
 import com.linkedin.android.litr.io.MediaMuxerMediaTarget;
@@ -178,7 +179,8 @@ public class TransformationPresenter {
                         filters.add(backgroundImageFilter);
                     }
 
-                    GlFrameRenderFilter frameRenderFilter = new DefaultVideoFrameRenderFilter(new PointF(0.25f, 0.25f), new PointF(0.65f, 0.55f), 30);
+                    Transform transform = new Transform(new PointF(0.25f, 0.25f), new PointF(0.65f, 0.55f), 30);
+                    GlFrameRenderFilter frameRenderFilter = new DefaultVideoFrameRenderFilter(transform);
                     filters.add(frameRenderFilter);
 
                     trackTransformBuilder.setRenderer(new GlVideoRenderer(filters));

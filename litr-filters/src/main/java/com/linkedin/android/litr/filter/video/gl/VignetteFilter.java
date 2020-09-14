@@ -20,6 +20,8 @@ import android.opengl.GLES20;
 
 import androidx.annotation.NonNull;
 
+import com.linkedin.android.litr.filter.Transform;
+
 /**
  * Performs a vignetting effect, fading out the video frame at the edges
  * x:
@@ -73,13 +75,10 @@ public class VignetteFilter extends BaseFrameRenderFilter {
      * @param color RGB color
      * @param start start intensity
      * @param end end intensity
-     * @param size size in X and Y direction, relative to target video frame
-     * @param position position of source video frame  center, in relative coordinate in 0 - 1 range
-     *                 in fourth quadrant (0,0 is top left corner)
-     * @param rotation rotation angle of overlay, relative to target video frame, counter-clockwise, in degrees
+     * @param transform {@link Transform} that defines positioning of source video frame within target video frame
      */
-    public VignetteFilter(@NonNull PointF center, @NonNull float[] color, float start, float end, @NonNull PointF size, @NonNull PointF position, float rotation) {
-        super(DEFAULT_VERTEX_SHADER, FRAGMENT_SHADER, size, position, rotation);
+    public VignetteFilter(@NonNull PointF center, @NonNull float[] color, float start, float end, @NonNull Transform transform) {
+        super(DEFAULT_VERTEX_SHADER, FRAGMENT_SHADER, transform);
 
         this.vignetteCenter = center;
         this.vignetteColor = color;

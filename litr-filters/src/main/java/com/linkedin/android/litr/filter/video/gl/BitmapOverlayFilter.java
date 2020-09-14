@@ -11,12 +11,14 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.PointF;
 import android.graphics.RectF;
 import android.net.Uri;
 import android.util.Log;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+
+import com.linkedin.android.litr.filter.Transform;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -52,13 +54,10 @@ public class BitmapOverlayFilter extends BaseOverlayGlFilter {
      * Create filter with bitmap URI, then scale, then position and then rotate the bitmap around its center as specified.
      * @param context context for accessing bitmap
      * @param bitmapUri bitmap {@link Uri}
-     * @param size size in X and Y direction, relative to video frame
-     * @param position position of bitmap center, in relative coordinate in 0 - 1 range
-     *      *          in fourth quadrant (0,0 is top left corner)
-     * @param rotation counter-clockwise rotation, in degrees
+     * @param transform {@link Transform} that defines bitmap positioning within target video frame
      */
-    public BitmapOverlayFilter(@NonNull Context context, @NonNull Uri bitmapUri, @NonNull PointF size, @NonNull PointF position, float rotation) {
-        super(size, position, rotation);
+    public BitmapOverlayFilter(@NonNull Context context, @NonNull Uri bitmapUri, @NonNull Transform transform) {
+        super(transform);
         this.context = context;
         this.bitmapUri = bitmapUri;
     }
@@ -66,13 +65,10 @@ public class BitmapOverlayFilter extends BaseOverlayGlFilter {
     /**
      * Create filter with client managed {@link Bitmap}, then scale, then position and then rotate the bitmap around its center as specified.
      * @param bitmap client managed bitmap
-     * @param size size in X and Y direction, relative to video frame
-     * @param position position of bitmap center, in relative coordinate in 0 - 1 range
-     *                 in fourth quadrant (0,0 is top left corner)
-     * @param rotation counter-clockwise rotation, in degrees
+     * @param transform {@link Transform} that defines bitmap positioning within target video frame
      */
-    public BitmapOverlayFilter(@NonNull Bitmap bitmap, @NonNull PointF size, @NonNull PointF position, float rotation) {
-        super(size, position, rotation);
+    public BitmapOverlayFilter(@NonNull Bitmap bitmap, @Nullable Transform transform) {
+        super(transform);
         this.bitmap = bitmap;
     }
 

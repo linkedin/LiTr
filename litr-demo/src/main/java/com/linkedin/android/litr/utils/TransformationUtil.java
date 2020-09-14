@@ -26,6 +26,7 @@ import com.bumptech.glide.load.engine.bitmap_recycle.BitmapPool;
 import com.bumptech.glide.load.engine.bitmap_recycle.LruBitmapPool;
 import com.bumptech.glide.load.resource.gif.GifBitmapProvider;
 import com.linkedin.android.litr.filter.GlFilter;
+import com.linkedin.android.litr.filter.Transform;
 import com.linkedin.android.litr.filter.video.gl.AnimationFrameProvider;
 import com.linkedin.android.litr.filter.video.gl.BitmapOverlayFilter;
 import com.linkedin.android.litr.filter.video.gl.FrameSequenceAnimationOverlayFilter;
@@ -48,6 +49,8 @@ public class TransformationUtil {
                                           @NonNull PointF position,
                                           float rotation) {
         GlFilter filter = null;
+
+        Transform transform = new Transform(size, position, rotation);
 
         try {
             if (TextUtils.equals(context.getContentResolver().getType(overlayUri), "image/gif")) {
@@ -80,9 +83,9 @@ public class TransformationUtil {
                         gifDecoder.advance();
                     }
                 };
-                filter = new FrameSequenceAnimationOverlayFilter(animationFrameProvider, size, position, rotation);
+                filter = new FrameSequenceAnimationOverlayFilter(animationFrameProvider, transform);
             } else {
-                filter = new BitmapOverlayFilter(context.getApplicationContext(), overlayUri, size, position, rotation);
+                filter = new BitmapOverlayFilter(context.getApplicationContext(), overlayUri, transform);
             }
         } catch (IOException ex) {
             Log.e(TAG, "Failed to create a GlFilter", ex);
