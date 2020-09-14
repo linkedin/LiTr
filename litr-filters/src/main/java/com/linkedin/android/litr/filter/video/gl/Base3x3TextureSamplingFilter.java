@@ -20,10 +20,11 @@
  */
 package com.linkedin.android.litr.filter.video.gl;
 
-import android.graphics.PointF;
 import android.opengl.GLES20;
 
 import androidx.annotation.NonNull;
+
+import com.linkedin.android.litr.filter.Transform;
 
 /**
  * Base class for all 3x3 texture sampling filters. Sets up a common vertex shader and texel size attributes.
@@ -93,13 +94,10 @@ public abstract class Base3x3TextureSamplingFilter extends BaseFrameRenderFilter
      * Create frame render filter with source video frame, then scale, then position and then rotate the bitmap around its center as specified.
      * @param texelWidth relative width of a texel
      * @param texelHeight relative height of a texel
-     * @param size size in X and Y direction, relative to target video frame
-     * @param position position of source video frame  center, in relative coordinate in 0 - 1 range
-     *                 in fourth quadrant (0,0 is top left corner)
-     * @param rotation rotation angle of overlay, relative to target video frame, counter-clockwise, in degrees
+     * @param transform {@link Transform} that defines positioning of source video frame within target video frame
      */
-    public Base3x3TextureSamplingFilter(@NonNull String fragmentShader, float texelWidth, float texelHeight, @NonNull PointF size, @NonNull PointF position, float rotation) {
-        super(DEFAULT_VERTEX_SHADER, fragmentShader, size, position, rotation);
+    public Base3x3TextureSamplingFilter(@NonNull String fragmentShader, float texelWidth, float texelHeight, @NonNull Transform transform) {
+        super(DEFAULT_VERTEX_SHADER, fragmentShader, transform);
 
         this.texelWidth = texelWidth;
         this.texelHeight = texelHeight;

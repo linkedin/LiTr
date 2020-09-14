@@ -20,10 +20,11 @@
  */
 package com.linkedin.android.litr.filter.video.gl;
 
-import android.graphics.PointF;
 import android.opengl.GLES20;
 
 import androidx.annotation.NonNull;
+
+import com.linkedin.android.litr.filter.Transform;
 
 /**
  * Frame render filter that applies sharpening effect to video frame
@@ -117,13 +118,10 @@ public class SharpenFilter extends BaseFrameRenderFilter {
      * @param texelWidth sharpness texel width, in relative coordinates
      * @param texelHeight sharpness texel height, in relative coordinates
      * @param sharpness sharpness level
-     * @param size size in X and Y direction, relative to target video frame
-     * @param position position of source video frame  center, in relative coordinate in 0 - 1 range
-     *                 in fourth quadrant (0,0 is top left corner)
-     * @param rotation rotation angle of overlay, relative to target video frame, counter-clockwise, in degrees
+     * @param transform {@link Transform} that defines positioning of source video frame within target video frame
      */
-    public SharpenFilter(float texelWidth, float texelHeight, float sharpness, @NonNull PointF size, @NonNull PointF position, float rotation) {
-        super(VERTEX_SHADER, FRAGMENT_SHADER, size, position, rotation);
+    public SharpenFilter(float texelWidth, float texelHeight, float sharpness, @NonNull Transform transform) {
+        super(VERTEX_SHADER, FRAGMENT_SHADER, transform);
 
         this.texelWidth = texelWidth;
         this.texelHeight = texelHeight;

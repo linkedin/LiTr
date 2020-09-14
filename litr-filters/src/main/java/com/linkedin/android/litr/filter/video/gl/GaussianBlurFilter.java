@@ -20,11 +20,11 @@
  */
 package com.linkedin.android.litr.filter.video.gl;
 
-import android.graphics.PointF;
 import android.opengl.GLES20;
-import android.util.SizeF;
 
 import androidx.annotation.NonNull;
+
+import com.linkedin.android.litr.filter.Transform;
 
 /**
  * Frame render filter that applies a Gaussian blur distortion to video frame
@@ -116,13 +116,10 @@ public class GaussianBlurFilter extends BaseFrameRenderFilter {
      * @param texelWidthOffset blur texel width offset
      * @param texelHeightOffset blur texel height offset
      * @param blurSize blur size
-     * @param size size in X and Y direction, relative to target video frame
-     * @param position position of source video frame  center, in relative coordinate in 0 - 1 range
-     *                 in fourth quadrant (0,0 is top left corner)
-     * @param rotation rotation angle of overlay, relative to target video frame, counter-clockwise, in degrees
+     * @param transform {@link Transform} that defines positioning of source video frame within target video frame
      */
-    public GaussianBlurFilter(float texelWidthOffset, float texelHeightOffset, float blurSize, @NonNull PointF size, @NonNull PointF position, float rotation) {
-        super(VERTEX_SHADER, FRAGMENT_SHADER, size, position, rotation);
+    public GaussianBlurFilter(float texelWidthOffset, float texelHeightOffset, float blurSize, @NonNull Transform transform) {
+        super(VERTEX_SHADER, FRAGMENT_SHADER, transform);
 
         this.texelWidthOffset = texelWidthOffset;
         this.texelHeightOffset = texelHeightOffset;

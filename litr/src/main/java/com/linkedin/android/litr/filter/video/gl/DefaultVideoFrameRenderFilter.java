@@ -7,9 +7,9 @@
  */
 package com.linkedin.android.litr.filter.video.gl;
 
-import android.graphics.PointF;
-
 import androidx.annotation.NonNull;
+
+import com.linkedin.android.litr.filter.Transform;
 
 /**
  * Most basic frame render filter that doesn't modify video pixels but can modify placement of a source frame within a target frame
@@ -26,13 +26,10 @@ public class DefaultVideoFrameRenderFilter extends BaseFrameRenderFilter {
     /**
      * Create frame render filter with source video frame, then scale, then position and then rotate the bitmap around its center as specified.
      * No pixel data is modified.
-     * @param size size in X and Y direction, relative to target video frame
-     * @param position position of source video frame  center, in relative coordinate in 0 - 1 range
-     *                 in fourth quadrant (0,0 is top left corner)
-     * @param rotation rotation angle of overlay, relative to target video frame, counter-clockwise, in degrees
+     * @param transform {@link Transform} that defines positioning of source video frame within target video frame
      */
-    public DefaultVideoFrameRenderFilter(@NonNull PointF size, @NonNull PointF position, float rotation) {
-        super(DEFAULT_VERTEX_SHADER, DEFAULT_FRAGMENT_SHADER, size, position, rotation);
+    public DefaultVideoFrameRenderFilter(@NonNull Transform transform) {
+        super(DEFAULT_VERTEX_SHADER, DEFAULT_FRAGMENT_SHADER, transform);
     }
 
     @Override

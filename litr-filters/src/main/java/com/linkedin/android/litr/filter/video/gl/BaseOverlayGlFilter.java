@@ -18,6 +18,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import com.linkedin.android.litr.filter.GlFilter;
 import com.linkedin.android.litr.filter.util.GlFilterUtil;
+import com.linkedin.android.litr.filter.Transform;
 import com.linkedin.android.litr.render.GlRenderUtils;
 
 abstract class BaseOverlayGlFilter implements GlFilter {
@@ -41,9 +42,7 @@ abstract class BaseOverlayGlFilter implements GlFilter {
             "  gl_FragColor = texture2D(uTexture, vTextureCoord);\n" +
             "}\n";
 
-    private final PointF position;
-    private final PointF size;
-    private final float rotation;
+    private final Transform transform;
 
     private int glOverlayProgram;
     private int overlayMvpMatrixHandle;
@@ -55,6 +54,8 @@ abstract class BaseOverlayGlFilter implements GlFilter {
     private float[] stMatrix = new float[16];
 
     BaseOverlayGlFilter(@Nullable RectF bitmapRect) {
+        PointF size;
+        PointF position;
         if (bitmapRect == null) {
             size = new PointF(1, 1);
             position = new PointF(0.5f, 0.5f);
@@ -63,13 +64,12 @@ abstract class BaseOverlayGlFilter implements GlFilter {
             position = new PointF((bitmapRect.left + bitmapRect.right) / 2,
                                   (bitmapRect.top + bitmapRect.bottom) / 2);
         }
-        rotation = 0;
+
+        transform = new Transform(size, position, 0);
     }
 
-    BaseOverlayGlFilter(@NonNull PointF size, @NonNull PointF position, float rotation) {
-        this.size = size;
-        this.position = position;
-        this.rotation = rotation;
+    BaseOverlayGlFilter(@NonNull Transform transform) {
+        this.transform = transform;
     }
 
     @Override
@@ -79,7 +79,7 @@ abstract class BaseOverlayGlFilter implements GlFilter {
         Matrix.scaleM(stMatrix, 0, 1, -1, 1);
 
         // last, we multiply the model matrix by the view matrix to get final MVP matrix for an overlay
-        mvpMatrix = GlFilterUtil.createFilterMvpMatrix(vpMatrix, size, position, rotation);
+        mvpMatrix = GlFilterUtil.createFilterMvpMatrix(vpMatrix, transform);
         mvpMatrixOffset = 0;
     }
 

@@ -28,6 +28,7 @@ import android.opengl.Matrix;
 import androidx.annotation.NonNull;
 
 import com.linkedin.android.litr.filter.GlFrameRenderFilter;
+import com.linkedin.android.litr.filter.Transform;
 import com.linkedin.android.litr.filter.util.GlFilterUtil;
 import com.linkedin.android.litr.render.GlRenderUtils;
 
@@ -72,9 +73,7 @@ public abstract class BaseFrameRenderFilter implements GlFrameRenderFilter {
 
     private final String vertexShader;
     private final String fragmentShader;
-    private final PointF size;
-    private final PointF position;
-    private final float rotation;
+    private final Transform transform;
 
     private float[] mvpMatrix = new float[16];
     private float[] inputFrameTextureMatrix = new float[16];
@@ -103,7 +102,9 @@ public abstract class BaseFrameRenderFilter implements GlFrameRenderFilter {
      * @param fragmentShader fragment shader
      */
     protected BaseFrameRenderFilter(@NonNull String vertexShader, @NonNull String fragmentShader) {
-        this(vertexShader, fragmentShader, new PointF(1f, 1f), new PointF(0.5f, 0.5f), 0);
+        this(vertexShader,
+                fragmentShader,
+                new Transform(new PointF(1f, 1f), new PointF(0.5f, 0.5f), 0));
     }
 
     /**
@@ -111,21 +112,14 @@ public abstract class BaseFrameRenderFilter implements GlFrameRenderFilter {
      * Use provided vertex and fragment filter, to do things like pixel modification.
      * @param vertexShader vertex shader
      * @param fragmentShader fragment shader
-     * @param size size in X and Y direction, relative to target video frame
-     * @param position position of source video frame  center, in relative coordinate in 0 - 1 range
-     *                 in fourth quadrant (0,0 is top left corner)
-     * @param rotation rotation angle of overlay, relative to target video frame, counter-clockwise, in degrees
+     * @param transform {@link Transform} that defines positioning of source video frame within target video frame
      */
     protected BaseFrameRenderFilter(@NonNull String vertexShader,
-                                 @NonNull String fragmentShader,
-                                 @NonNull PointF size,
-                                 @NonNull PointF position,
-                                 float rotation) {
+                                    @NonNull String fragmentShader,
+                                    @NonNull Transform transform) {
         this.vertexShader = vertexShader;
         this.fragmentShader = fragmentShader;
-        this.size = size;
-        this.position = position;
-        this.rotation = rotation;
+        this.transform = transform;
     }
 
     @Override
@@ -134,7 +128,7 @@ public abstract class BaseFrameRenderFilter implements GlFrameRenderFilter {
 
         mvpMatrix = vpMatrix;
 
-        mvpMatrix = GlFilterUtil.createFilterMvpMatrix(vpMatrix, size, position, rotation);
+        mvpMatrix = GlFilterUtil.createFilterMvpMatrix(vpMatrix, transform);
         mvpMatrixOffset = vpMatrixOffset;
 
         triangleVertices = ByteBuffer.allocateDirect(

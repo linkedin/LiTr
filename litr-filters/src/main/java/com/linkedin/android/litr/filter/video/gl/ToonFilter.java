@@ -20,10 +20,11 @@
  */
 package com.linkedin.android.litr.filter.video.gl;
 
-import android.graphics.PointF;
 import android.opengl.GLES20;
 
 import androidx.annotation.NonNull;
+
+import com.linkedin.android.litr.filter.Transform;
 
 /**
  * Frame render filter that applies cartoon-like effect
@@ -98,13 +99,10 @@ public class ToonFilter extends Base3x3TextureSamplingFilter {
      * @param texelHeight relative height of a texel
      * @param threshold edge detection threshold
      * @param quantizationLevels number of color quantization levels
-     * @param size size in X and Y direction, relative to target video frame
-     * @param position position of source video frame  center, in relative coordinate in 0 - 1 range
-     *                 in fourth quadrant (0,0 is top left corner)
-     * @param rotation rotation angle of overlay, relative to target video frame, counter-clockwise, in degrees
+     * @param transform {@link Transform} that defines positioning of source video frame within target video frame
      */
-    public ToonFilter(float texelWidth, float texelHeight, float threshold, float quantizationLevels, @NonNull PointF size, @NonNull PointF position, float rotation) {
-        super(FRAGMENT_SHADER, texelWidth, texelHeight, size, position, rotation);
+    public ToonFilter(float texelWidth, float texelHeight, float threshold, float quantizationLevels, @NonNull Transform transform) {
+        super(FRAGMENT_SHADER, texelWidth, texelHeight, transform);
 
         this.threshold = threshold;
         this.quantizationLevels = quantizationLevels;
