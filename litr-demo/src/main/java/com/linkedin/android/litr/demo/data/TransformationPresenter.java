@@ -29,17 +29,19 @@ import com.linkedin.android.litr.codec.MediaCodecEncoder;
 import com.linkedin.android.litr.exception.MediaTransformationException;
 import com.linkedin.android.litr.filter.GlFilter;
 import com.linkedin.android.litr.filter.GlFrameRenderFilter;
-import com.linkedin.android.litr.filter.video.gl.FreeTransformFrameRenderFilter;
+import com.linkedin.android.litr.filter.video.gl.DefaultVideoFrameRenderFilter;
 import com.linkedin.android.litr.io.MediaExtractorMediaSource;
 import com.linkedin.android.litr.io.MediaMuxerMediaTarget;
 import com.linkedin.android.litr.io.MediaSource;
 import com.linkedin.android.litr.io.MediaTarget;
 import com.linkedin.android.litr.render.GlVideoRenderer;
+import com.linkedin.android.litr.utils.CodecUtils;
 import com.linkedin.android.litr.utils.TransformationUtil;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
@@ -176,7 +178,7 @@ public class TransformationPresenter {
                         filters.add(backgroundImageFilter);
                     }
 
-                    GlFrameRenderFilter frameRenderFilter = new FreeTransformFrameRenderFilter(new PointF(0.25f, 0.25f), new PointF(0.65f, 0.55f), 30);
+                    GlFrameRenderFilter frameRenderFilter = new DefaultVideoFrameRenderFilter(new PointF(0.25f, 0.25f), new PointF(0.65f, 0.55f), 30);
                     filters.add(frameRenderFilter);
 
                     trackTransformBuilder.setRenderer(new GlVideoRenderer(filters));
@@ -228,6 +230,29 @@ public class TransformationPresenter {
                 transformationListener,
                 MediaTransformer.GRANULARITY_DEFAULT,
                 watermarkImageFilter);
+    }
+
+    public void applyFilter(@NonNull SourceMedia sourceMedia,
+                            @NonNull TargetMedia targetMedia,
+                            @NonNull TransformationState transformationState) {
+        if (targetMedia.targetFile.exists()) {
+            targetMedia.targetFile.delete();
+        }
+
+        transformationState.requestId = UUID.randomUUID().toString();
+        MediaTransformationListener transformationListener = new MediaTransformationListener(context,
+                transformationState.requestId,
+                transformationState);
+
+        mediaTransformer.transform(
+                transformationState.requestId,
+                sourceMedia.uri,
+                targetMedia.targetFile.getPath(),
+                null,
+                null,
+                transformationListener,
+                MediaTransformer.GRANULARITY_DEFAULT,
+                Collections.singletonList(targetMedia.filter));
     }
 
     public void cancelTransformation(@NonNull String requestId) {
@@ -297,12 +322,19 @@ public class TransformationPresenter {
             mediaFormat = new MediaFormat();
             if (targetTrack.format.mimeType.startsWith("video")) {
                 VideoTrackFormat trackFormat = (VideoTrackFormat) targetTrack.format;
-                mediaFormat.setString(MediaFormat.KEY_MIME, "video/avc");
+                String mimeType = CodecUtils.MIME_TYPE_VIDEO_AVC;
+                mediaFormat.setString(MediaFormat.KEY_MIME, mimeType);
                 mediaFormat.setInteger(MediaFormat.KEY_WIDTH, trackFormat.width);
                 mediaFormat.setInteger(MediaFormat.KEY_HEIGHT, trackFormat.height);
                 mediaFormat.setInteger(MediaFormat.KEY_BIT_RATE, trackFormat.bitrate);
                 mediaFormat.setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, trackFormat.keyFrameInterval);
                 mediaFormat.setInteger(MediaFormat.KEY_FRAME_RATE, trackFormat.frameRate);
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                    int codecProfile = CodecUtils.getHighestSupportedProfile(mimeType, true);
+                    if (codecProfile != CodecUtils.UNDEFINED_VALUE) {
+                        mediaFormat.setInteger(MediaFormat.KEY_PROFILE, codecProfile);
+                    }
+                }
             } else if (targetTrack.format.mimeType.startsWith("audio")) {
                 AudioTrackFormat trackFormat = (AudioTrackFormat) targetTrack.format;
                 mediaFormat.setString(MediaFormat.KEY_MIME, trackFormat.mimeType);

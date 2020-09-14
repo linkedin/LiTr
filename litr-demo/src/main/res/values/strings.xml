@@ -9,6 +9,7 @@
     <string name="demo_case_transcode_video_gl">Transcode Video/Audio (GL Renderer)</string>
     <string name="demo_case_free_transform_video_gl">Free Transform Video (GL Renderer)</string>
     <string name="demo_case_video_watermark">Video Watermark</string>
+    <string name="demo_case_video_filters">Video Filters</string>
     <string name="demo_case_mock_transcode_video">Mock Transcode Video</string>
 
     <string name="include">Include</string>
@@ -67,6 +68,7 @@
     <string name="supported_heights">Supported heights: %s\n</string>
     <string name="supported_widths">Supported widths: %s\n</string>
     <string name="supported_frame_rates">Supported frame rates: %s\n</string>
+    <string name="supported_profiles">Supported profiles:\n</string>
 
     <string name="camcorder_profile_not_supported" formatted="true">Camcorder profile %d is not supported</string>
     <string name="video_frame_width">Video frame width: %d\n</string>

@@ -19,9 +19,7 @@ import com.linkedin.android.litr.codec.Frame;
 import com.linkedin.android.litr.exception.TrackTranscoderException;
 import com.linkedin.android.litr.io.MediaSource;
 import com.linkedin.android.litr.io.MediaTarget;
-
-import java.util.Deque;
-import java.util.LinkedList;
+import com.linkedin.android.litr.render.Renderer;
 
 @RestrictTo(RestrictTo.Scope.LIBRARY)
 public class AudioTrackTranscoder extends TrackTranscoder {
@@ -31,8 +29,6 @@ public class AudioTrackTranscoder extends TrackTranscoder {
     @VisibleForTesting int lastDecodeFrameResult;
     @VisibleForTesting int lastEncodeFrameResult;
 
-    @VisibleForTesting Deque<Frame> decodedBufferQueue;
-
     @NonNull private MediaFormat sourceAudioFormat;
 
     AudioTrackTranscoder(@NonNull MediaSource mediaSource,
@@ -40,15 +36,14 @@ public class AudioTrackTranscoder extends TrackTranscoder {
                          @NonNull MediaTarget mediaTarget,
                          int targetTrack,
                          @NonNull MediaFormat targetFormat,
+                         @NonNull Renderer renderer,
                          @NonNull Decoder decoder,
                          @NonNull Encoder encoder) throws TrackTranscoderException {
-        super(mediaSource, sourceTrack, mediaTarget, targetTrack, targetFormat, decoder, encoder);
+        super(mediaSource, sourceTrack, mediaTarget, targetTrack, targetFormat, renderer, decoder, encoder);
 
         lastExtractFrameResult = RESULT_FRAME_PROCESSED;
         lastDecodeFrameResult = RESULT_FRAME_PROCESSED;
         lastEncodeFrameResult = RESULT_FRAME_PROCESSED;
-
-        decodedBufferQueue = new LinkedList<>();
 
         initCodecs();
     }
@@ -164,7 +159,10 @@ public class AudioTrackTranscoder extends TrackTranscoder {
             if (decoderOutputFrame == null) {
                 throw new TrackTranscoderException(TrackTranscoderException.Error.NO_FRAME_AVAILABLE);
             }
-            decodedBufferQueue.addLast(decoderOutputFrame);
+
+            renderer.renderFrame(decoderOutputFrame, decoderOutputFrame.bufferInfo.presentationTimeUs);
+            decoder.releaseOutputFrame(tag, false);
+
             if ((decoderOutputFrame.bufferInfo.flags & MediaCodec.BUFFER_FLAG_END_OF_STREAM) != 0) {
                 Log.d(TAG, "EoS on decoder output stream");
                 decodeFrameResult = RESULT_EOS_REACHED;
@@ -181,34 +179,6 @@ public class AudioTrackTranscoder extends TrackTranscoder {
                 default:
                     Log.e(TAG, "Unhandled value " + tag + " when receiving decoded input frame");
                     break;
-            }
-        }
-
-        if (!decodedBufferQueue.isEmpty()) {
-            tag = encoder.dequeueInputFrame(0);
-            if (tag >= 0) {
-                Frame encoderInputFrame = encoder.getInputFrame(tag);
-                if (encoderInputFrame == null) {
-                    throw new TrackTranscoderException(TrackTranscoderException.Error.NO_FRAME_AVAILABLE);
-                }
-
-                Frame frame = decodedBufferQueue.removeFirst();
-                encoderInputFrame.buffer.put(frame.buffer);
-                encoderInputFrame.bufferInfo.set(frame.bufferInfo.offset,
-                                                 frame.bufferInfo.size,
-                                                 frame.bufferInfo.presentationTimeUs,
-                                                 frame.bufferInfo.flags);
-                encoder.queueInputFrame(encoderInputFrame);
-                decoder.releaseOutputFrame(frame.tag, false);
-            } else {
-                switch (tag) {
-                    case MediaCodec.INFO_TRY_AGAIN_LATER:
-                        //                        Log.d(TAG, "Will try getting decoder output later");
-                        break;
-                    default:
-                        Log.e(TAG, "Unhandled value " + tag + " when receiving encoder input frame");
-                        break;
-                }
             }
         }
 

@@ -37,7 +37,7 @@ public class PassthroughTranscoder extends TrackTranscoder {
                           int sourceTrack,
                           @NonNull MediaTarget mediaTarget,
                           int targetTrack) {
-        super(mediaSource, sourceTrack, mediaTarget, targetTrack, null, null, null);
+        super(mediaSource, sourceTrack, mediaTarget, targetTrack, null, null, null, null);
     }
 
     @Override

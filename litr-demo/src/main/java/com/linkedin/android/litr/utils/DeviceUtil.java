@@ -12,7 +12,9 @@ import android.media.CamcorderProfile;
 import android.media.MediaCodecInfo;
 import android.media.MediaCodecList;
 import android.os.Build;
+
 import androidx.annotation.NonNull;
+
 import com.linkedin.android.litr.demo.R;
 
 import java.util.Locale;
@@ -177,6 +179,16 @@ public class DeviceUtil {
                 codecCapabilitiesStr.append(context.getString(R.string.supported_heights, videoCapabilities.getSupportedHeights()));
                 codecCapabilitiesStr.append(context.getString(R.string.supported_widths, videoCapabilities.getSupportedWidths()));
                 codecCapabilitiesStr.append(context.getString(R.string.supported_frame_rates, videoCapabilities.getSupportedFrameRates()));
+
+                MediaCodecInfo.CodecProfileLevel[] codecProfileLevels = codecCapabilities.profileLevels;
+                codecCapabilitiesStr.append(context.getString(R.string.supported_profiles));
+                for (MediaCodecInfo.CodecProfileLevel codecProfileLevel : codecProfileLevels) {
+                    codecCapabilitiesStr.append('\t');
+                    codecCapabilitiesStr.append(getCodecProfile(codecProfileLevel));
+                    codecCapabilitiesStr.append(' ');
+                    codecCapabilitiesStr.append(getCodecLevel(codecProfileLevel));
+                    codecCapabilitiesStr.append('\n');
+                }
             }
             codecCapabilitiesStr.append('\n');
         }
@@ -387,6 +399,80 @@ public class DeviceUtil {
                 return "COLOR_TI_FormatYUV420PackedSemiPlanar";
             default:
                 return String.valueOf(colorFormat);
+        }
+    }
+
+    @NonNull
+    private static String getCodecProfile(@NonNull MediaCodecInfo.CodecProfileLevel codecProfileLevel) {
+        switch (codecProfileLevel.profile) {
+            case MediaCodecInfo.CodecProfileLevel.AVCProfileBaseline:
+                return "AVCProfileBaseline";
+            case MediaCodecInfo.CodecProfileLevel.AVCProfileMain:
+                return "AVCProfileMain";
+            case MediaCodecInfo.CodecProfileLevel.AVCProfileExtended:
+                return "AVCProfileExtended";
+            case MediaCodecInfo.CodecProfileLevel.AVCProfileHigh:
+                return "AVCProfileHigh";
+            case MediaCodecInfo.CodecProfileLevel.AVCProfileHigh10:
+                return "AVCProfileHigh10";
+            case MediaCodecInfo.CodecProfileLevel.AVCProfileHigh422:
+                return "AVCProfileHigh422";
+            case MediaCodecInfo.CodecProfileLevel.AVCProfileHigh444:
+                return "AVCProfileHigh444";
+            case MediaCodecInfo.CodecProfileLevel.AVCProfileConstrainedBaseline:
+                return "AVCProfileConstrainedBaseline";
+            case MediaCodecInfo.CodecProfileLevel.AVCProfileConstrainedHigh:
+                return "AVCProfileConstrainedHigh";
+            default:
+                return "Unknown";
+        }
+    }
+
+    @NonNull
+    private static String getCodecLevel(@NonNull MediaCodecInfo.CodecProfileLevel codecProfileLevel) {
+        switch (codecProfileLevel.level) {
+            case MediaCodecInfo.CodecProfileLevel.AVCLevel1:
+                return "AVCLevel1";
+            case MediaCodecInfo.CodecProfileLevel.AVCLevel1b:
+                return "AVCLevel1b";
+            case MediaCodecInfo.CodecProfileLevel.AVCLevel11:
+                return "AVCLevel11";
+            case MediaCodecInfo.CodecProfileLevel.AVCLevel12:
+                return "AVCLevel12";
+            case MediaCodecInfo.CodecProfileLevel.AVCLevel13:
+                return "AVCLevel13";
+            case MediaCodecInfo.CodecProfileLevel.AVCLevel2:
+                return "AVCLevel2";
+            case MediaCodecInfo.CodecProfileLevel.AVCLevel21:
+                return "AVCLevel21";
+            case MediaCodecInfo.CodecProfileLevel.AVCLevel22:
+                return "AVCLevel22";
+            case MediaCodecInfo.CodecProfileLevel.AVCLevel3:
+                return "AVCLevel3";
+            case MediaCodecInfo.CodecProfileLevel.AVCLevel31:
+                return "AVCLevel31";
+            case MediaCodecInfo.CodecProfileLevel.AVCLevel32:
+                return "AVCLevel32";
+            case MediaCodecInfo.CodecProfileLevel.AVCLevel4:
+                return "AVCLevel4";
+            case MediaCodecInfo.CodecProfileLevel.AVCLevel41:
+                return "AVCLevel41";
+            case MediaCodecInfo.CodecProfileLevel.AVCLevel42:
+                return "AVCLevel42";
+            case MediaCodecInfo.CodecProfileLevel.AVCLevel5:
+                return "AVCLevel5";
+            case MediaCodecInfo.CodecProfileLevel.AVCLevel51:
+                return "AVCLevel51";
+            case MediaCodecInfo.CodecProfileLevel.AVCLevel52:
+                return "AVCLevel52";
+            case MediaCodecInfo.CodecProfileLevel.AVCLevel6:
+                return "AVCLevel6";
+            case MediaCodecInfo.CodecProfileLevel.AVCLevel61:
+                return "AVCLevel61";
+            case MediaCodecInfo.CodecProfileLevel.AVCLevel62:
+                return "AVCLevel62";
+            default:
+                return "Unknown";
         }
     }
 }
