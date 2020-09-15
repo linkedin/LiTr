@@ -21,16 +21,19 @@
 package com.linkedin.android.litr.filter.video.gl;
 
 import android.graphics.PointF;
-import android.opengl.GLES20;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.linkedin.android.litr.filter.Transform;
+import com.linkedin.android.litr.filter.video.gl.parameter.ShaderParameter;
+import com.linkedin.android.litr.filter.video.gl.parameter.ShaderParameter1f;
+import com.linkedin.android.litr.filter.video.gl.parameter.ShaderParameter2f;
 
 /**
  * Frame render filter that applies a bulge distortion to video frame
  */
-public class BulgeDistortionFilter extends BaseFrameRenderFilter {
+public class BulgeDistortionFilter extends VideoFrameRenderFilter {
 
     private static final String FRAGMENT_SHADER =
             "#extension GL_OES_EGL_image_external : require\n" +
@@ -59,10 +62,6 @@ public class BulgeDistortionFilter extends BaseFrameRenderFilter {
                 "gl_FragColor = texture2D(sTexture, textureCoordinateToUse);\n" +
             "}";
 
-    private PointF center;
-    private float radius;
-    private float scale;
-
     /**
      * Create bulge distortion render filter
      * @param center center of distortion, in relative coordinates in 0 - 1 range
@@ -70,11 +69,7 @@ public class BulgeDistortionFilter extends BaseFrameRenderFilter {
      * @param scale scale of distortion
      */
     public BulgeDistortionFilter(@NonNull PointF center, float radius, float scale) {
-        super(DEFAULT_VERTEX_SHADER, FRAGMENT_SHADER);
-
-        this.center = center;
-        this.radius = radius;
-        this.scale = scale;
+        this(center, radius, scale, null);
     }
 
     /**
@@ -84,18 +79,14 @@ public class BulgeDistortionFilter extends BaseFrameRenderFilter {
      * @param scale scale of distortion
      * @param transform {@link Transform} that defines positioning of source video frame within target video frame
      */
-    public BulgeDistortionFilter(@NonNull PointF center, float radius, float scale, @NonNull Transform transform) {
-        super(DEFAULT_VERTEX_SHADER, FRAGMENT_SHADER, transform);
-
-        this.center = center;
-        this.radius = radius;
-        this.scale = scale;
-    }
-
-    @Override
-    protected void applyCustomGlAttributes() {
-        GLES20.glUniform2f(getHandle("center"), center.x, center.y);
-        GLES20.glUniform1f(getHandle("radius"), radius);
-        GLES20.glUniform1f(getHandle("scale"), scale);
+    public BulgeDistortionFilter(@NonNull PointF center, float radius, float scale, @Nullable Transform transform) {
+        super(DEFAULT_VERTEX_SHADER,
+                FRAGMENT_SHADER,
+                new ShaderParameter[] {
+                        new ShaderParameter2f(ShaderParameter.TYPE_UNIFORM, "center", center.x, center.y),
+                        new ShaderParameter1f(ShaderParameter.TYPE_UNIFORM, "radius", radius),
+                        new ShaderParameter1f(ShaderParameter.TYPE_UNIFORM, "scale", scale)
+                },
+                transform);
     }
 }

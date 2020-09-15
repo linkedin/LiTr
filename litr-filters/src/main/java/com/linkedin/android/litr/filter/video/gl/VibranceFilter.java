@@ -20,16 +20,16 @@
  */
 package com.linkedin.android.litr.filter.video.gl;
 
-import android.opengl.GLES20;
-
-import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.linkedin.android.litr.filter.Transform;
+import com.linkedin.android.litr.filter.video.gl.parameter.ShaderParameter;
+import com.linkedin.android.litr.filter.video.gl.parameter.ShaderParameter1f;
 
 /**
  * Frame render filter that adjusts the saturation of video pixels
  */
-public class VibranceFilter extends BaseFrameRenderFilter {
+public class VibranceFilter extends VideoFrameRenderFilter {
 
     private static final String FRAGMENT_SHADER =
             "#extension GL_OES_EGL_image_external : require\n" +
@@ -49,16 +49,12 @@ public class VibranceFilter extends BaseFrameRenderFilter {
                 "gl_FragColor = color;\n" +
             "}";
 
-    private float vibrance;
-
     /**
      * Create the instance of frame render filter
      * @param vibrance vibrance adjustment value
      */
     public VibranceFilter(float vibrance) {
-        super(DEFAULT_VERTEX_SHADER, FRAGMENT_SHADER);
-
-        this.vibrance = vibrance;
+        this(vibrance, null);
     }
 
     /**
@@ -66,14 +62,13 @@ public class VibranceFilter extends BaseFrameRenderFilter {
      * @param vibrance vibrance adjustment value
      * @param transform {@link Transform} that defines positioning of source video frame within target video frame
      */
-    public VibranceFilter(float vibrance, @NonNull Transform transform) {
-        super(DEFAULT_VERTEX_SHADER, FRAGMENT_SHADER, transform);
-
-        this.vibrance = vibrance;
+    public VibranceFilter(float vibrance, @Nullable Transform transform) {
+        super(DEFAULT_VERTEX_SHADER,
+                FRAGMENT_SHADER,
+                new ShaderParameter[] {
+                        new ShaderParameter1f(ShaderParameter.TYPE_UNIFORM, "vibrance", vibrance)
+                },
+                transform);
     }
 
-    @Override
-    protected void applyCustomGlAttributes() {
-        GLES20.glUniform1f(getHandle("vibrance"), vibrance);
-    }
 }

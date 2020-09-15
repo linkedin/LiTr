@@ -20,18 +20,16 @@
  */
 package com.linkedin.android.litr.filter.video.gl;
 
-import android.opengl.GLES20;
-
-import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.linkedin.android.litr.filter.Transform;
-
-import static android.opengl.GLES20.glUniform1f;
+import com.linkedin.android.litr.filter.video.gl.parameter.ShaderParameter;
+import com.linkedin.android.litr.filter.video.gl.parameter.ShaderParameter1f;
 
 /**
  * Bilateral smoothing filter
  */
-public class BilateralFilter extends BaseFrameRenderFilter {
+public class BilateralFilter extends VideoFrameRenderFilter {
 
     private static final String VERTEX_SHADER =
             "uniform mat4 uMVPMatrix;\n" +
@@ -141,10 +139,6 @@ public class BilateralFilter extends BaseFrameRenderFilter {
                 "gl_FragColor = sum / gaussianWeightTotal;\n" +
             "}";
 
-    private float texelWidth;
-    private float texelHeight;
-    private float blurSize;
-
     /**
      * Create the instance of frame render filter
      * @param texelWidth relative width of a texel
@@ -152,11 +146,7 @@ public class BilateralFilter extends BaseFrameRenderFilter {
      * @param blurSize blur size
      */
     public BilateralFilter(float texelWidth, float texelHeight, float blurSize) {
-        super(VERTEX_SHADER, FRAGMENT_SHADER);
-
-        this.texelWidth = texelWidth;
-        this.texelHeight = texelHeight;
-        this.blurSize = blurSize;
+        this(texelWidth, texelHeight, blurSize, null);
     }
 
     /**
@@ -166,18 +156,14 @@ public class BilateralFilter extends BaseFrameRenderFilter {
      * @param blurSize blur size
      * @param transform {@link Transform} that defines positioning of source video frame within target video frame
      */
-    public BilateralFilter(float texelWidth, float texelHeight, float blurSize, @NonNull Transform transform) {
-        super(DEFAULT_VERTEX_SHADER, FRAGMENT_SHADER, transform);
-
-        this.texelWidth = texelWidth;
-        this.texelHeight = texelHeight;
-        this.blurSize = blurSize;
-    }
-
-    @Override
-    protected void applyCustomGlAttributes() {
-        GLES20.glUniform1f(getHandle("texelWidth"), texelWidth);
-        GLES20.glUniform1f(getHandle("texelHeight"), texelHeight);
-        glUniform1f(getHandle("blurSize"), blurSize);
+    public BilateralFilter(float texelWidth, float texelHeight, float blurSize, @Nullable Transform transform) {
+        super(VERTEX_SHADER,
+                FRAGMENT_SHADER,
+                new ShaderParameter[] {
+                        new ShaderParameter1f(ShaderParameter.TYPE_UNIFORM, "texelWidth", texelWidth),
+                        new ShaderParameter1f(ShaderParameter.TYPE_UNIFORM, "texelHeight", texelHeight),
+                        new ShaderParameter1f(ShaderParameter.TYPE_UNIFORM, "blurSize", blurSize)
+                },
+                transform);
     }
 }

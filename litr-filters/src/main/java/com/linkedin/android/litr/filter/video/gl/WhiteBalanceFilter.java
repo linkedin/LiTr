@@ -20,16 +20,16 @@
  */
 package com.linkedin.android.litr.filter.video.gl;
 
-import android.opengl.GLES20;
-
-import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.linkedin.android.litr.filter.Transform;
+import com.linkedin.android.litr.filter.video.gl.parameter.ShaderParameter;
+import com.linkedin.android.litr.filter.video.gl.parameter.ShaderParameter1f;
 
 /**
  * Frame render filter that adjusts white balance
  */
-public class WhiteBalanceFilter extends BaseFrameRenderFilter {
+public class WhiteBalanceFilter extends VideoFrameRenderFilter {
 
     private static final String FRAGMENT_SHADER =
             "#extension GL_OES_EGL_image_external : require\n" +
@@ -55,21 +55,13 @@ public class WhiteBalanceFilter extends BaseFrameRenderFilter {
                 "gl_FragColor = vec4(mix(rgb, processed, temperature), source.a);\n" +
             "}";
 
-    private float temperature;
-    private float tint;
-
     /**
      * Create the instance of frame render filter
      * @param temperature color temperature in K
      * @param tint tint value
      */
     public WhiteBalanceFilter(float temperature, float tint) {
-        super(DEFAULT_VERTEX_SHADER, FRAGMENT_SHADER);
-
-        this.temperature = temperature < 5000
-                ? 0.0004f * (temperature - 5000.0f)
-                : 0.00006f * (temperature - 5000.0f);
-        this.tint = tint / 100.0f;
+        this(temperature, tint, null);
     }
 
     /**
@@ -78,18 +70,16 @@ public class WhiteBalanceFilter extends BaseFrameRenderFilter {
      * @param tint tint value
      * @param transform {@link Transform} that defines positioning of source video frame within target video frame
      */
-    public WhiteBalanceFilter(float temperature, float tint, @NonNull Transform transform) {
-        super(DEFAULT_VERTEX_SHADER, FRAGMENT_SHADER, transform);
-
-        this.temperature = temperature < 5000
-                ? 0.0004f * (temperature - 5000.0f)
-                : 0.00006f * (temperature - 5000.0f);
-        this.tint = tint / 100.0f;
-    }
-
-    @Override
-    protected void applyCustomGlAttributes() {
-        GLES20.glUniform1f(getHandle("temperature"), temperature);
-        GLES20.glUniform1f(getHandle("tint"), tint);
+    public WhiteBalanceFilter(float temperature, float tint, @Nullable Transform transform) {
+        super(DEFAULT_VERTEX_SHADER,
+                FRAGMENT_SHADER,
+                new ShaderParameter[] {
+                        new ShaderParameter1f(ShaderParameter.TYPE_UNIFORM, "temperature",
+                                temperature < 5000
+                                ? 0.0004f * (temperature - 5000.0f)
+                                : 0.00006f * (temperature - 5000.0f)),
+                        new ShaderParameter1f(ShaderParameter.TYPE_UNIFORM, "tint", tint / 100f)
+                },
+                transform);
     }
 }

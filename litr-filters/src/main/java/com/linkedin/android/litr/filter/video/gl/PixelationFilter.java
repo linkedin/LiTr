@@ -20,18 +20,16 @@
  */
 package com.linkedin.android.litr.filter.video.gl;
 
-import android.opengl.GLES20;
-
-import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.linkedin.android.litr.filter.Transform;
-
-import static android.opengl.GLES20.glUniform1f;
+import com.linkedin.android.litr.filter.video.gl.parameter.ShaderParameter;
+import com.linkedin.android.litr.filter.video.gl.parameter.ShaderParameter1f;
 
 /**
  * Frame render filter that applies pixelation effect to video frame
  */
-public class PixelationFilter extends BaseFrameRenderFilter {
+public class PixelationFilter extends VideoFrameRenderFilter {
 
     private static final String FRAGMENT_SHADER =
             "#extension GL_OES_EGL_image_external : require\n" +
@@ -55,10 +53,6 @@ public class PixelationFilter extends BaseFrameRenderFilter {
                 "gl_FragColor = vec4(tc, 1.0);\n" +
             "}";
 
-    private float imageWidthFactor;
-    private float imageHeightFactor;
-    private float pixelSize;
-
     /**
      * Create the instance of frame render filter
      * @param imageWidthFactor width pixelation size, as a factor of frame width
@@ -66,11 +60,7 @@ public class PixelationFilter extends BaseFrameRenderFilter {
      * @param pixelSize pixel size
      */
     public PixelationFilter(float imageWidthFactor, float imageHeightFactor, float pixelSize) {
-        super(DEFAULT_VERTEX_SHADER, FRAGMENT_SHADER);
-
-        this.imageWidthFactor = imageWidthFactor;
-        this.imageHeightFactor = imageHeightFactor;
-        this.pixelSize = pixelSize;
+        this(imageWidthFactor, imageHeightFactor, pixelSize, null);
     }
 
     /**
@@ -80,18 +70,14 @@ public class PixelationFilter extends BaseFrameRenderFilter {
      * @param pixelSize pixel size
      * @param transform {@link Transform} that defines positioning of source video frame within target video frame
      */
-    public PixelationFilter(float imageWidthFactor, float imageHeightFactor, float pixelSize, @NonNull Transform transform) {
-        super(DEFAULT_VERTEX_SHADER, FRAGMENT_SHADER, transform);
-
-        this.imageWidthFactor = imageWidthFactor;
-        this.imageHeightFactor = imageHeightFactor;
-        this.pixelSize = pixelSize;
-    }
-
-    @Override
-    protected void applyCustomGlAttributes() {
-        GLES20.glUniform1f(getHandle("imageWidthFactor"), imageWidthFactor);
-        GLES20.glUniform1f(getHandle("imageHeightFactor"), imageHeightFactor);
-        glUniform1f(getHandle("pixelSize"), pixelSize);
+    public PixelationFilter(float imageWidthFactor, float imageHeightFactor, float pixelSize, @Nullable Transform transform) {
+        super(DEFAULT_VERTEX_SHADER,
+                FRAGMENT_SHADER,
+                new ShaderParameter[] {
+                        new ShaderParameter1f(ShaderParameter.TYPE_UNIFORM, "imageWidthFactor", imageWidthFactor),
+                        new ShaderParameter1f(ShaderParameter.TYPE_UNIFORM, "imageHeightFactor", imageHeightFactor),
+                        new ShaderParameter1f(ShaderParameter.TYPE_UNIFORM, "pixelSize", pixelSize)
+                },
+                transform);
     }
 }

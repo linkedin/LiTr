@@ -17,16 +17,17 @@
  */
 package com.linkedin.android.litr.filter.video.gl;
 
-import android.opengl.GLES20;
-
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.linkedin.android.litr.filter.Transform;
+import com.linkedin.android.litr.filter.video.gl.parameter.ShaderParameter;
+import com.linkedin.android.litr.filter.video.gl.parameter.ShaderParameter3f;
 
 /**
  * Adjust color levels of video pixels
  */
-public class LevelsFilter extends BaseFrameRenderFilter {
+public class LevelsFilter extends VideoFrameRenderFilter {
 
     private static final String FRAGMENT_SHADER =
             "#extension GL_OES_EGL_image_external : require\n" +
@@ -48,12 +49,6 @@ public class LevelsFilter extends BaseFrameRenderFilter {
                 "gl_FragColor = vec4( mix(minOutput, maxOutput, pow(min(max(textureColor.rgb - levelMinimum, vec3(0.0)) / (levelMaximum - levelMinimum), vec3(1.0)), 1.0 / levelMiddle)) , textureColor.a);\n" +
             "}\n";
 
-    private float[] min;
-    private float[] mid;
-    private float[] max;
-    private float[] minOutput;
-    private float[] maxOutput;
-
     /**
      * Create the instance of frame render filter
      * @param min minimum level
@@ -63,13 +58,7 @@ public class LevelsFilter extends BaseFrameRenderFilter {
      * @param maxOutput maximum target color channel values
      */
     public LevelsFilter(@NonNull float[] min, @NonNull float[] mid, @NonNull float[] max, @NonNull float[] minOutput, @NonNull float[] maxOutput) {
-        super(DEFAULT_VERTEX_SHADER, FRAGMENT_SHADER);
-
-        this.min = min;
-        this.mid = mid;
-        this.max = max;
-        this.minOutput = minOutput;
-        this.maxOutput = maxOutput;
+        this(min, mid, max, minOutput, maxOutput, null);
     }
 
     /**
@@ -81,22 +70,16 @@ public class LevelsFilter extends BaseFrameRenderFilter {
      * @param maxOutput maximum target color channel values
      * @param transform {@link Transform} that defines positioning of source video frame within target video frame
      */
-    public LevelsFilter(@NonNull float[] min, @NonNull float[] mid, @NonNull float[] max, @NonNull float[] minOutput, @NonNull float[] maxOutput, @NonNull Transform transform) {
-        super(DEFAULT_VERTEX_SHADER, FRAGMENT_SHADER, transform);
-
-        this.min = min;
-        this.mid = mid;
-        this.max = max;
-        this.minOutput = minOutput;
-        this.maxOutput = maxOutput;
-    }
-
-    @Override
-    protected void applyCustomGlAttributes() {
-        GLES20.glUniform3f(getHandle("levelMinimum"), min[0], min[1], min[2]);
-        GLES20.glUniform3f(getHandle("levelMiddle"), mid[0], mid[1], mid[2]);
-        GLES20.glUniform3f(getHandle("levelMaximum"), max[0], max[1], max[2]);
-        GLES20.glUniform3f(getHandle("minOutput"), minOutput[0], minOutput[1], minOutput[2]);
-        GLES20.glUniform3f(getHandle("maxOutput"), maxOutput[0], maxOutput[1], maxOutput[2]);
+    public LevelsFilter(@NonNull float[] min, @NonNull float[] mid, @NonNull float[] max, @NonNull float[] minOutput, @NonNull float[] maxOutput, @Nullable Transform transform) {
+        super(DEFAULT_VERTEX_SHADER,
+                FRAGMENT_SHADER,
+                new ShaderParameter[] {
+                        new ShaderParameter3f(ShaderParameter.TYPE_UNIFORM, "levelMinimum", min[0], min[1], min[2]),
+                        new ShaderParameter3f(ShaderParameter.TYPE_UNIFORM, "levelMiddle", mid[0], mid[1], mid[2]),
+                        new ShaderParameter3f(ShaderParameter.TYPE_UNIFORM, "levelMaximum", max[0], max[1], max[2]),
+                        new ShaderParameter3f(ShaderParameter.TYPE_UNIFORM, "minOutput", minOutput[0], minOutput[1], minOutput[2]),
+                        new ShaderParameter3f(ShaderParameter.TYPE_UNIFORM, "maxOutput", maxOutput[0], maxOutput[1], maxOutput[2])
+                },
+                transform);
     }
 }

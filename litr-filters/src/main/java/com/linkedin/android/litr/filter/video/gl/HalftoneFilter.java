@@ -20,16 +20,16 @@
  */
 package com.linkedin.android.litr.filter.video.gl;
 
-import android.opengl.GLES20;
-
-import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.linkedin.android.litr.filter.Transform;
+import com.linkedin.android.litr.filter.video.gl.parameter.ShaderParameter;
+import com.linkedin.android.litr.filter.video.gl.parameter.ShaderParameter1f;
 
 /**
  * Frame render filter that applies halftone effect
  */
-public class HalftoneFilter extends BaseFrameRenderFilter {
+public class HalftoneFilter extends VideoFrameRenderFilter {
 
     private static final String FRAGMENT_SHADER =
             "#extension GL_OES_EGL_image_external : require\n" +
@@ -54,19 +54,13 @@ public class HalftoneFilter extends BaseFrameRenderFilter {
                 "gl_FragColor = vec4(vec3(checkForPresenceWithinDot), 1.0);\n" +
             "}";
 
-    private float fractionalPixelWidth;
-    private float aspectRatio;
-
     /**
      * Create the instance of frame render filter
      * @param fractionalPixelWidth width of fractional pixel
      * @param aspectRatio aspect ratio of a pixel
      */
     public HalftoneFilter(float fractionalPixelWidth, float aspectRatio) {
-        super(DEFAULT_VERTEX_SHADER, FRAGMENT_SHADER);
-
-        this.fractionalPixelWidth = fractionalPixelWidth;
-        this.aspectRatio = aspectRatio;
+        this(fractionalPixelWidth, aspectRatio, null);
     }
 
     /**
@@ -75,16 +69,13 @@ public class HalftoneFilter extends BaseFrameRenderFilter {
      * @param aspectRatio aspect ratio of a pixel
      * @param transform {@link Transform} that defines positioning of source video frame within target video frame
      */
-    public HalftoneFilter(float fractionalPixelWidth, float aspectRatio, @NonNull Transform transform) {
-        super(DEFAULT_VERTEX_SHADER, FRAGMENT_SHADER, transform);
-
-        this.fractionalPixelWidth = fractionalPixelWidth;
-        this.aspectRatio = aspectRatio;
-    }
-
-    @Override
-    protected void applyCustomGlAttributes() {
-        GLES20.glUniform1f(getHandle("fractionalPixelWidth"), fractionalPixelWidth);
-        GLES20.glUniform1f(getHandle("aspectRatio"), aspectRatio);
+    public HalftoneFilter(float fractionalPixelWidth, float aspectRatio, @Nullable Transform transform) {
+        super(DEFAULT_VERTEX_SHADER,
+                FRAGMENT_SHADER,
+                new ShaderParameter[] {
+                        new ShaderParameter1f(ShaderParameter.TYPE_UNIFORM, "fractionalPixelWidth", fractionalPixelWidth),
+                        new ShaderParameter1f(ShaderParameter.TYPE_UNIFORM, "aspectRatio", aspectRatio)
+                },
+                transform);
     }
 }

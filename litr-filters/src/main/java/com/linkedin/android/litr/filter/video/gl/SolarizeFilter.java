@@ -20,16 +20,16 @@
  */
 package com.linkedin.android.litr.filter.video.gl;
 
-import android.opengl.GLES20;
-
-import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.linkedin.android.litr.filter.Transform;
+import com.linkedin.android.litr.filter.video.gl.parameter.ShaderParameter;
+import com.linkedin.android.litr.filter.video.gl.parameter.ShaderParameter1f;
 
 /**
  * Frame render filter that applies solarize effect (switch dark and light tones) to video pixels
  */
-public class SolarizeFilter extends BaseFrameRenderFilter {
+public class SolarizeFilter extends VideoFrameRenderFilter {
 
     private static final String FRAGMENT_SHADER =
             "#extension GL_OES_EGL_image_external : require\n" +
@@ -49,16 +49,12 @@ public class SolarizeFilter extends BaseFrameRenderFilter {
                 "gl_FragColor = vec4(finalColor, textureColor.w);\n" +
             "}";
 
-    private float threshold;
-
     /**
      * Create the instance of frame render filter
      * @param threshold threshold between dark and light colors, between 0 and 1
      */
     public SolarizeFilter(float threshold) {
-        super(DEFAULT_VERTEX_SHADER, FRAGMENT_SHADER);
-
-        this.threshold = threshold;
+        this(threshold, null);
     }
 
     /**
@@ -66,14 +62,13 @@ public class SolarizeFilter extends BaseFrameRenderFilter {
      * @param threshold threshold between dark and light colors, between 0 and 1
      * @param transform {@link Transform} that defines positioning of source video frame within target video frame
      */
-    public SolarizeFilter(float threshold, @NonNull Transform transform) {
-        super(DEFAULT_VERTEX_SHADER, FRAGMENT_SHADER, transform);
-
-        this.threshold = threshold;
+    public SolarizeFilter(float threshold, @Nullable Transform transform) {
+        super(DEFAULT_VERTEX_SHADER,
+                FRAGMENT_SHADER,
+                new ShaderParameter[] {
+                        new ShaderParameter1f(ShaderParameter.TYPE_UNIFORM, "threshold", threshold)
+                },
+                transform);
     }
 
-    @Override
-    protected void applyCustomGlAttributes() {
-        GLES20.glUniform1f(getHandle("threshold"), threshold);
-    }
 }

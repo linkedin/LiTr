@@ -20,16 +20,16 @@
  */
 package com.linkedin.android.litr.filter.video.gl;
 
-import android.opengl.GLES20;
-
-import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.linkedin.android.litr.filter.Transform;
+import com.linkedin.android.litr.filter.video.gl.parameter.ShaderParameter;
+import com.linkedin.android.litr.filter.video.gl.parameter.ShaderParameter1f;
 
 /**
  * Frame render filter that adjusts the exposure of video pixels
  */
-public class ExposureFilter extends BaseFrameRenderFilter {
+public class ExposureFilter extends VideoFrameRenderFilter {
 
     private static final String FRAGMENT_SHADER =
             "#extension GL_OES_EGL_image_external : require\n" +
@@ -45,16 +45,12 @@ public class ExposureFilter extends BaseFrameRenderFilter {
                 "gl_FragColor = vec4(textureColor.rgb * pow(2.0, exposure), textureColor.w);\n" +
             "}";
 
-    private float exposure;
-
     /**
      * Create the instance of frame render filter
      * @param exposure exposure adjustment value
      */
     public ExposureFilter(float exposure) {
-        super(DEFAULT_VERTEX_SHADER, FRAGMENT_SHADER);
-
-        this.exposure = exposure;
+        this(exposure, null);
     }
 
     /**
@@ -62,14 +58,12 @@ public class ExposureFilter extends BaseFrameRenderFilter {
      * @param exposure exposure adjustment value
      * @param transform {@link Transform} that defines positioning of source video frame within target video frame
      */
-    public ExposureFilter(float exposure, @NonNull Transform transform) {
-        super(DEFAULT_VERTEX_SHADER, FRAGMENT_SHADER, transform);
-
-        this.exposure = exposure;
-    }
-
-    @Override
-    protected void applyCustomGlAttributes() {
-        GLES20.glUniform1f(getHandle("exposure"), exposure);
+    public ExposureFilter(float exposure, @Nullable Transform transform) {
+        super(DEFAULT_VERTEX_SHADER,
+                FRAGMENT_SHADER,
+                new ShaderParameter[] {
+                        new ShaderParameter1f(ShaderParameter.TYPE_UNIFORM, "exposure", exposure)
+                },
+                transform);
     }
 }

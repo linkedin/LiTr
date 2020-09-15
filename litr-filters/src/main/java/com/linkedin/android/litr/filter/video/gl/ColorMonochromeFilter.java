@@ -7,15 +7,16 @@
  */
 package com.linkedin.android.litr.filter.video.gl;
 
-import android.opengl.GLES20;
-
-import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.linkedin.android.litr.filter.Transform;
+import com.linkedin.android.litr.filter.video.gl.parameter.ShaderParameter;
+import com.linkedin.android.litr.filter.video.gl.parameter.ShaderParameter1f;
+import com.linkedin.android.litr.filter.video.gl.parameter.ShaderParameter3fv;
 
 import java.nio.FloatBuffer;
 
-public class ColorMonochromeFilter extends BaseFrameRenderFilter {
+public class ColorMonochromeFilter extends VideoFrameRenderFilter {
 
     private static final String FRAGMENT_SHADER =
             "#extension GL_OES_EGL_image_external : require\n" +
@@ -41,9 +42,6 @@ public class ColorMonochromeFilter extends BaseFrameRenderFilter {
                 "gl_FragColor = vec4(mix(textureColor.rgb, outputColor.rgb, intensity), textureColor.a);\n" +
             "}";
 
-    private float intensity;
-    private float[] inputColorRGB;
-
     /**
      * Create the instance frame render filter
      *
@@ -51,10 +49,7 @@ public class ColorMonochromeFilter extends BaseFrameRenderFilter {
      * @param intensity     value, from range 0.0 to 1.0;
      */
     public ColorMonochromeFilter(float[] inputColorRGB, float intensity) {
-        super(DEFAULT_VERTEX_SHADER, FRAGMENT_SHADER);
-
-        this.intensity = intensity;
-        this.inputColorRGB = inputColorRGB;
+        this(inputColorRGB, intensity, null);
     }
 
     /**
@@ -64,16 +59,13 @@ public class ColorMonochromeFilter extends BaseFrameRenderFilter {
      * @param intensity     value, from range 0.0 to 1.0;
      * @param transform {@link Transform} that defines positioning of source video frame within target video frame
      */
-    public ColorMonochromeFilter(float[] inputColorRGB, float intensity, @NonNull Transform transform) {
-        super(DEFAULT_VERTEX_SHADER, FRAGMENT_SHADER, transform);
-
-        this.intensity = intensity;
-        this.inputColorRGB = inputColorRGB;
-    }
-
-    @Override
-    protected void applyCustomGlAttributes() {
-        GLES20.glUniform1f(getHandle("intensity"), intensity);
-        GLES20.glUniform3fv(getHandle("newColor"), 1, FloatBuffer.wrap(inputColorRGB));
+    public ColorMonochromeFilter(float[] inputColorRGB, float intensity, @Nullable Transform transform) {
+        super(DEFAULT_VERTEX_SHADER,
+                FRAGMENT_SHADER,
+                new ShaderParameter[] {
+                        new ShaderParameter1f(ShaderParameter.TYPE_UNIFORM, "intensity", intensity),
+                        new ShaderParameter3fv(ShaderParameter.TYPE_UNIFORM, "newColor", 1, FloatBuffer.wrap(inputColorRGB))
+                },
+                transform);
     }
 }

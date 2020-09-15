@@ -20,16 +20,16 @@
  */
 package com.linkedin.android.litr.filter.video.gl;
 
-import android.opengl.GLES20;
-
-import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.linkedin.android.litr.filter.Transform;
+import com.linkedin.android.litr.filter.video.gl.parameter.ShaderParameter;
+import com.linkedin.android.litr.filter.video.gl.parameter.ShaderParameter1f;
 
 /**
  * Frame render filter that applies sharpening effect to video frame
  */
-public class SharpenFilter extends BaseFrameRenderFilter {
+public class SharpenFilter extends VideoFrameRenderFilter {
 
     private static final String VERTEX_SHADER =
             "uniform mat4 uMVPMatrix;\n" +
@@ -95,10 +95,6 @@ public class SharpenFilter extends BaseFrameRenderFilter {
                 "gl_FragColor = vec4((textureColor * centerMultiplier - (leftTextureColor * edgeMultiplier + rightTextureColor * edgeMultiplier + topTextureColor * edgeMultiplier + bottomTextureColor * edgeMultiplier)), texture2D(sTexture, bottomTextureCoordinate).w);\n" +
             "}";
 
-    private float texelWidth;
-    private float texelHeight;
-    private float sharpness;
-
     /**
      * Create frame render filter
      * @param texelWidth sharpness texel width, in relative coordinates
@@ -106,11 +102,7 @@ public class SharpenFilter extends BaseFrameRenderFilter {
      * @param sharpness sharpness level
      */
     public SharpenFilter(float texelWidth, float texelHeight, float sharpness) {
-        super(VERTEX_SHADER, FRAGMENT_SHADER);
-
-        this.texelWidth = texelWidth;
-        this.texelHeight = texelHeight;
-        this.sharpness = sharpness;
+        this(texelWidth, texelHeight, sharpness, null);
     }
 
     /**
@@ -120,18 +112,14 @@ public class SharpenFilter extends BaseFrameRenderFilter {
      * @param sharpness sharpness level
      * @param transform {@link Transform} that defines positioning of source video frame within target video frame
      */
-    public SharpenFilter(float texelWidth, float texelHeight, float sharpness, @NonNull Transform transform) {
-        super(VERTEX_SHADER, FRAGMENT_SHADER, transform);
-
-        this.texelWidth = texelWidth;
-        this.texelHeight = texelHeight;
-        this.sharpness = sharpness;
-    }
-
-    @Override
-    protected void applyCustomGlAttributes() {
-        GLES20.glUniform1f(getHandle("texelWidth"), texelWidth);
-        GLES20.glUniform1f(getHandle("texelHeight"), texelHeight);
-        GLES20.glUniform1f(getHandle("sharpness"), sharpness);
+    public SharpenFilter(float texelWidth, float texelHeight, float sharpness, @Nullable Transform transform) {
+        super(VERTEX_SHADER,
+                FRAGMENT_SHADER,
+                new ShaderParameter[] {
+                        new ShaderParameter1f(ShaderParameter.TYPE_UNIFORM, "texelWidth", texelWidth),
+                        new ShaderParameter1f(ShaderParameter.TYPE_UNIFORM, "texelHeight", texelHeight),
+                        new ShaderParameter1f(ShaderParameter.TYPE_UNIFORM, "sharpness", sharpness)
+                },
+                transform);
     }
 }

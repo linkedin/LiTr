@@ -7,11 +7,11 @@
  */
 package com.linkedin.android.litr.filter.video.gl;
 
-import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.linkedin.android.litr.filter.Transform;
 
-public class GrayscaleFilter extends BaseFrameRenderFilter {
+public class GrayscaleFilter extends VideoFrameRenderFilter {
 
     private static final String FRAGMENT_SHADER =
             "#extension GL_OES_EGL_image_external : require\n" +
@@ -28,19 +28,14 @@ public class GrayscaleFilter extends BaseFrameRenderFilter {
             "}";
 
     public GrayscaleFilter() {
-        super(DEFAULT_VERTEX_SHADER, FRAGMENT_SHADER);
+        this(null);
     }
 
     /**
      * Create frame render filter with source video frame, then scale, then position and then rotate the bitmap around its center as specified.
      * @param transform {@link Transform} that defines positioning of source video frame within target video frame
      */
-    public GrayscaleFilter(@NonNull Transform transform) {
-        super(DEFAULT_VERTEX_SHADER, FRAGMENT_SHADER, transform);
-    }
-
-    @Override
-    protected void applyCustomGlAttributes() {
-        // no need to do anything here
+    public GrayscaleFilter(@Nullable Transform transform) {
+        super(DEFAULT_VERTEX_SHADER, FRAGMENT_SHADER, null, transform);
     }
 }

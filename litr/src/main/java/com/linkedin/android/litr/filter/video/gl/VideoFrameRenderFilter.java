@@ -26,10 +26,12 @@ import android.opengl.GLES20;
 import android.opengl.Matrix;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.linkedin.android.litr.filter.GlFrameRenderFilter;
 import com.linkedin.android.litr.filter.Transform;
 import com.linkedin.android.litr.filter.util.GlFilterUtil;
+import com.linkedin.android.litr.filter.video.gl.parameter.ShaderParameter;
 import com.linkedin.android.litr.render.GlRenderUtils;
 
 import java.nio.ByteBuffer;
@@ -40,7 +42,7 @@ import java.nio.FloatBuffer;
  * Implementation of GlFrameRenderFilter, which renders source video frame onto target video frame,
  * optionally applying pixel and geometric transformation.
  */
-public abstract class BaseFrameRenderFilter implements GlFrameRenderFilter {
+public class VideoFrameRenderFilter implements GlFrameRenderFilter {
 
     protected static final String DEFAULT_VERTEX_SHADER =
             "uniform mat4 uMVPMatrix;\n" +
@@ -73,6 +75,7 @@ public abstract class BaseFrameRenderFilter implements GlFrameRenderFilter {
 
     private final String vertexShader;
     private final String fragmentShader;
+    private final ShaderParameter[] shaderParameters;
     private final Transform transform;
 
     private float[] mvpMatrix = new float[16];
@@ -100,11 +103,12 @@ public abstract class BaseFrameRenderFilter implements GlFrameRenderFilter {
      * things like pixel modification.
      * @param vertexShader vertex shader
      * @param fragmentShader fragment shader
+     * @param shaderParameters shader parameters (uniforms and/or attributes) if any, null otherwise
      */
-    protected BaseFrameRenderFilter(@NonNull String vertexShader, @NonNull String fragmentShader) {
-        this(vertexShader,
-                fragmentShader,
-                new Transform(new PointF(1f, 1f), new PointF(0.5f, 0.5f), 0));
+    protected VideoFrameRenderFilter(@NonNull String vertexShader,
+                                     @NonNull String fragmentShader,
+                                     @Nullable ShaderParameter[] shaderParameters) {
+        this(vertexShader, fragmentShader, shaderParameters, null);
     }
 
     /**
@@ -112,14 +116,19 @@ public abstract class BaseFrameRenderFilter implements GlFrameRenderFilter {
      * Use provided vertex and fragment filter, to do things like pixel modification.
      * @param vertexShader vertex shader
      * @param fragmentShader fragment shader
+     * @param shaderParameters shader parameters (uniforms and/or attributes) if any, null otherwise
      * @param transform {@link Transform} that defines positioning of source video frame within target video frame
      */
-    protected BaseFrameRenderFilter(@NonNull String vertexShader,
-                                    @NonNull String fragmentShader,
-                                    @NonNull Transform transform) {
+    protected VideoFrameRenderFilter(@NonNull String vertexShader,
+                                     @NonNull String fragmentShader,
+                                     @Nullable ShaderParameter[] shaderParameters,
+                                     @Nullable Transform transform) {
         this.vertexShader = vertexShader;
         this.fragmentShader = fragmentShader;
-        this.transform = transform;
+        this.shaderParameters = shaderParameters;
+        this.transform = transform != null
+                ? transform
+                : new Transform(new PointF(1f, 1f), new PointF(0.5f, 0.5f), 0);
     }
 
     @Override
@@ -166,27 +175,17 @@ public abstract class BaseFrameRenderFilter implements GlFrameRenderFilter {
         GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
         GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, inputFrameTextureHandle);
 
-        applyCustomGlAttributes();
+        if (shaderParameters != null) {
+            for (ShaderParameter shaderParameter : shaderParameters) {
+                shaderParameter.apply(glProgram);
+            }
+        }
 
         GLES20.glUniformMatrix4fv(mvpMatrixHandle, 1, false, mvpMatrix, mvpMatrixOffset);
         GLES20.glUniformMatrix4fv(uStMatrixHandle, 1, false, inputFrameTextureMatrix, 0);
 
         GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, 4);
         GlRenderUtils.checkGlError("glDrawArrays");
-    }
-
-    abstract protected void applyCustomGlAttributes();
-
-    protected int getHandle(@NonNull String name) {
-        int handle = GLES20.glGetAttribLocation(glProgram, name);
-        if (handle == -1) {
-            handle = GLES20.glGetUniformLocation(glProgram, name);
-        }
-        if (handle == -1) {
-            throw new IllegalStateException("Could not get attrib or uniform location for " + name);
-        }
-
-        return handle;
     }
 
     /**

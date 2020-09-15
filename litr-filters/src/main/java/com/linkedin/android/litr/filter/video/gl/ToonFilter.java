@@ -20,16 +20,60 @@
  */
 package com.linkedin.android.litr.filter.video.gl;
 
-import android.opengl.GLES20;
-
-import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.linkedin.android.litr.filter.Transform;
+import com.linkedin.android.litr.filter.video.gl.parameter.ShaderParameter;
+import com.linkedin.android.litr.filter.video.gl.parameter.ShaderParameter1f;
 
 /**
  * Frame render filter that applies cartoon-like effect
  */
-public class ToonFilter extends Base3x3TextureSamplingFilter {
+public class ToonFilter extends VideoFrameRenderFilter {
+
+    private static final String VERTEX_SHADER =
+            "uniform mat4 uMVPMatrix;\n" +
+                    "uniform mat4 uSTMatrix;\n" +
+
+                    "attribute vec4 aPosition;\n" +
+                    "attribute vec4 aTextureCoord;\n" +
+
+                    "uniform highp float texelWidth;\n" +
+                    "uniform highp float texelHeight;\n" +
+
+                    "varying highp vec2 textureCoordinate;\n" +
+                    "varying highp vec2 leftTextureCoordinate;\n" +
+                    "varying highp vec2 rightTextureCoordinate;\n" +
+
+                    "varying highp vec2 topTextureCoordinate;\n" +
+                    "varying highp vec2 topLeftTextureCoordinate;\n" +
+                    "varying highp vec2 topRightTextureCoordinate;\n" +
+
+                    "varying highp vec2 bottomTextureCoordinate;\n" +
+                    "varying highp vec2 bottomLeftTextureCoordinate;\n" +
+                    "varying highp vec2 bottomRightTextureCoordinate;\n" +
+
+                    "void main()\n" +
+                    "{\n" +
+                    "gl_Position = uMVPMatrix * aPosition;\n" +
+
+                    "vec2 widthStep = vec2(texelWidth, 0.0);\n" +
+                    "vec2 heightStep = vec2(0.0, texelHeight);\n" +
+                    "vec2 widthHeightStep = vec2(texelWidth, texelHeight);\n" +
+                    "vec2 widthNegativeHeightStep = vec2(texelWidth, -texelHeight);\n" +
+
+                    "textureCoordinate = (uSTMatrix * aTextureCoord).xy;\n" +
+                    "leftTextureCoordinate = textureCoordinate - widthStep;\n" +
+                    "rightTextureCoordinate = textureCoordinate + widthStep;\n" +
+
+                    "topTextureCoordinate = textureCoordinate - heightStep;\n" +
+                    "topLeftTextureCoordinate = textureCoordinate - widthHeightStep;\n" +
+                    "topRightTextureCoordinate = textureCoordinate + widthNegativeHeightStep;\n" +
+
+                    "bottomTextureCoordinate = textureCoordinate + heightStep;\n" +
+                    "bottomLeftTextureCoordinate = textureCoordinate - widthNegativeHeightStep;\n" +
+                    "bottomRightTextureCoordinate = textureCoordinate + widthHeightStep;\n" +
+                    "}";
 
     private static final String FRAGMENT_SHADER =
             "#extension GL_OES_EGL_image_external : require\n" +
@@ -76,9 +120,6 @@ public class ToonFilter extends Base3x3TextureSamplingFilter {
                 "gl_FragColor = vec4(posterizedImageColor * thresholdTest, textureColor.a);\n" +
             "}";
 
-    private float threshold;
-    private float quantizationLevels;
-
     /**
      * Create the instance of frame render filter
      * @param texelWidth relative width of a texel
@@ -87,10 +128,7 @@ public class ToonFilter extends Base3x3TextureSamplingFilter {
      * @param quantizationLevels number of color quantization levels
      */
     public ToonFilter(float texelWidth, float texelHeight, float threshold, float quantizationLevels) {
-        super(FRAGMENT_SHADER, texelWidth, texelHeight);
-
-        this.threshold = threshold;
-        this.quantizationLevels = quantizationLevels;
+        this(texelWidth, texelHeight, threshold, quantizationLevels, null);
     }
 
     /**
@@ -101,17 +139,15 @@ public class ToonFilter extends Base3x3TextureSamplingFilter {
      * @param quantizationLevels number of color quantization levels
      * @param transform {@link Transform} that defines positioning of source video frame within target video frame
      */
-    public ToonFilter(float texelWidth, float texelHeight, float threshold, float quantizationLevels, @NonNull Transform transform) {
-        super(FRAGMENT_SHADER, texelWidth, texelHeight, transform);
-
-        this.threshold = threshold;
-        this.quantizationLevels = quantizationLevels;
-    }
-
-    @Override
-    protected void applyCustomGlAttributes() {
-        super.applyCustomGlAttributes();
-        GLES20.glUniform1f(getHandle("threshold"), threshold);
-        GLES20.glUniform1f(getHandle("quantizationLevels"), quantizationLevels);
+    public ToonFilter(float texelWidth, float texelHeight, float threshold, float quantizationLevels, @Nullable Transform transform) {
+        super(VERTEX_SHADER,
+                FRAGMENT_SHADER,
+                new ShaderParameter[] {
+                        new ShaderParameter1f(ShaderParameter.TYPE_UNIFORM, "texelWidth", texelWidth),
+                        new ShaderParameter1f(ShaderParameter.TYPE_UNIFORM, "texelHeight", texelHeight),
+                        new ShaderParameter1f(ShaderParameter.TYPE_UNIFORM, "threshold", threshold),
+                        new ShaderParameter1f(ShaderParameter.TYPE_UNIFORM, "quantizationLevels", quantizationLevels)
+                },
+                transform);
     }
 }

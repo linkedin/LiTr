@@ -20,14 +20,60 @@
  */
 package com.linkedin.android.litr.filter.video.gl;
 
-import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.linkedin.android.litr.filter.Transform;
+import com.linkedin.android.litr.filter.video.gl.parameter.ShaderParameter;
+import com.linkedin.android.litr.filter.video.gl.parameter.ShaderParameter1f;
 
 /**
  * Frame render filter that performs weak pixel inclusion effect
  */
-public class WeakPixelInclusionFilter extends Base3x3TextureSamplingFilter {
+public class WeakPixelInclusionFilter extends VideoFrameRenderFilter {
+
+    private static final String VERTEX_SHADER =
+            "uniform mat4 uMVPMatrix;\n" +
+                    "uniform mat4 uSTMatrix;\n" +
+
+                    "attribute vec4 aPosition;\n" +
+                    "attribute vec4 aTextureCoord;\n" +
+
+                    "uniform highp float texelWidth;\n" +
+                    "uniform highp float texelHeight;\n" +
+
+                    "varying highp vec2 textureCoordinate;\n" +
+                    "varying highp vec2 leftTextureCoordinate;\n" +
+                    "varying highp vec2 rightTextureCoordinate;\n" +
+
+                    "varying highp vec2 topTextureCoordinate;\n" +
+                    "varying highp vec2 topLeftTextureCoordinate;\n" +
+                    "varying highp vec2 topRightTextureCoordinate;\n" +
+
+                    "varying highp vec2 bottomTextureCoordinate;\n" +
+                    "varying highp vec2 bottomLeftTextureCoordinate;\n" +
+                    "varying highp vec2 bottomRightTextureCoordinate;\n" +
+
+                    "void main()\n" +
+                    "{\n" +
+                    "gl_Position = uMVPMatrix * aPosition;\n" +
+
+                    "vec2 widthStep = vec2(texelWidth, 0.0);\n" +
+                    "vec2 heightStep = vec2(0.0, texelHeight);\n" +
+                    "vec2 widthHeightStep = vec2(texelWidth, texelHeight);\n" +
+                    "vec2 widthNegativeHeightStep = vec2(texelWidth, -texelHeight);\n" +
+
+                    "textureCoordinate = (uSTMatrix * aTextureCoord).xy;\n" +
+                    "leftTextureCoordinate = textureCoordinate - widthStep;\n" +
+                    "rightTextureCoordinate = textureCoordinate + widthStep;\n" +
+
+                    "topTextureCoordinate = textureCoordinate - heightStep;\n" +
+                    "topLeftTextureCoordinate = textureCoordinate - widthHeightStep;\n" +
+                    "topRightTextureCoordinate = textureCoordinate + widthNegativeHeightStep;\n" +
+
+                    "bottomTextureCoordinate = textureCoordinate + heightStep;\n" +
+                    "bottomLeftTextureCoordinate = textureCoordinate - widthNegativeHeightStep;\n" +
+                    "bottomRightTextureCoordinate = textureCoordinate + widthHeightStep;\n" +
+                    "}";
 
     private static final String FRAGMENT_SHADER =
             "#extension GL_OES_EGL_image_external : require\n" +
@@ -73,7 +119,7 @@ public class WeakPixelInclusionFilter extends Base3x3TextureSamplingFilter {
      * @param texelHeight relative height of a texel
      */
     public WeakPixelInclusionFilter(float texelWidth, float texelHeight) {
-        super(FRAGMENT_SHADER, texelWidth, texelHeight);
+        this(texelWidth, texelHeight, null);
     }
 
     /**
@@ -82,7 +128,13 @@ public class WeakPixelInclusionFilter extends Base3x3TextureSamplingFilter {
      * @param texelHeight relative height of a texel
      * @param transform {@link Transform} that defines positioning of source video frame within target video frame
      */
-    public WeakPixelInclusionFilter(float texelWidth, float texelHeight, @NonNull Transform transform) {
-        super(FRAGMENT_SHADER, texelWidth, texelHeight, transform);
+    public WeakPixelInclusionFilter(float texelWidth, float texelHeight, @Nullable Transform transform) {
+        super(VERTEX_SHADER,
+                FRAGMENT_SHADER,
+                new ShaderParameter[] {
+                        new ShaderParameter1f(ShaderParameter.TYPE_UNIFORM, "texelWidth", texelWidth),
+                        new ShaderParameter1f(ShaderParameter.TYPE_UNIFORM, "texelHeight", texelHeight)
+                },
+                transform);
     }
 }

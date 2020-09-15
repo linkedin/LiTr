@@ -21,16 +21,19 @@
 package com.linkedin.android.litr.filter.video.gl;
 
 import android.graphics.PointF;
-import android.opengl.GLES20;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.linkedin.android.litr.filter.Transform;
+import com.linkedin.android.litr.filter.video.gl.parameter.ShaderParameter;
+import com.linkedin.android.litr.filter.video.gl.parameter.ShaderParameter1f;
+import com.linkedin.android.litr.filter.video.gl.parameter.ShaderParameter2f;
 
 /**
  * Frame render filter that applies a swirl distortion to video frame
  */
-public class SwirlFilter extends BaseFrameRenderFilter {
+public class SwirlFilter extends VideoFrameRenderFilter {
 
     private static final String FRAGMENT_SHADER =
             "#extension GL_OES_EGL_image_external : require\n" +
@@ -59,10 +62,6 @@ public class SwirlFilter extends BaseFrameRenderFilter {
                 "gl_FragColor = texture2D(sTexture, textureCoordinateToUse );\n" +
             "}";
 
-    private PointF center;
-    private float radius;
-    private float angle;
-
     /**
      * Create frame render filter
      * @param center center of distortion, in relative coordinates in 0 - 1 range
@@ -70,11 +69,7 @@ public class SwirlFilter extends BaseFrameRenderFilter {
      * @param angle angle of distortion
      */
     public SwirlFilter(@NonNull PointF center, float radius, float angle) {
-        super(DEFAULT_VERTEX_SHADER, FRAGMENT_SHADER);
-
-        this.center = center;
-        this.radius = radius;
-        this.angle = angle;
+        this(center, radius, angle, null);
     }
 
     /**
@@ -84,18 +79,15 @@ public class SwirlFilter extends BaseFrameRenderFilter {
      * @param angle angle of distortion
      * @param transform {@link Transform} that defines positioning of source video frame within target video frame
      */
-    public SwirlFilter(@NonNull PointF center, float radius, float angle, @NonNull Transform transform) {
-        super(DEFAULT_VERTEX_SHADER, FRAGMENT_SHADER, transform);
-
-        this.center = center;
-        this.radius = radius;
-        this.angle = angle;
+    public SwirlFilter(@NonNull PointF center, float radius, float angle, @Nullable Transform transform) {
+        super(DEFAULT_VERTEX_SHADER,
+                FRAGMENT_SHADER,
+                new ShaderParameter[] {
+                        new ShaderParameter2f(ShaderParameter.TYPE_UNIFORM, "center", center.x, center.y),
+                        new ShaderParameter1f(ShaderParameter.TYPE_UNIFORM, "radius", radius),
+                        new ShaderParameter1f(ShaderParameter.TYPE_UNIFORM, "angle", angle)
+                },
+                transform);
     }
 
-    @Override
-    protected void applyCustomGlAttributes() {
-        GLES20.glUniform2f(getHandle("center"), center.x, center.y);
-        GLES20.glUniform1f(getHandle("radius"), radius);
-        GLES20.glUniform1f(getHandle("angle"), angle);
-    }
 }

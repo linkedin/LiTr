@@ -15,13 +15,14 @@
  */
 package com.linkedin.android.litr.filter.video.gl;
 
-import android.opengl.GLES20;
-
-import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.linkedin.android.litr.filter.Transform;
+import com.linkedin.android.litr.filter.video.gl.parameter.ShaderParameter;
+import com.linkedin.android.litr.filter.video.gl.parameter.ShaderParameter1f;
+import com.linkedin.android.litr.filter.video.gl.parameter.ShaderParameterMatrix4fv;
 
-public class ColorMatrixFilter extends BaseFrameRenderFilter {
+public class ColorMatrixFilter extends VideoFrameRenderFilter {
 
     private static final String COLOR_MATRIX_FRAGMENT_SHADER =
             "#extension GL_OES_EGL_image_external : require\n" +
@@ -39,9 +40,6 @@ public class ColorMatrixFilter extends BaseFrameRenderFilter {
                 "gl_FragColor = mix(textureColor, outputColor, intensity);\n" +
             "}";
 
-    private float intensity;
-    private float[] colorMatrix4x4; // size = 16; (i.e. 4 x 4)
-
     /**
      * Create ColorMatrix frame render filter
      *
@@ -49,10 +47,7 @@ public class ColorMatrixFilter extends BaseFrameRenderFilter {
      * @param intensity      value, from range 0.0 to 1.0;
      */
     public ColorMatrixFilter(float[] colorMatrix4x4, float intensity) {
-        super(DEFAULT_VERTEX_SHADER, COLOR_MATRIX_FRAGMENT_SHADER);
-
-        this.intensity = intensity;
-        this.colorMatrix4x4 = colorMatrix4x4;
+        this(colorMatrix4x4, intensity, null);
     }
 
     /**
@@ -62,16 +57,13 @@ public class ColorMatrixFilter extends BaseFrameRenderFilter {
      * @param intensity      value, from range 0.0 to 1.0;
      * @param transform {@link Transform} that defines positioning of source video frame within target video frame
      */
-    public ColorMatrixFilter(float[] colorMatrix4x4, float intensity, @NonNull Transform transform) {
-        super(DEFAULT_VERTEX_SHADER, COLOR_MATRIX_FRAGMENT_SHADER, transform);
-
-        this.intensity = intensity;
-        this.colorMatrix4x4 = colorMatrix4x4;
-    }
-
-    @Override
-    protected void applyCustomGlAttributes() {
-        GLES20.glUniform1f(getHandle("intensity"), intensity);
-        GLES20.glUniformMatrix4fv(getHandle("matrix"), 1, false, colorMatrix4x4, 0);
+    public ColorMatrixFilter(float[] colorMatrix4x4, float intensity, @Nullable Transform transform) {
+        super(DEFAULT_VERTEX_SHADER,
+                COLOR_MATRIX_FRAGMENT_SHADER,
+                new ShaderParameter[] {
+                        new ShaderParameter1f(ShaderParameter.TYPE_UNIFORM, "intensity", intensity),
+                        new ShaderParameterMatrix4fv(ShaderParameter.TYPE_UNIFORM, "matrix", 1, false, colorMatrix4x4, 0)
+                },
+                transform);
     }
 }

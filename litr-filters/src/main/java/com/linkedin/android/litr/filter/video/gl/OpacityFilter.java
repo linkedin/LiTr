@@ -20,16 +20,16 @@
  */
 package com.linkedin.android.litr.filter.video.gl;
 
-import android.opengl.GLES20;
-
-import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.linkedin.android.litr.filter.Transform;
+import com.linkedin.android.litr.filter.video.gl.parameter.ShaderParameter;
+import com.linkedin.android.litr.filter.video.gl.parameter.ShaderParameter1f;
 
 /**
  * Frame render filter that changes the opacity of video pixels
  */
-public class OpacityFilter extends BaseFrameRenderFilter {
+public class OpacityFilter extends VideoFrameRenderFilter {
 
     private static final String FRAGMENT_SHADER =
             "#extension GL_OES_EGL_image_external : require\n" +
@@ -45,16 +45,12 @@ public class OpacityFilter extends BaseFrameRenderFilter {
             "gl_FragColor = vec4(textureColor.rgb, textureColor.a * opacity);\n" +
             "}";
 
-    private float opacity;
-
     /**
      * Create the instance of frame render filter
      * @param opacity opacity value, between 0 and 1
      */
     public OpacityFilter(float opacity) {
-        super(DEFAULT_VERTEX_SHADER, FRAGMENT_SHADER);
-
-        this.opacity = opacity;
+        this(opacity, null);
     }
 
     /**
@@ -62,14 +58,12 @@ public class OpacityFilter extends BaseFrameRenderFilter {
      * @param opacity opacity value, between 0 and 1
      * @param transform {@link Transform} that defines positioning of source video frame within target video frame
      */
-    public OpacityFilter(float opacity, @NonNull Transform transform) {
-        super(DEFAULT_VERTEX_SHADER, FRAGMENT_SHADER, transform);
-
-        this.opacity = opacity;
-    }
-
-    @Override
-    protected void applyCustomGlAttributes() {
-        GLES20.glUniform1f(getHandle("opacity"), opacity);
+    public OpacityFilter(float opacity, @Nullable Transform transform) {
+        super(DEFAULT_VERTEX_SHADER,
+                FRAGMENT_SHADER,
+                new ShaderParameter[] {
+                        new ShaderParameter1f(ShaderParameter.TYPE_UNIFORM, "opacity", opacity)
+                },
+                transform);
     }
 }
