@@ -20,14 +20,14 @@
  */
 package com.linkedin.android.litr.filter.video.gl;
 
-import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.linkedin.android.litr.filter.Transform;
 
 /**
  * Frame render filter that applies sepia effect to video pixels
  */
-public class SepiaFilter extends BaseFrameRenderFilter {
+public class SepiaFilter extends VideoFrameRenderFilter {
 
     private static final String FRAGMENT_SHADER =
             "#extension GL_OES_EGL_image_external : require\n" +
@@ -49,19 +49,14 @@ public class SepiaFilter extends BaseFrameRenderFilter {
      * Create the instance of frame render filter
      */
     public SepiaFilter() {
-        super(DEFAULT_VERTEX_SHADER, FRAGMENT_SHADER);
+        this(null);
     }
 
     /**
      * Create frame render filter with source video frame, then scale, then position and then rotate the bitmap around its center as specified.
      * @param transform {@link Transform} that defines positioning of source video frame within target video frame
      */
-    public SepiaFilter(@NonNull Transform transform) {
-        super(DEFAULT_VERTEX_SHADER, FRAGMENT_SHADER, transform);
-    }
-
-    @Override
-    protected void applyCustomGlAttributes() {
-        // do nothing
+    public SepiaFilter(@Nullable Transform transform) {
+        super(DEFAULT_VERTEX_SHADER, FRAGMENT_SHADER, null, transform);
     }
 }

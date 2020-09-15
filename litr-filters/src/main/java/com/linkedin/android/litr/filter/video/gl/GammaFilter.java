@@ -20,16 +20,16 @@
  */
 package com.linkedin.android.litr.filter.video.gl;
 
-import android.opengl.GLES20;
-
-import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.linkedin.android.litr.filter.Transform;
+import com.linkedin.android.litr.filter.video.gl.parameter.ShaderParameter;
+import com.linkedin.android.litr.filter.video.gl.parameter.ShaderParameter1f;
 
 /**
  * Frame render filter that adjusts the gamma of video pixels
  */
-public class GammaFilter extends BaseFrameRenderFilter {
+public class GammaFilter extends VideoFrameRenderFilter {
 
     private static final String FRAGMENT_SHADER =
             "#extension GL_OES_EGL_image_external : require\n" +
@@ -45,16 +45,12 @@ public class GammaFilter extends BaseFrameRenderFilter {
                 "gl_FragColor = vec4(pow(textureColor.rgb, vec3(gamma)), textureColor.w);\n" +
             "}";
 
-    private float gamma;
-
     /**
      * Create the instance of frame render filter
      * @param gamma gamma adjustment value
      */
     public GammaFilter(float gamma) {
-        super(DEFAULT_VERTEX_SHADER, FRAGMENT_SHADER);
-
-        this.gamma = gamma;
+        this(gamma, null);
     }
 
     /**
@@ -62,14 +58,12 @@ public class GammaFilter extends BaseFrameRenderFilter {
      * @param gamma gamma adjustment value
      * @param transform {@link Transform} that defines positioning of source video frame within target video frame
      */
-    public GammaFilter(float gamma, @NonNull Transform transform) {
-        super(DEFAULT_VERTEX_SHADER, FRAGMENT_SHADER, transform);
-
-        this.gamma = gamma;
-    }
-
-    @Override
-    protected void applyCustomGlAttributes() {
-        GLES20.glUniform1f(getHandle("gamma"), gamma);
+    public GammaFilter(float gamma, @Nullable Transform transform) {
+        super(DEFAULT_VERTEX_SHADER,
+                FRAGMENT_SHADER,
+                new ShaderParameter[] {
+                        new ShaderParameter1f(ShaderParameter.TYPE_UNIFORM, "gamma", gamma)
+                },
+                transform);
     }
 }

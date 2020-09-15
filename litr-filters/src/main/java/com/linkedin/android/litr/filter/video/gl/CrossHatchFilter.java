@@ -20,16 +20,16 @@
  */
 package com.linkedin.android.litr.filter.video.gl;
 
-import android.opengl.GLES20;
-
-import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.linkedin.android.litr.filter.Transform;
+import com.linkedin.android.litr.filter.video.gl.parameter.ShaderParameter;
+import com.linkedin.android.litr.filter.video.gl.parameter.ShaderParameter1f;
 
 /**
  * Frame render filter that converts video frame into a "cross hatch" rendering
  */
-public class CrossHatchFilter extends BaseFrameRenderFilter {
+public class CrossHatchFilter extends VideoFrameRenderFilter {
 
     private static final String FRAGMENT_SHADER =
             "#extension GL_OES_EGL_image_external : require\n" +
@@ -76,19 +76,13 @@ public class CrossHatchFilter extends BaseFrameRenderFilter {
                 "gl_FragColor = colorToDisplay;\n" +
             "}";
 
-    private float crossHatchSpacing;
-    private float lineWidth;
-
     /**
      * Create cross hatch filter
      * @param crossHatchSpacing spacing between cross hatches, in relative coordinates
      * @param lineWidth thickness of cross hatch line, in relative coordinates
      */
     public CrossHatchFilter(float crossHatchSpacing, float lineWidth) {
-        super(DEFAULT_VERTEX_SHADER, FRAGMENT_SHADER);
-
-        this.crossHatchSpacing = crossHatchSpacing;
-        this.lineWidth = lineWidth;
+        this(crossHatchSpacing, lineWidth, null);
     }
 
     /**
@@ -97,16 +91,13 @@ public class CrossHatchFilter extends BaseFrameRenderFilter {
      * @param lineWidth thickness of cross hatch line, in relative coordinates
      * @param transform {@link Transform} that defines positioning of source video frame within target video frame
      */
-    public CrossHatchFilter(float crossHatchSpacing, float lineWidth, @NonNull Transform transform) {
-        super(DEFAULT_VERTEX_SHADER, FRAGMENT_SHADER, transform);
-
-        this.crossHatchSpacing = crossHatchSpacing;
-        this.lineWidth = lineWidth;
-    }
-
-    @Override
-    protected void applyCustomGlAttributes() {
-        GLES20.glUniform1f(getHandle("crossHatchSpacing"), crossHatchSpacing);
-        GLES20.glUniform1f(getHandle("lineWidth"), lineWidth);
+    public CrossHatchFilter(float crossHatchSpacing, float lineWidth, @Nullable Transform transform) {
+        super(DEFAULT_VERTEX_SHADER,
+                FRAGMENT_SHADER,
+                new ShaderParameter[] {
+                        new ShaderParameter1f(ShaderParameter.TYPE_UNIFORM, "crossHatchSpacing", crossHatchSpacing),
+                        new ShaderParameter1f(ShaderParameter.TYPE_UNIFORM, "lineWidth", lineWidth)
+                },
+                transform);
     }
 }

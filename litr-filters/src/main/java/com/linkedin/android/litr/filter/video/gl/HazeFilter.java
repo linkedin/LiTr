@@ -20,16 +20,16 @@
  */
 package com.linkedin.android.litr.filter.video.gl;
 
-import android.opengl.GLES20;
-
-import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.linkedin.android.litr.filter.Transform;
+import com.linkedin.android.litr.filter.video.gl.parameter.ShaderParameter;
+import com.linkedin.android.litr.filter.video.gl.parameter.ShaderParameter1f;
 
 /**
  * Frame render filter that applies haze effect
  */
-public class HazeFilter extends BaseFrameRenderFilter {
+public class HazeFilter extends VideoFrameRenderFilter {
 
     private static final String FRAGMENT_SHADER =
             "#extension GL_OES_EGL_image_external : require\n" +
@@ -49,19 +49,13 @@ public class HazeFilter extends BaseFrameRenderFilter {
                 "gl_FragColor = c;\n" +    // consider using premultiply(c);
             "}";
 
-    private float distance;
-    private float slope;
-
     /**
      * Create the instance of frame render filter
      * @param distance haze distance
      * @param slope haze slope
      */
     public HazeFilter(float distance, float slope) {
-        super(DEFAULT_VERTEX_SHADER, FRAGMENT_SHADER);
-
-        this.distance = distance;
-        this.slope = slope;
+        this(distance, slope, null);
     }
 
     /**
@@ -70,16 +64,13 @@ public class HazeFilter extends BaseFrameRenderFilter {
      * @param slope haze slope
      * @param transform {@link Transform} that defines positioning of source video frame within target video frame
      */
-    public HazeFilter(float distance, float slope, @NonNull Transform transform) {
-        super(DEFAULT_VERTEX_SHADER, FRAGMENT_SHADER, transform);
-
-        this.distance = distance;
-        this.slope = slope;
-    }
-
-    @Override
-    protected void applyCustomGlAttributes() {
-        GLES20.glUniform1f(getHandle("distance"), distance);
-        GLES20.glUniform1f(getHandle("slope"), slope);
+    public HazeFilter(float distance, float slope, @Nullable Transform transform) {
+        super(DEFAULT_VERTEX_SHADER,
+                FRAGMENT_SHADER,
+                new ShaderParameter[] {
+                        new ShaderParameter1f(ShaderParameter.TYPE_UNIFORM, "distance", distance),
+                        new ShaderParameter1f(ShaderParameter.TYPE_UNIFORM, "slope", slope)
+                },
+                transform);
     }
 }

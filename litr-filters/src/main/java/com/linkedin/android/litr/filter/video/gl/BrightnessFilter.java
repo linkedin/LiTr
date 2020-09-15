@@ -20,16 +20,16 @@
  */
 package com.linkedin.android.litr.filter.video.gl;
 
-import android.opengl.GLES20;
-
-import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.linkedin.android.litr.filter.Transform;
+import com.linkedin.android.litr.filter.video.gl.parameter.ShaderParameter;
+import com.linkedin.android.litr.filter.video.gl.parameter.ShaderParameter1f;
 
 /**
  * Frame render filter that adjusts the brightness of video pixels
  */
-public class BrightnessFilter extends BaseFrameRenderFilter {
+public class BrightnessFilter extends VideoFrameRenderFilter {
 
     private static final String FRAGMENT_SHADER =
             "#extension GL_OES_EGL_image_external : require\n" +
@@ -45,16 +45,12 @@ public class BrightnessFilter extends BaseFrameRenderFilter {
             "  gl_FragColor = vec4(textureColor.rgb + vec3(brightness), textureColor.w);\n" +
             "}";
 
-    private float brightness;
-
     /**
      * Create brightness frame render filter
      * @param brightness brightness adjustment value, between -1 and 1
      */
     public BrightnessFilter(float brightness) {
-        super(DEFAULT_VERTEX_SHADER, FRAGMENT_SHADER);
-
-        this.brightness = brightness;
+        this(brightness, null);
     }
 
     /**
@@ -62,14 +58,12 @@ public class BrightnessFilter extends BaseFrameRenderFilter {
      * @param brightness brightness adjustment value, between -1 and 1
      * @param transform {@link Transform} that defines positioning of source video frame within target video frame
      */
-    public BrightnessFilter(float brightness, @NonNull Transform transform) {
-        super(DEFAULT_VERTEX_SHADER, FRAGMENT_SHADER, transform);
-
-        this.brightness = brightness;
-    }
-
-    @Override
-    protected void applyCustomGlAttributes() {
-        GLES20.glUniform1f(getHandle("brightness"), brightness);
+    public BrightnessFilter(float brightness, @Nullable Transform transform) {
+        super(DEFAULT_VERTEX_SHADER,
+                FRAGMENT_SHADER,
+                new ShaderParameter[] {
+                        new ShaderParameter1f(ShaderParameter.TYPE_UNIFORM, "brightness", brightness)
+                },
+                transform);
     }
 }

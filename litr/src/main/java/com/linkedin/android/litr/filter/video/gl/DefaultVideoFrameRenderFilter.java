@@ -7,20 +7,20 @@
  */
 package com.linkedin.android.litr.filter.video.gl;
 
-import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.linkedin.android.litr.filter.Transform;
 
 /**
  * Most basic frame render filter that doesn't modify video pixels but can modify placement of a source frame within a target frame
  */
-public class DefaultVideoFrameRenderFilter extends BaseFrameRenderFilter {
+public class DefaultVideoFrameRenderFilter extends VideoFrameRenderFilter {
 
     /**
      * Create most basic filter, which scales source frame to fit target frame, with no pixel modification.
      */
     public DefaultVideoFrameRenderFilter() {
-        super(DEFAULT_VERTEX_SHADER, DEFAULT_FRAGMENT_SHADER);
+        this(null);
     }
 
     /**
@@ -28,12 +28,10 @@ public class DefaultVideoFrameRenderFilter extends BaseFrameRenderFilter {
      * No pixel data is modified.
      * @param transform {@link Transform} that defines positioning of source video frame within target video frame
      */
-    public DefaultVideoFrameRenderFilter(@NonNull Transform transform) {
-        super(DEFAULT_VERTEX_SHADER, DEFAULT_FRAGMENT_SHADER, transform);
-    }
-
-    @Override
-    protected void applyCustomGlAttributes() {
-        // default implementation does nothing
+    public DefaultVideoFrameRenderFilter(@Nullable Transform transform) {
+        super(DEFAULT_VERTEX_SHADER,
+                DEFAULT_FRAGMENT_SHADER,
+                null,
+                transform);
     }
 }

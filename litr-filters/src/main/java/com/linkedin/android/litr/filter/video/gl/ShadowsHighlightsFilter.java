@@ -20,16 +20,16 @@
  */
 package com.linkedin.android.litr.filter.video.gl;
 
-import android.opengl.GLES20;
-
-import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.linkedin.android.litr.filter.Transform;
+import com.linkedin.android.litr.filter.video.gl.parameter.ShaderParameter;
+import com.linkedin.android.litr.filter.video.gl.parameter.ShaderParameter1f;
 
 /**
  * Frame render filter that enhances detail in shadow and highlight areas
  */
-public class ShadowsHighlightsFilter extends BaseFrameRenderFilter {
+public class ShadowsHighlightsFilter extends VideoFrameRenderFilter {
 
     private static final String FRAGMENT_SHADER =
             "#extension GL_OES_EGL_image_external : require\n" +
@@ -51,19 +51,13 @@ public class ShadowsHighlightsFilter extends BaseFrameRenderFilter {
                 "gl_FragColor = vec4(result.rgb, source.a);\n" +
             "}";
 
-    private float shadows;
-    private float highlights;
-
     /**
      * Create the instance of frame render filter
      * @param shadows shadows level
      * @param highlights highlights level
      */
     public ShadowsHighlightsFilter(float shadows, float highlights) {
-        super(DEFAULT_VERTEX_SHADER, FRAGMENT_SHADER);
-
-        this.shadows = shadows;
-        this.highlights = highlights;
+        this(shadows, highlights, null);
     }
 
     /**
@@ -72,16 +66,13 @@ public class ShadowsHighlightsFilter extends BaseFrameRenderFilter {
      * @param highlights highlights level
      * @param transform {@link Transform} that defines positioning of source video frame within target video frame
      */
-    public ShadowsHighlightsFilter(float shadows, float highlights, @NonNull Transform transform) {
-        super(DEFAULT_VERTEX_SHADER, FRAGMENT_SHADER, transform);
-
-        this.shadows = shadows;
-        this.highlights = highlights;
-    }
-
-    @Override
-    protected void applyCustomGlAttributes() {
-        GLES20.glUniform1f(getHandle("shadows"), shadows);
-        GLES20.glUniform1f(getHandle("highlights"), highlights);
+    public ShadowsHighlightsFilter(float shadows, float highlights, @Nullable Transform transform) {
+        super(DEFAULT_VERTEX_SHADER,
+                FRAGMENT_SHADER,
+                new ShaderParameter[] {
+                        new ShaderParameter1f(ShaderParameter.TYPE_UNIFORM, "shadows", shadows),
+                        new ShaderParameter1f(ShaderParameter.TYPE_UNIFORM, "highlights", highlights)
+                },
+                transform);
     }
 }

@@ -20,16 +20,16 @@
  */
 package com.linkedin.android.litr.filter.video.gl;
 
-import android.opengl.GLES20;
-
-import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.linkedin.android.litr.filter.Transform;
+import com.linkedin.android.litr.filter.video.gl.parameter.ShaderParameter;
+import com.linkedin.android.litr.filter.video.gl.parameter.ShaderParameter1f;
 
 /**
  * Frame render filter that adjusts the saturation of video pixels
  */
-public class SaturationFilter extends BaseFrameRenderFilter {
+public class SaturationFilter extends VideoFrameRenderFilter {
 
     private static final String FRAGMENT_SHADER =
             "#extension GL_OES_EGL_image_external : require\n" +
@@ -48,16 +48,12 @@ public class SaturationFilter extends BaseFrameRenderFilter {
                 "gl_FragColor = vec4(mix(greyScaleColor, textureColor.rgb, saturation), textureColor.w);\n" +
             "}";
 
-    private float saturation;
-
     /**
      * Create the instance of frame render filter
      * @param saturation saturation adjustment value
      */
     public SaturationFilter(float saturation) {
-        super(DEFAULT_VERTEX_SHADER, FRAGMENT_SHADER);
-
-        this.saturation = saturation;
+        this(saturation, null);
     }
 
     /**
@@ -65,14 +61,13 @@ public class SaturationFilter extends BaseFrameRenderFilter {
      * @param saturation saturation adjustment value
      * @param transform {@link Transform} that defines positioning of source video frame within target video frame
      */
-    public SaturationFilter(float saturation, @NonNull Transform transform) {
-        super(DEFAULT_VERTEX_SHADER, FRAGMENT_SHADER, transform);
-
-        this.saturation = saturation;
+    public SaturationFilter(float saturation, @Nullable Transform transform) {
+        super(DEFAULT_VERTEX_SHADER,
+                FRAGMENT_SHADER,
+                new ShaderParameter[] {
+                        new ShaderParameter1f(ShaderParameter.TYPE_UNIFORM, "saturation", saturation)
+                },
+                transform);
     }
 
-    @Override
-    protected void applyCustomGlAttributes() {
-        GLES20.glUniform1f(getHandle("saturation"), saturation);
-    }
 }

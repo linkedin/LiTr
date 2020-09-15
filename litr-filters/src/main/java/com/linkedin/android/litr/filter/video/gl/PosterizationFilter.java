@@ -20,16 +20,16 @@
  */
 package com.linkedin.android.litr.filter.video.gl;
 
-import android.opengl.GLES20;
-
-import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.linkedin.android.litr.filter.Transform;
+import com.linkedin.android.litr.filter.video.gl.parameter.ShaderParameter;
+import com.linkedin.android.litr.filter.video.gl.parameter.ShaderParameter1f;
 
 /**
  * Frame render filter that applies posterization effect (color resolution reduction) to video pixels
  */
-public class PosterizationFilter extends BaseFrameRenderFilter {
+public class PosterizationFilter extends VideoFrameRenderFilter {
 
     private static final String FRAGMENT_SHADER =
             "#extension GL_OES_EGL_image_external : require\n" +
@@ -45,16 +45,12 @@ public class PosterizationFilter extends BaseFrameRenderFilter {
                 "gl_FragColor = floor((textureColor * colorLevelCount) + vec4(0.5)) / colorLevelCount;\n" +
             "}";
 
-    private float colorLevelCount;
-
     /**
      * Create the instance of frame render filter
      * @param colorLevelCount number of color levels
      */
     public PosterizationFilter(float colorLevelCount) {
-        super(DEFAULT_VERTEX_SHADER, FRAGMENT_SHADER);
-
-        this.colorLevelCount = colorLevelCount;
+        this(colorLevelCount, null);
     }
 
     /**
@@ -62,14 +58,12 @@ public class PosterizationFilter extends BaseFrameRenderFilter {
      * @param colorLevelCount number of color levels
      * @param transform {@link Transform} that defines positioning of source video frame within target video frame
      */
-    public PosterizationFilter(float colorLevelCount, @NonNull Transform transform) {
-        super(DEFAULT_VERTEX_SHADER, FRAGMENT_SHADER, transform);
-
-        this.colorLevelCount = colorLevelCount;
-    }
-
-    @Override
-    protected void applyCustomGlAttributes() {
-        GLES20.glUniform1f(getHandle("colorLevelCount"), colorLevelCount);
+    public PosterizationFilter(float colorLevelCount, @Nullable Transform transform) {
+        super(DEFAULT_VERTEX_SHADER,
+                FRAGMENT_SHADER,
+                new ShaderParameter[] {
+                        new ShaderParameter1f(ShaderParameter.TYPE_UNIFORM, "colorLevelCount", colorLevelCount)
+                },
+                transform);
     }
 }

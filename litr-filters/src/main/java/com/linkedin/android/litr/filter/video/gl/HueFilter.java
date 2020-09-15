@@ -20,16 +20,16 @@
  */
 package com.linkedin.android.litr.filter.video.gl;
 
-import android.opengl.GLES20;
-
-import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.linkedin.android.litr.filter.Transform;
+import com.linkedin.android.litr.filter.video.gl.parameter.ShaderParameter;
+import com.linkedin.android.litr.filter.video.gl.parameter.ShaderParameter1f;
 
 /**
  * Frame render filter that adjusts the hue of video pixels
  */
-public class HueFilter extends BaseFrameRenderFilter {
+public class HueFilter extends VideoFrameRenderFilter {
 
     private static final String FRAGMENT_SHADER =
             "#extension GL_OES_EGL_image_external : require\n" +
@@ -76,16 +76,12 @@ public class HueFilter extends BaseFrameRenderFilter {
                 "gl_FragColor = color;\n" +
             "}";
 
-    private float hue;
-
     /**
      * Create the instance of frame render filter
      * @param hue hue adjustment value
      */
     public HueFilter(float hue) {
-        super(DEFAULT_VERTEX_SHADER, FRAGMENT_SHADER);
-
-        this.hue = hue;
+        this(hue, null);
     }
 
     /**
@@ -93,14 +89,12 @@ public class HueFilter extends BaseFrameRenderFilter {
      * @param hue hue adjustment value
      * @param transform {@link Transform} that defines positioning of source video frame within target video frame
      */
-    public HueFilter(float hue, @NonNull Transform transform) {
-        super(DEFAULT_VERTEX_SHADER, FRAGMENT_SHADER, transform);
-
-        this.hue = hue;
-    }
-
-    @Override
-    protected void applyCustomGlAttributes() {
-        GLES20.glUniform1f(getHandle("hueAdjustment"), hue);
+    public HueFilter(float hue, @Nullable Transform transform) {
+        super(DEFAULT_VERTEX_SHADER,
+                FRAGMENT_SHADER,
+                new ShaderParameter[] {
+                        new ShaderParameter1f(ShaderParameter.TYPE_UNIFORM, "hueAdjustment", hue)
+                },
+                transform);
     }
 }

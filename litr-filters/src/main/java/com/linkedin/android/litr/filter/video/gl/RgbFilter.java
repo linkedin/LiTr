@@ -20,16 +20,16 @@
  */
 package com.linkedin.android.litr.filter.video.gl;
 
-import android.opengl.GLES20;
-
-import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.linkedin.android.litr.filter.Transform;
+import com.linkedin.android.litr.filter.video.gl.parameter.ShaderParameter;
+import com.linkedin.android.litr.filter.video.gl.parameter.ShaderParameter1f;
 
 /**
  * Frame render filter that adjusts individual RGB channels
  */
-public class RgbFilter extends BaseFrameRenderFilter {
+public class RgbFilter extends VideoFrameRenderFilter {
 
     private static final String FRAGMENT_SHADER =
             "#extension GL_OES_EGL_image_external : require\n" +
@@ -48,10 +48,6 @@ public class RgbFilter extends BaseFrameRenderFilter {
                 "gl_FragColor = vec4(textureColor.r * red, textureColor.g * green, textureColor.b * blue, 1.0);\n" +
             "}\n";
 
-    private float red;
-    private float green;
-    private float blue;
-
     /**
      * Create the instance of frame render filter
      * @param red red channel multiplier
@@ -59,11 +55,7 @@ public class RgbFilter extends BaseFrameRenderFilter {
      * @param blue blue channel multiplier
      */
     public RgbFilter(float red, float green, float blue) {
-        super(DEFAULT_VERTEX_SHADER, FRAGMENT_SHADER);
-
-        this.red = red;
-        this.green = green;
-        this.blue = blue;
+        this(red, green, blue, null);
     }
 
     /**
@@ -73,18 +65,14 @@ public class RgbFilter extends BaseFrameRenderFilter {
      * @param blue blue channel multiplier
      * @param transform {@link Transform} that defines positioning of source video frame within target video frame
      */
-    public RgbFilter(float red, float green, float blue, @NonNull Transform transform) {
-        super(DEFAULT_VERTEX_SHADER, FRAGMENT_SHADER, transform);
-
-        this.red = red;
-        this.green = green;
-        this.blue = blue;
-    }
-
-    @Override
-    protected void applyCustomGlAttributes() {
-        GLES20.glUniform1f(getHandle("red"), red);
-        GLES20.glUniform1f(getHandle("green"), green);
-        GLES20.glUniform1f(getHandle("blue"), blue);
+    public RgbFilter(float red, float green, float blue, @Nullable Transform transform) {
+        super(DEFAULT_VERTEX_SHADER,
+                FRAGMENT_SHADER,
+                new ShaderParameter[] {
+                        new ShaderParameter1f(ShaderParameter.TYPE_UNIFORM, "red", red),
+                        new ShaderParameter1f(ShaderParameter.TYPE_UNIFORM, "green", green),
+                        new ShaderParameter1f(ShaderParameter.TYPE_UNIFORM, "blue", blue)
+                },
+                transform);
     }
 }

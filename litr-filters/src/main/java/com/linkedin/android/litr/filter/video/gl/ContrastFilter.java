@@ -20,16 +20,16 @@
  */
 package com.linkedin.android.litr.filter.video.gl;
 
-import android.opengl.GLES20;
-
-import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.linkedin.android.litr.filter.Transform;
+import com.linkedin.android.litr.filter.video.gl.parameter.ShaderParameter;
+import com.linkedin.android.litr.filter.video.gl.parameter.ShaderParameter1f;
 
 /**
  * Frame render filter that adjusts contrast of video pixels
  */
-public class ContrastFilter extends BaseFrameRenderFilter {
+public class ContrastFilter extends VideoFrameRenderFilter {
 
     private static final String FRAGMENT_SHADER =
             "#extension GL_OES_EGL_image_external : require\n" +
@@ -45,16 +45,12 @@ public class ContrastFilter extends BaseFrameRenderFilter {
             "    gl_FragColor = vec4(((textureColor.rgb - vec3(0.5)) * contrast + vec3(0.5)), textureColor.w);\n" +
             "}";
 
-    private float contrast;
-
     /**
      * Create contrast frame render filter
      * @param contrast contrast value, regular contrast being 1.0
      */
     public ContrastFilter(float contrast) {
-        super(DEFAULT_VERTEX_SHADER, FRAGMENT_SHADER);
-
-        this.contrast = contrast;
+        this(contrast, null);
     }
 
     /**
@@ -62,14 +58,12 @@ public class ContrastFilter extends BaseFrameRenderFilter {
      * @param contrast contrast value, regular contrast being 1.0
      * @param transform {@link Transform} that defines positioning of source video frame within target video frame
      */
-    public ContrastFilter(float contrast, @NonNull Transform transform) {
-        super(DEFAULT_VERTEX_SHADER, FRAGMENT_SHADER, transform);
-
-        this.contrast = contrast;
-    }
-
-    @Override
-    protected void applyCustomGlAttributes() {
-        GLES20.glUniform1f(getHandle("contrast"), contrast);
+    public ContrastFilter(float contrast, @Nullable Transform transform) {
+        super(DEFAULT_VERTEX_SHADER,
+                FRAGMENT_SHADER,
+                new ShaderParameter[] {
+                        new ShaderParameter1f(ShaderParameter.TYPE_UNIFORM, "contrast", contrast)
+                },
+                transform);
     }
 }
