@@ -28,6 +28,8 @@ import java.nio.ByteBuffer;
 public class PassthroughTranscoder extends TrackTranscoder {
     private static final String TAG = PassthroughTranscoder.class.getSimpleName();
 
+    private static final int DEFAULT_BUFFER_SIZE = 1024 * 1024; // default to 1 Mb buffer
+
     @VisibleForTesting ByteBuffer outputBuffer;
     @VisibleForTesting MediaCodec.BufferInfo outputBufferInfo;
 
@@ -72,7 +74,9 @@ public class PassthroughTranscoder extends TrackTranscoder {
             targetTrack = mediaMuxer.addTrack(targetFormat, targetTrack);
             targetTrackAdded = true;
 
-            int bufferSize = targetFormat.getInteger(MediaFormat.KEY_MAX_INPUT_SIZE);
+            int bufferSize = targetFormat.containsKey(MediaFormat.KEY_MAX_INPUT_SIZE)
+                    ? targetFormat.getInteger(MediaFormat.KEY_MAX_INPUT_SIZE)
+                    : DEFAULT_BUFFER_SIZE;
             outputBuffer = ByteBuffer.allocate(bufferSize);
 
             lastResult = RESULT_OUTPUT_MEDIA_FORMAT_CHANGED;
