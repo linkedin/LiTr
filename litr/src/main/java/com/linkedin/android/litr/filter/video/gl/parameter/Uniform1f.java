@@ -14,18 +14,17 @@ import androidx.annotation.NonNull;
 /**
  * One float value shader parameter
  */
-public class ShaderParameter1f extends ShaderParameter {
+public class Uniform1f extends ShaderParameter {
 
     private float value;
 
     /**
      * Create shader parameter
-     * @param type parameter type (uniform or attribute)
      * @param name parameter name, as defined in shader code
      * @param value parameter value
      */
-    public ShaderParameter1f(@Type int type, @NonNull String name, float value) {
-        super(type, name);
+    public Uniform1f(@NonNull String name, float value) {
+        super(TYPE_UNIFORM, name);
 
         this.value = value;
     }

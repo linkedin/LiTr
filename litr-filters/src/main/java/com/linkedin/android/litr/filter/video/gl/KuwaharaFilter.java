@@ -19,7 +19,7 @@ import androidx.annotation.Nullable;
 
 import com.linkedin.android.litr.filter.Transform;
 import com.linkedin.android.litr.filter.video.gl.parameter.ShaderParameter;
-import com.linkedin.android.litr.filter.video.gl.parameter.ShaderParameter1i;
+import com.linkedin.android.litr.filter.video.gl.parameter.Uniform1i;
 
 /**
  * Kuwahara image abstraction, drawn from the work of Kyprianidis, et. al. in their publication
@@ -140,7 +140,7 @@ public class KuwaharaFilter extends VideoFrameRenderFilter {
         super(DEFAULT_VERTEX_SHADER,
                 FRAGMENT_SHADER,
                 new ShaderParameter[] {
-                        new ShaderParameter1i(ShaderParameter.TYPE_UNIFORM, "radius", radius)
+                        new Uniform1i("radius", radius)
                 },
                 transform);
     }

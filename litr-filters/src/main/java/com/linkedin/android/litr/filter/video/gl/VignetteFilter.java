@@ -22,9 +22,9 @@ import androidx.annotation.Nullable;
 
 import com.linkedin.android.litr.filter.Transform;
 import com.linkedin.android.litr.filter.video.gl.parameter.ShaderParameter;
-import com.linkedin.android.litr.filter.video.gl.parameter.ShaderParameter1f;
-import com.linkedin.android.litr.filter.video.gl.parameter.ShaderParameter2f;
-import com.linkedin.android.litr.filter.video.gl.parameter.ShaderParameter3f;
+import com.linkedin.android.litr.filter.video.gl.parameter.Uniform1f;
+import com.linkedin.android.litr.filter.video.gl.parameter.Uniform2f;
+import com.linkedin.android.litr.filter.video.gl.parameter.Uniform3f;
 
 /**
  * Performs a vignetting effect, fading out the video frame at the edges
@@ -75,10 +75,10 @@ public class VignetteFilter extends VideoFrameRenderFilter {
         super(DEFAULT_VERTEX_SHADER,
                 FRAGMENT_SHADER,
                 new ShaderParameter[] {
-                        new ShaderParameter2f(ShaderParameter.TYPE_UNIFORM, "vignetteCenter", center.x, center.y),
-                        new ShaderParameter3f(ShaderParameter.TYPE_UNIFORM, "vignetteColor", color[0], color[1], color[2]),
-                        new ShaderParameter1f(ShaderParameter.TYPE_UNIFORM, "vignetteStart", start),
-                        new ShaderParameter1f(ShaderParameter.TYPE_UNIFORM, "vignetteEnd", end)
+                        new Uniform2f("vignetteCenter", center.x, center.y),
+                        new Uniform3f("vignetteColor", color[0], color[1], color[2]),
+                        new Uniform1f("vignetteStart", start),
+                        new Uniform1f("vignetteEnd", end)
                 },
                 transform);
     }

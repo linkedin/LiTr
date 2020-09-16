@@ -12,32 +12,28 @@ import android.opengl.GLES20;
 import androidx.annotation.NonNull;
 
 /**
- * Three float value shader parameter
+ * Two float value shader parameter
  */
-public class ShaderParameter3f extends ShaderParameter {
+public class Uniform2f extends ShaderParameter {
 
     private float value1;
     private float value2;
-    private float value3;
 
     /**
      * Create shader parameter
-     * @param type parameter type (uniform or attribute)
      * @param name parameter name, as defined in shader code
      * @param value1 first parameter value
      * @param value2 second parameter value
-     * @param value3 third parameter value
      */
-    public ShaderParameter3f(@Type int type, @NonNull String name, float value1, float value2, float value3) {
-        super(type, name);
+    public Uniform2f(@NonNull String name, float value1, float value2) {
+        super(TYPE_UNIFORM, name);
 
         this.value1 = value1;
         this.value2 = value2;
-        this.value3 = value3;
     }
 
     @Override
     public void apply(int glProgram) {
-        GLES20.glUniform3f(getLocation(glProgram), value1, value2, value3);
+        GLES20.glUniform2f(getLocation(glProgram), value1, value2);
     }
 }

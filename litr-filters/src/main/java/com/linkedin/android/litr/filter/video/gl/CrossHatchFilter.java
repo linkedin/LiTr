@@ -24,7 +24,7 @@ import androidx.annotation.Nullable;
 
 import com.linkedin.android.litr.filter.Transform;
 import com.linkedin.android.litr.filter.video.gl.parameter.ShaderParameter;
-import com.linkedin.android.litr.filter.video.gl.parameter.ShaderParameter1f;
+import com.linkedin.android.litr.filter.video.gl.parameter.Uniform1f;
 
 /**
  * Frame render filter that converts video frame into a "cross hatch" rendering
@@ -95,8 +95,8 @@ public class CrossHatchFilter extends VideoFrameRenderFilter {
         super(DEFAULT_VERTEX_SHADER,
                 FRAGMENT_SHADER,
                 new ShaderParameter[] {
-                        new ShaderParameter1f(ShaderParameter.TYPE_UNIFORM, "crossHatchSpacing", crossHatchSpacing),
-                        new ShaderParameter1f(ShaderParameter.TYPE_UNIFORM, "lineWidth", lineWidth)
+                        new Uniform1f("crossHatchSpacing", crossHatchSpacing),
+                        new Uniform1f("lineWidth", lineWidth)
                 },
                 transform);
     }

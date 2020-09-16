@@ -27,8 +27,8 @@ import androidx.annotation.Nullable;
 
 import com.linkedin.android.litr.filter.Transform;
 import com.linkedin.android.litr.filter.video.gl.parameter.ShaderParameter;
-import com.linkedin.android.litr.filter.video.gl.parameter.ShaderParameter1f;
-import com.linkedin.android.litr.filter.video.gl.parameter.ShaderParameter2f;
+import com.linkedin.android.litr.filter.video.gl.parameter.Uniform1f;
+import com.linkedin.android.litr.filter.video.gl.parameter.Uniform2f;
 
 /**
  * Frame render filter that applies a zoom distortion to video frame
@@ -79,8 +79,8 @@ public class ZoomBlurFilter extends VideoFrameRenderFilter {
         super(DEFAULT_VERTEX_SHADER,
                 FRAGMENT_SHADER,
                 new ShaderParameter[] {
-                        new ShaderParameter2f(ShaderParameter.TYPE_UNIFORM, "blurCenter", blurCenter.x, blurCenter.y),
-                        new ShaderParameter1f(ShaderParameter.TYPE_UNIFORM, "blurSize", blurSize)
+                        new Uniform2f("blurCenter", blurCenter.x, blurCenter.y),
+                        new Uniform1f("blurSize", blurSize)
                 },
                 transform);
     }

@@ -22,7 +22,7 @@ import androidx.annotation.Nullable;
 
 import com.linkedin.android.litr.filter.Transform;
 import com.linkedin.android.litr.filter.video.gl.parameter.ShaderParameter;
-import com.linkedin.android.litr.filter.video.gl.parameter.ShaderParameter3f;
+import com.linkedin.android.litr.filter.video.gl.parameter.Uniform3f;
 
 /**
  * Adjust color levels of video pixels
@@ -74,11 +74,11 @@ public class LevelsFilter extends VideoFrameRenderFilter {
         super(DEFAULT_VERTEX_SHADER,
                 FRAGMENT_SHADER,
                 new ShaderParameter[] {
-                        new ShaderParameter3f(ShaderParameter.TYPE_UNIFORM, "levelMinimum", min[0], min[1], min[2]),
-                        new ShaderParameter3f(ShaderParameter.TYPE_UNIFORM, "levelMiddle", mid[0], mid[1], mid[2]),
-                        new ShaderParameter3f(ShaderParameter.TYPE_UNIFORM, "levelMaximum", max[0], max[1], max[2]),
-                        new ShaderParameter3f(ShaderParameter.TYPE_UNIFORM, "minOutput", minOutput[0], minOutput[1], minOutput[2]),
-                        new ShaderParameter3f(ShaderParameter.TYPE_UNIFORM, "maxOutput", maxOutput[0], maxOutput[1], maxOutput[2])
+                        new Uniform3f("levelMinimum", min[0], min[1], min[2]),
+                        new Uniform3f("levelMiddle", mid[0], mid[1], mid[2]),
+                        new Uniform3f("levelMaximum", max[0], max[1], max[2]),
+                        new Uniform3f("minOutput", minOutput[0], minOutput[1], minOutput[2]),
+                        new Uniform3f("maxOutput", maxOutput[0], maxOutput[1], maxOutput[2])
                 },
                 transform);
     }
