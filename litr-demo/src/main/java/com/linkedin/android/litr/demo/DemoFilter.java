@@ -16,6 +16,7 @@ import com.linkedin.android.litr.filter.video.gl.BilateralFilter;
 import com.linkedin.android.litr.filter.video.gl.BrightnessFilter;
 import com.linkedin.android.litr.filter.video.gl.BulgeDistortionFilter;
 import com.linkedin.android.litr.filter.video.gl.CgaColorspaceFilter;
+import com.linkedin.android.litr.filter.video.gl.ColorBalanceFilter;
 import com.linkedin.android.litr.filter.video.gl.ColorMatrixFilter;
 import com.linkedin.android.litr.filter.video.gl.ColorMonochromeFilter;
 import com.linkedin.android.litr.filter.video.gl.ContrastFilter;
@@ -32,6 +33,7 @@ import com.linkedin.android.litr.filter.video.gl.HazeFilter;
 import com.linkedin.android.litr.filter.video.gl.HueFilter;
 import com.linkedin.android.litr.filter.video.gl.InversionFilter;
 import com.linkedin.android.litr.filter.video.gl.KuwaharaFilter;
+import com.linkedin.android.litr.filter.video.gl.LaplacianFilter;
 import com.linkedin.android.litr.filter.video.gl.LevelsFilter;
 import com.linkedin.android.litr.filter.video.gl.OpacityFilter;
 import com.linkedin.android.litr.filter.video.gl.PixelationFilter;
@@ -57,6 +59,7 @@ enum DemoFilter {
     BRIGHTNESS("Brightness", new BrightnessFilter(0.25f)),
     BULGE_DISTORTION("Bulge Distortion", new BulgeDistortionFilter(new PointF(0.5f, 0.5f), 0.25f, 0.5f)),
     CONTRAST("Contrast", new ContrastFilter(1.7f)),
+    COLOR_BALANCE("Color Balance", new ColorBalanceFilter(new float[]{0.0f, 0.0f, 1.0f}, new float[]{0.0f, 0.5f, 0.0f}, new float[]{0.3f, 0.0f, 0.0f}, true)),
     COLOR_MATRIX("Color Matrix", new ColorMatrixFilter(new float[]{
             0.67f, 0f, 0f, 0f,
             0.0f, 0.53f, 0f, 0f,
@@ -77,6 +80,11 @@ enum DemoFilter {
     HUE("Hue", new HueFilter(90f)),
     INVERSION("Inversion", new InversionFilter()),
     KUWAHARA("Kuwahara", new KuwaharaFilter(6)),
+    LAPLACIAN("Laplacian", new LaplacianFilter(new float[]{
+            0.5f, 1.0f, 0.5f,
+            1.0f, -6.0f, 1.0f,
+            0.5f, 1.0f, 0.5f
+    }, 0.01f, 0.01f)),
     LEVELS("Levels", new LevelsFilter(new float[]{0.0f, 0.0f, 0.25f}, new float[]{1.0f, 1.0f, 0.6f}, new float[]{1.0f, 1.0f, 1.0f}, new float[]{0.0f, 0.0f, 0.0f}, new float[]{1.0f, 1.0f, 1.0f})),
     OPACITY("Opacity", new OpacityFilter(0.7f)),
     PIXELATION("Pixelation", new PixelationFilter(0.01f, 0.01f, 1.0f)),
