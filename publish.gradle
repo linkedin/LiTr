@@ -11,16 +11,6 @@ task sourcesJar(type: Jar) {
     from android.sourceSets.main.java.srcDirs
 }
 
-task javadoc(type: Javadoc) {
-    source = android.sourceSets.main.java.srcDirs
-    classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
-}
-
-task javadocJar(type: Jar, dependsOn: javadoc) {
-    classifier = 'javadoc'
-    from javadoc.destinationDir
-}
-
 publishing {
     publications {
         aar(MavenPublication) {
@@ -29,7 +19,6 @@ publishing {
                 builtBy assemble
             }
             artifact sourcesJar
-            artifact javadocJar
 
             pom.withXml {
                 asNode().children().last() + {
