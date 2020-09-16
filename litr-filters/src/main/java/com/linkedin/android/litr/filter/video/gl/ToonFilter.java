@@ -24,7 +24,7 @@ import androidx.annotation.Nullable;
 
 import com.linkedin.android.litr.filter.Transform;
 import com.linkedin.android.litr.filter.video.gl.parameter.ShaderParameter;
-import com.linkedin.android.litr.filter.video.gl.parameter.ShaderParameter1f;
+import com.linkedin.android.litr.filter.video.gl.parameter.Uniform1f;
 
 /**
  * Frame render filter that applies cartoon-like effect
@@ -143,10 +143,10 @@ public class ToonFilter extends VideoFrameRenderFilter {
         super(VERTEX_SHADER,
                 FRAGMENT_SHADER,
                 new ShaderParameter[] {
-                        new ShaderParameter1f(ShaderParameter.TYPE_UNIFORM, "texelWidth", texelWidth),
-                        new ShaderParameter1f(ShaderParameter.TYPE_UNIFORM, "texelHeight", texelHeight),
-                        new ShaderParameter1f(ShaderParameter.TYPE_UNIFORM, "threshold", threshold),
-                        new ShaderParameter1f(ShaderParameter.TYPE_UNIFORM, "quantizationLevels", quantizationLevels)
+                        new Uniform1f("texelWidth", texelWidth),
+                        new Uniform1f("texelHeight", texelHeight),
+                        new Uniform1f("threshold", threshold),
+                        new Uniform1f("quantizationLevels", quantizationLevels)
                 },
                 transform);
     }

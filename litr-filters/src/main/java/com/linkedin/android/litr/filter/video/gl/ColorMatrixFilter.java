@@ -19,8 +19,8 @@ import androidx.annotation.Nullable;
 
 import com.linkedin.android.litr.filter.Transform;
 import com.linkedin.android.litr.filter.video.gl.parameter.ShaderParameter;
-import com.linkedin.android.litr.filter.video.gl.parameter.ShaderParameter1f;
-import com.linkedin.android.litr.filter.video.gl.parameter.ShaderParameterMatrix4fv;
+import com.linkedin.android.litr.filter.video.gl.parameter.Uniform1f;
+import com.linkedin.android.litr.filter.video.gl.parameter.UniformMatrix4fv;
 
 public class ColorMatrixFilter extends VideoFrameRenderFilter {
 
@@ -61,8 +61,8 @@ public class ColorMatrixFilter extends VideoFrameRenderFilter {
         super(DEFAULT_VERTEX_SHADER,
                 COLOR_MATRIX_FRAGMENT_SHADER,
                 new ShaderParameter[] {
-                        new ShaderParameter1f(ShaderParameter.TYPE_UNIFORM, "intensity", intensity),
-                        new ShaderParameterMatrix4fv(ShaderParameter.TYPE_UNIFORM, "matrix", 1, false, colorMatrix4x4, 0)
+                        new Uniform1f("intensity", intensity),
+                        new UniformMatrix4fv("matrix", 1, false, colorMatrix4x4, 0)
                 },
                 transform);
     }

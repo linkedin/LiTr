@@ -11,27 +11,31 @@ import android.opengl.GLES20;
 
 import androidx.annotation.NonNull;
 
-/**
- * One integer value shader parameter
- */
-public class ShaderParameter1i extends ShaderParameter {
+import java.nio.FloatBuffer;
 
-    private int value;
+/**
+ * Three element vector shader parameter
+ */
+public class Uniform3fv extends ShaderParameter {
+
+    private int count;
+    private FloatBuffer buffer;
 
     /**
      * Create shader parameter
-     * @param type parameter type (uniform or attribute)
      * @param name parameter name, as defined in shader code
-     * @param value parameter value
+     * @param count number of vectors
+     * @param buffer buffer containing vector values
      */
-    public ShaderParameter1i(@Type int type, @NonNull String name, int value) {
-        super(type, name);
+    public Uniform3fv(@NonNull String name, int count, FloatBuffer buffer) {
+        super(TYPE_UNIFORM, name);
 
-        this.value = value;
+        this.count = count;
+        this.buffer = buffer;
     }
 
     @Override
     public void apply(int glProgram) {
-        GLES20.glUniform1i(getLocation(glProgram), value);
+        GLES20.glUniform3fv(getLocation(glProgram), count, buffer);
     }
 }

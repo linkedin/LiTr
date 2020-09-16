@@ -27,8 +27,8 @@ import androidx.annotation.Nullable;
 
 import com.linkedin.android.litr.filter.Transform;
 import com.linkedin.android.litr.filter.video.gl.parameter.ShaderParameter;
-import com.linkedin.android.litr.filter.video.gl.parameter.ShaderParameter1f;
-import com.linkedin.android.litr.filter.video.gl.parameter.ShaderParameter2f;
+import com.linkedin.android.litr.filter.video.gl.parameter.Uniform1f;
+import com.linkedin.android.litr.filter.video.gl.parameter.Uniform2f;
 
 /**
  * Frame render filter that applies a swirl distortion to video frame
@@ -83,9 +83,9 @@ public class SwirlFilter extends VideoFrameRenderFilter {
         super(DEFAULT_VERTEX_SHADER,
                 FRAGMENT_SHADER,
                 new ShaderParameter[] {
-                        new ShaderParameter2f(ShaderParameter.TYPE_UNIFORM, "center", center.x, center.y),
-                        new ShaderParameter1f(ShaderParameter.TYPE_UNIFORM, "radius", radius),
-                        new ShaderParameter1f(ShaderParameter.TYPE_UNIFORM, "angle", angle)
+                        new Uniform2f("center", center.x, center.y),
+                        new Uniform1f("radius", radius),
+                        new Uniform1f("angle", angle)
                 },
                 transform);
     }

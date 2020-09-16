@@ -20,7 +20,7 @@ import androidx.annotation.Nullable;
 
 import com.linkedin.android.litr.filter.Transform;
 import com.linkedin.android.litr.filter.video.gl.parameter.ShaderParameter;
-import com.linkedin.android.litr.filter.video.gl.parameter.ShaderParameter3f;
+import com.linkedin.android.litr.filter.video.gl.parameter.Uniform3f;
 
 /**
  * Colors video pixels in false colors. A color channel value of a pixel is calculated as an interpolation between
@@ -68,8 +68,8 @@ public class FalseColorFilter extends VideoFrameRenderFilter {
         super(DEFAULT_VERTEX_SHADER,
                 FRAGMENT_SHADER,
                 new ShaderParameter[] {
-                        new ShaderParameter3f(ShaderParameter.TYPE_UNIFORM, "firstColor", firstColor[0], firstColor[1], firstColor[2]),
-                        new ShaderParameter3f(ShaderParameter.TYPE_UNIFORM, "secondColor", secondColor[0], secondColor[1], secondColor[2])
+                        new Uniform3f("firstColor", firstColor[0], firstColor[1], firstColor[2]),
+                        new Uniform3f("secondColor", secondColor[0], secondColor[1], secondColor[2])
                 },
                 transform);
     }

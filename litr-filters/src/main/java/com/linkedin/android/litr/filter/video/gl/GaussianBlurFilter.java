@@ -24,7 +24,7 @@ import androidx.annotation.Nullable;
 
 import com.linkedin.android.litr.filter.Transform;
 import com.linkedin.android.litr.filter.video.gl.parameter.ShaderParameter;
-import com.linkedin.android.litr.filter.video.gl.parameter.ShaderParameter1f;
+import com.linkedin.android.litr.filter.video.gl.parameter.Uniform1f;
 
 /**
  * Frame render filter that applies a Gaussian blur distortion to video frame
@@ -114,9 +114,9 @@ public class GaussianBlurFilter extends VideoFrameRenderFilter {
         super(VERTEX_SHADER,
                 FRAGMENT_SHADER,
                 new ShaderParameter[] {
-                        new ShaderParameter1f(ShaderParameter.TYPE_UNIFORM, "texelWidthOffset", texelWidthOffset),
-                        new ShaderParameter1f(ShaderParameter.TYPE_UNIFORM, "texelHeightOffset", texelHeightOffset),
-                        new ShaderParameter1f(ShaderParameter.TYPE_UNIFORM, "blurSize", blurSize)
+                        new Uniform1f("texelWidthOffset", texelWidthOffset),
+                        new Uniform1f("texelHeightOffset", texelHeightOffset),
+                        new Uniform1f("blurSize", blurSize)
                 },
                 transform);
     }

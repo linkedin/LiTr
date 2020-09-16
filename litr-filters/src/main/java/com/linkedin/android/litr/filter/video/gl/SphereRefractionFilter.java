@@ -27,8 +27,8 @@ import androidx.annotation.Nullable;
 
 import com.linkedin.android.litr.filter.Transform;
 import com.linkedin.android.litr.filter.video.gl.parameter.ShaderParameter;
-import com.linkedin.android.litr.filter.video.gl.parameter.ShaderParameter1f;
-import com.linkedin.android.litr.filter.video.gl.parameter.ShaderParameter2f;
+import com.linkedin.android.litr.filter.video.gl.parameter.Uniform1f;
+import com.linkedin.android.litr.filter.video.gl.parameter.Uniform2f;
 
 /**
  * Frame render filter that applies a sphere refraction effect to video frame
@@ -85,10 +85,10 @@ public class SphereRefractionFilter extends VideoFrameRenderFilter {
         super(DEFAULT_VERTEX_SHADER,
                 FRAGMENT_SHADER,
                 new ShaderParameter[] {
-                        new ShaderParameter2f(ShaderParameter.TYPE_UNIFORM, "center", center.x, center.y),
-                        new ShaderParameter1f(ShaderParameter.TYPE_UNIFORM, "radius", radius),
-                        new ShaderParameter1f(ShaderParameter.TYPE_UNIFORM, "aspectRatio", aspectRatio),
-                        new ShaderParameter1f(ShaderParameter.TYPE_UNIFORM, "refractiveIndex", refractiveIndex)
+                        new Uniform2f("center", center.x, center.y),
+                        new Uniform1f("radius", radius),
+                        new Uniform1f("aspectRatio", aspectRatio),
+                        new Uniform1f("refractiveIndex", refractiveIndex)
                 },
                 transform);
     }

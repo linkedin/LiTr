@@ -14,7 +14,7 @@ import androidx.annotation.NonNull;
 /**
  * 4x4 float value matrix shader parameter
  */
-public class ShaderParameterMatrix4fv extends ShaderParameter {
+public class UniformMatrix4fv extends ShaderParameter {
 
     private int count;
     private boolean transpose;
@@ -23,15 +23,14 @@ public class ShaderParameterMatrix4fv extends ShaderParameter {
 
     /**
      * Create shader parameter
-     * @param type parameter type (uniform or attribute)
      * @param name parameter name, as defined in shader code
      * @param count number of matrices
      * @param transpose flag indicating if matrix is transposed
      * @param matrix matrix values
      * @param offset matrix offset
      */
-    public ShaderParameterMatrix4fv(@Type int type, @NonNull String name, int count, boolean transpose, float[] matrix, int offset) {
-        super(type, name);
+    public UniformMatrix4fv(@NonNull String name, int count, boolean transpose, float[] matrix, int offset) {
+        super(TYPE_UNIFORM, name);
 
         this.count = count;
         this.transpose = transpose;

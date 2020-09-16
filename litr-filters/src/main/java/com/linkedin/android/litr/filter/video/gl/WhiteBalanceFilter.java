@@ -24,7 +24,7 @@ import androidx.annotation.Nullable;
 
 import com.linkedin.android.litr.filter.Transform;
 import com.linkedin.android.litr.filter.video.gl.parameter.ShaderParameter;
-import com.linkedin.android.litr.filter.video.gl.parameter.ShaderParameter1f;
+import com.linkedin.android.litr.filter.video.gl.parameter.Uniform1f;
 
 /**
  * Frame render filter that adjusts white balance
@@ -74,11 +74,11 @@ public class WhiteBalanceFilter extends VideoFrameRenderFilter {
         super(DEFAULT_VERTEX_SHADER,
                 FRAGMENT_SHADER,
                 new ShaderParameter[] {
-                        new ShaderParameter1f(ShaderParameter.TYPE_UNIFORM, "temperature",
+                        new Uniform1f("temperature",
                                 temperature < 5000
                                 ? 0.0004f * (temperature - 5000.0f)
                                 : 0.00006f * (temperature - 5000.0f)),
-                        new ShaderParameter1f(ShaderParameter.TYPE_UNIFORM, "tint", tint / 100f)
+                        new Uniform1f("tint", tint / 100f)
                 },
                 transform);
     }
