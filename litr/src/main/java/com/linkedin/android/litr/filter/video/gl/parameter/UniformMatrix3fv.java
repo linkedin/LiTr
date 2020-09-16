@@ -14,9 +14,9 @@ import androidx.annotation.NonNull;
 import java.nio.FloatBuffer;
 
 /**
- * 4x4 float value matrix shader parameter
+ * 3x3 float value matrix shader parameter
  */
-public class UniformMatrix4fv extends ShaderParameter {
+public class UniformMatrix3fv extends ShaderParameter {
 
     private int count;
     private boolean transpose;
@@ -32,7 +32,7 @@ public class UniformMatrix4fv extends ShaderParameter {
      * @param matrix matrix values
      * @param offset matrix offset
      */
-    public UniformMatrix4fv(@NonNull String name, int count, boolean transpose, @NonNull float[] matrix, int offset) {
+    public UniformMatrix3fv(@NonNull String name, int count, boolean transpose, @NonNull float[] matrix, int offset) {
         super(TYPE_UNIFORM, name);
 
         this.count = count;
@@ -48,7 +48,7 @@ public class UniformMatrix4fv extends ShaderParameter {
      * @param transpose flag indicating if matrix is transposed
      * @param buffer buffer containing matrix values
      */
-    public UniformMatrix4fv(@NonNull String name, int count, boolean transpose, @NonNull FloatBuffer buffer) {
+    public UniformMatrix3fv(@NonNull String name, int count, boolean transpose, @NonNull FloatBuffer buffer) {
         super(TYPE_UNIFORM, name);
 
         this.count = count;
@@ -59,9 +59,9 @@ public class UniformMatrix4fv extends ShaderParameter {
     @Override
     public void apply(int glProgram) {
         if (buffer != null) {
-            GLES20.glUniformMatrix4fv(getLocation(glProgram), count, transpose, buffer);
+            GLES20.glUniformMatrix3fv(getLocation(glProgram), count, transpose, buffer);
         } else {
-            GLES20.glUniformMatrix4fv(getLocation(glProgram), count, transpose, matrix, offset);
+            GLES20.glUniformMatrix3fv(getLocation(glProgram), count, transpose, matrix, offset);
         }
     }
 }

@@ -11,15 +11,15 @@ import android.opengl.GLES20;
 
 import androidx.annotation.NonNull;
 
-import java.nio.FloatBuffer;
+import java.nio.IntBuffer;
 
 /**
- * Three float element vector shader parameter
+ * One integer element vector shader parameter
  */
-public class Uniform3fv extends ShaderParameter {
+public class Uniform1iv extends ShaderParameter {
 
     private int count;
-    private FloatBuffer buffer;
+    private IntBuffer buffer;
 
     /**
      * Create shader parameter
@@ -27,8 +27,8 @@ public class Uniform3fv extends ShaderParameter {
      * @param count number of vectors
      * @param buffer buffer containing new vector values
      */
-    public Uniform3fv(@NonNull String name, int count, @NonNull float[] buffer) {
-        this(name, count, FloatBuffer.wrap(buffer));
+    public Uniform1iv(@NonNull String name, int count, @NonNull int[] buffer) {
+        this(name, count, IntBuffer.wrap(buffer));
     }
 
     /**
@@ -37,7 +37,7 @@ public class Uniform3fv extends ShaderParameter {
      * @param count number of vectors
      * @param buffer buffer containing new vector values
      */
-    public Uniform3fv(@NonNull String name, int count, @NonNull FloatBuffer buffer) {
+    public Uniform1iv(@NonNull String name, int count, @NonNull IntBuffer buffer) {
         super(TYPE_UNIFORM, name);
 
         this.count = count;
@@ -46,6 +46,6 @@ public class Uniform3fv extends ShaderParameter {
 
     @Override
     public void apply(int glProgram) {
-        GLES20.glUniform3fv(getLocation(glProgram), count, buffer);
+        GLES20.glUniform1iv(getLocation(glProgram), count, buffer);
     }
 }
