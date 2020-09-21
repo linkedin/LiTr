@@ -13,6 +13,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.RectF;
 import android.net.Uri;
+import android.opengl.GLES20;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
@@ -73,8 +74,8 @@ public class BitmapOverlayFilter extends BaseOverlayGlFilter {
     }
 
     @Override
-    public void init(@NonNull float[] mvpMatrix, int mvpMatrixOffset) {
-        super.init(mvpMatrix, mvpMatrixOffset);
+    public void init() {
+        super.init();
 
         if (bitmap != null) {
             overlayTextureID = createOverlayTexture(bitmap);
@@ -92,6 +93,13 @@ public class BitmapOverlayFilter extends BaseOverlayGlFilter {
         if (overlayTextureID >= 0) {
             renderOverlayTexture(overlayTextureID);
         }
+    }
+
+    @Override
+    public void release() {
+        super.release();
+
+        GLES20.glDeleteTextures(1, new int[]{overlayTextureID}, 0);
     }
 
     @Nullable

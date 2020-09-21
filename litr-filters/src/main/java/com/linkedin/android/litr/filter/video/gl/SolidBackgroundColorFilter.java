@@ -50,11 +50,17 @@ public class SolidBackgroundColorFilter implements GlFilter {
     }
 
     @Override
-    public void init(@NonNull float[] vpMatrix, int vpMatrixOffset) {}
+    public void init() {}
+
+    @Override
+    public void setVpMatrix(@NonNull float[] vpMatrix, int vpMatrixOffset) {}
 
     @Override
     public void apply(long presentationTimeNs) {
         GLES20.glClearColor(red, green, blue, 1.0f);
         GLES20.glClear(GLES20.GL_DEPTH_BUFFER_BIT | GLES20.GL_COLOR_BUFFER_BIT);
     }
+
+    @Override
+    public void release() {}
 }
