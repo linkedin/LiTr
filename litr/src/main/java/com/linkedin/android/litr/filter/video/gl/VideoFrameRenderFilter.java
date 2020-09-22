@@ -148,10 +148,12 @@ public class VideoFrameRenderFilter implements GlFrameRenderFilter {
         }
         fragmentShaderHandle = GlRenderUtils.loadShader(GLES20.GL_FRAGMENT_SHADER, fragmentShader);
         if (fragmentShaderHandle == 0) {
+            release();
             throw new RuntimeException("failed loading fragment shader");
         }
         glProgram = GlRenderUtils.createProgram(vertexShaderHandle, fragmentShaderHandle);
         if (glProgram == 0) {
+            release();
             throw new RuntimeException("failed creating glProgram");
         }
         aPositionHandle = GLES20.glGetAttribLocation(glProgram, "aPosition");
@@ -228,5 +230,9 @@ public class VideoFrameRenderFilter implements GlFrameRenderFilter {
         GLES20.glDeleteShader(vertexShaderHandle);
         GLES20.glDeleteShader(fragmentShaderHandle);
         GLES20.glDeleteBuffers(1, new int[]{aTextureHandle}, 0);
+        glProgram = 0;
+        vertexShaderHandle = 0;
+        fragmentShaderHandle = 0;
+        aTextureHandle = 0;
     }
 }

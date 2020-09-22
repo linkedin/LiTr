@@ -109,6 +109,7 @@ public class FrameSequenceAnimationOverlayFilter extends BaseOverlayGlFilter {
         Frame frame = currentFrame;
         for (int frameIdx = 0; frameIdx < textureCount; frameIdx++) {
             textureIds[frameIdx] = frame.textureId;
+            frame.textureId = 0;
             frame = frame.next;
         }
         GLES20.glDeleteTextures(textureCount, textureIds, 0);

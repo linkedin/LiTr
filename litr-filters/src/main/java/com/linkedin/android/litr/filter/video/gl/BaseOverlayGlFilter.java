@@ -81,6 +81,35 @@ abstract class BaseOverlayGlFilter implements GlFilter {
     public void init() {
         Matrix.setIdentityM(stMatrix, 0);
         Matrix.scaleM(stMatrix, 0, 1, -1, 1);
+
+        vertexShaderHandle = GlRenderUtils.loadShader(GLES20.GL_VERTEX_SHADER, VERTEX_SHADER);
+        if (vertexShaderHandle == 0) {
+            throw new RuntimeException("failed loading vertex shader");
+        }
+        fragmentShaderHandle = GlRenderUtils.loadShader(GLES20.GL_FRAGMENT_SHADER, FRAGMENT_OVERLAY_SHADER);
+        if (fragmentShaderHandle == 0) {
+            release();
+            throw new RuntimeException("failed loading fragment shader");
+        }
+
+        // Create program
+        glOverlayProgram = GlRenderUtils.createProgram(vertexShaderHandle, fragmentShaderHandle);
+        if (glOverlayProgram == 0) {
+            release();
+            throw new RuntimeException("failed creating glOverlayProgram");
+        }
+
+        // Get the location of our uniforms
+        overlayMvpMatrixHandle = GLES20.glGetUniformLocation(glOverlayProgram, "uMVPMatrix");
+        GlRenderUtils.checkGlError("glGetUniformLocation uMVPMatrix");
+        if (overlayMvpMatrixHandle == -1) {
+            throw new RuntimeException("Could not get attrib location for uMVPMatrix");
+        }
+        overlayUstMatrixHandle = GLES20.glGetUniformLocation(glOverlayProgram, "uSTMatrix");
+        GlRenderUtils.checkGlError("glGetUniformLocation uSTMatrix");
+        if (overlayUstMatrixHandle == -1) {
+            throw new RuntimeException("Could not get attrib location for uSTMatrix");
+        }
     }
 
     @Override
@@ -97,6 +126,9 @@ abstract class BaseOverlayGlFilter implements GlFilter {
         GLES20.glDeleteProgram(glOverlayProgram);
         GLES20.glDeleteShader(vertexShaderHandle);
         GLES20.glDeleteShader(fragmentShaderHandle);
+        glOverlayProgram = 0;
+        vertexShaderHandle = 0;
+        fragmentShaderHandle = 0;
     }
 
     void renderOverlayTexture(int textureId) {
@@ -124,33 +156,6 @@ abstract class BaseOverlayGlFilter implements GlFilter {
      */
     int createOverlayTexture(@NonNull Bitmap overlayBitmap) {
         int overlayTextureID;
-
-        vertexShaderHandle = GlRenderUtils.loadShader(GLES20.GL_VERTEX_SHADER, VERTEX_SHADER);
-        if (vertexShaderHandle == 0) {
-            throw new RuntimeException("failed loading vertex shader");
-        }
-        fragmentShaderHandle = GlRenderUtils.loadShader(GLES20.GL_FRAGMENT_SHADER, FRAGMENT_OVERLAY_SHADER);
-        if (fragmentShaderHandle == 0) {
-            throw new RuntimeException("failed loading fragment shader");
-        }
-
-        // Create program
-        glOverlayProgram = GlRenderUtils.createProgram(vertexShaderHandle, fragmentShaderHandle);
-        if (glOverlayProgram == 0) {
-            throw new RuntimeException("failed creating glOverlayProgram");
-        }
-
-        // Get the location of our uniforms
-        overlayMvpMatrixHandle = GLES20.glGetUniformLocation(glOverlayProgram, "uMVPMatrix");
-        GlRenderUtils.checkGlError("glGetUniformLocation uMVPMatrix");
-        if (overlayMvpMatrixHandle == -1) {
-            throw new RuntimeException("Could not get attrib location for uMVPMatrix");
-        }
-        overlayUstMatrixHandle = GLES20.glGetUniformLocation(glOverlayProgram, "uSTMatrix");
-        GlRenderUtils.checkGlError("glGetUniformLocation uSTMatrix");
-        if (overlayUstMatrixHandle == -1) {
-            throw new RuntimeException("Could not get attrib location for uSTMatrix");
-        }
 
         // Generate one texture for overlay
         int[] textures = new int[1];

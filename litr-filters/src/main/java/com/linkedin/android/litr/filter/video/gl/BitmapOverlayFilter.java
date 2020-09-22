@@ -100,6 +100,7 @@ public class BitmapOverlayFilter extends BaseOverlayGlFilter {
         super.release();
 
         GLES20.glDeleteTextures(1, new int[]{overlayTextureID}, 0);
+        overlayTextureID = 0;
     }
 
     @Nullable
