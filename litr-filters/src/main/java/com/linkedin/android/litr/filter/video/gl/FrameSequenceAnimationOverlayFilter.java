@@ -9,6 +9,7 @@ package com.linkedin.android.litr.filter.video.gl;
 
 import android.graphics.Bitmap;
 import android.graphics.RectF;
+import android.opengl.GLES20;
 import android.util.Log;
 
 import androidx.annotation.IntRange;
@@ -51,8 +52,8 @@ public class FrameSequenceAnimationOverlayFilter extends BaseOverlayGlFilter {
     }
 
     @Override
-    public void init(@NonNull float[] mvpMatrix, int mvpMatrixOffset) {
-        super.init(mvpMatrix, mvpMatrixOffset);
+    public void init() {
+        super.init();
 
         Frame firstFrame = null;
         Frame prevFrame = null;
@@ -97,6 +98,21 @@ public class FrameSequenceAnimationOverlayFilter extends BaseOverlayGlFilter {
         }
 
         renderOverlayTexture(currentFrame.textureId);
+    }
+
+    @Override
+    public void release() {
+        super.release();
+
+        int textureCount = animationFrameProvider.getFrameCount();
+        int[] textureIds = new int[textureCount];
+        Frame frame = currentFrame;
+        for (int frameIdx = 0; frameIdx < textureCount; frameIdx++) {
+            textureIds[frameIdx] = frame.textureId;
+            frame.textureId = 0;
+            frame = frame.next;
+        }
+        GLES20.glDeleteTextures(textureCount, textureIds, 0);
     }
 
     private static class Frame {

@@ -109,7 +109,8 @@ public class GlVideoRenderer implements Renderer {
         initMvpMatrix(rotation, aspectRatio);
 
         for (GlFilter filter : filters) {
-            filter.init(Arrays.copyOf(mvpMatrix, mvpMatrix.length), 0);
+            filter.init();
+            filter.setVpMatrix(Arrays.copyOf(mvpMatrix, mvpMatrix.length), 0);
         }
     }
 
@@ -132,6 +133,10 @@ public class GlVideoRenderer implements Renderer {
 
     @Override
     public void release() {
+        for (GlFilter filter : filters) {
+            filter.release();
+        }
+
         inputSurface.release();
         outputSurface.release();
     }

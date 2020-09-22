@@ -30,19 +30,11 @@ public class GlRenderUtils {
 
     /**
      * Create GL shader program from vertex and fragment sources
-     * @param vertexSource vertex source
-     * @param fragmentSource fragment source
+     * @param vertexShader vertex shader handle
+     * @param fragmentShader fragment shader handle
      * @return shader program ID
      */
-    public static int createProgram(@NonNull String vertexSource, @NonNull String fragmentSource) {
-        int vertexShader = loadShader(GLES20.GL_VERTEX_SHADER, vertexSource);
-        if (vertexShader == 0) {
-            return 0;
-        }
-        int pixelShader = loadShader(GLES20.GL_FRAGMENT_SHADER, fragmentSource);
-        if (pixelShader == 0) {
-            return 0;
-        }
+    public static int createProgram(@NonNull int vertexShader, @NonNull int fragmentShader) {
         int program = GLES20.glCreateProgram();
         checkGlError("glCreateProgram");
         if (program == 0) {
@@ -50,7 +42,7 @@ public class GlRenderUtils {
         }
         GLES20.glAttachShader(program, vertexShader);
         checkGlError("glAttachShader");
-        GLES20.glAttachShader(program, pixelShader);
+        GLES20.glAttachShader(program, fragmentShader);
         checkGlError("glAttachShader");
         GLES20.glLinkProgram(program);
         int[] linkStatus = new int[1];
@@ -64,7 +56,7 @@ public class GlRenderUtils {
         return program;
     }
 
-    private static int loadShader(int shaderType, @NonNull String source) {
+    public static int loadShader(int shaderType, @NonNull String source) {
         int shader = GLES20.glCreateShader(shaderType);
         checkGlError("glCreateShader type=" + shaderType);
         GLES20.glShaderSource(shader, source);

@@ -91,6 +91,8 @@ public class VideoFrameRenderFilter implements GlFrameRenderFilter {
             1.0f, 1.0f, 0, 1.f, 1.f,
     };
 
+    private int vertexShaderHandle;
+    private int fragmentShaderHandle;
     private int glProgram;
     private int mvpMatrixHandle;
     private int uStMatrixHandle;
@@ -129,23 +131,57 @@ public class VideoFrameRenderFilter implements GlFrameRenderFilter {
         this.transform = transform != null
                 ? transform
                 : new Transform(new PointF(1f, 1f), new PointF(0.5f, 0.5f), 0);
-    }
-
-    @Override
-    public void init(@NonNull float[] vpMatrix, int vpMatrixOffset) {
-        Matrix.setIdentityM(inputFrameTextureMatrix, 0);
-
-        mvpMatrix = vpMatrix;
-
-        mvpMatrix = GlFilterUtil.createFilterMvpMatrix(vpMatrix, transform);
-        mvpMatrixOffset = vpMatrixOffset;
 
         triangleVertices = ByteBuffer.allocateDirect(
                 triangleVerticesData.length * FLOAT_SIZE_BYTES)
                 .order(ByteOrder.nativeOrder()).asFloatBuffer();
         triangleVertices.put(triangleVerticesData).position(0);
+    }
 
-        initGl();
+    @Override
+    public void init() {
+        Matrix.setIdentityM(inputFrameTextureMatrix, 0);
+
+        vertexShaderHandle = GlRenderUtils.loadShader(GLES20.GL_VERTEX_SHADER, vertexShader);
+        if (vertexShaderHandle == 0) {
+            throw new RuntimeException("failed loading vertex shader");
+        }
+        fragmentShaderHandle = GlRenderUtils.loadShader(GLES20.GL_FRAGMENT_SHADER, fragmentShader);
+        if (fragmentShaderHandle == 0) {
+            release();
+            throw new RuntimeException("failed loading fragment shader");
+        }
+        glProgram = GlRenderUtils.createProgram(vertexShaderHandle, fragmentShaderHandle);
+        if (glProgram == 0) {
+            release();
+            throw new RuntimeException("failed creating glProgram");
+        }
+        aPositionHandle = GLES20.glGetAttribLocation(glProgram, "aPosition");
+        GlRenderUtils.checkGlError("glGetAttribLocation aPosition");
+        if (aPositionHandle == -1) {
+            throw new RuntimeException("Could not get attrib location for aPosition");
+        }
+        aTextureHandle = GLES20.glGetAttribLocation(glProgram, "aTextureCoord");
+        GlRenderUtils.checkGlError("glGetAttribLocation aTextureCoord");
+        if (aTextureHandle == -1) {
+            throw new RuntimeException("Could not get attrib location for aTextureCoord");
+        }
+        mvpMatrixHandle = GLES20.glGetUniformLocation(glProgram, "uMVPMatrix");
+        GlRenderUtils.checkGlError("glGetUniformLocation uMVPMatrix");
+        if (mvpMatrixHandle == -1) {
+            throw new RuntimeException("Could not get attrib location for uMVPMatrix");
+        }
+        uStMatrixHandle = GLES20.glGetUniformLocation(glProgram, "uSTMatrix");
+        GlRenderUtils.checkGlError("glGetUniformLocation uSTMatrix");
+        if (uStMatrixHandle == -1) {
+            throw new RuntimeException("Could not get attrib location for uSTMatrix");
+        }
+    }
+
+    @Override
+    public void setVpMatrix(@NonNull float[] vpMatrix, int vpMatrixOffset) {
+        mvpMatrix = GlFilterUtil.createFilterMvpMatrix(vpMatrix, transform);
+        mvpMatrixOffset = vpMatrixOffset;
     }
 
     @Override
@@ -188,33 +224,15 @@ public class VideoFrameRenderFilter implements GlFrameRenderFilter {
         GlRenderUtils.checkGlError("glDrawArrays");
     }
 
-    /**
-     * Initializes GL state.  Call this after the EGL surface has been created and made current.
-     */
-    private void initGl() {
-        glProgram = GlRenderUtils.createProgram(vertexShader, fragmentShader);
-        if (glProgram == 0) {
-            throw new RuntimeException("failed creating glProgram");
-        }
-        aPositionHandle = GLES20.glGetAttribLocation(glProgram, "aPosition");
-        GlRenderUtils.checkGlError("glGetAttribLocation aPosition");
-        if (aPositionHandle == -1) {
-            throw new RuntimeException("Could not get attrib location for aPosition");
-        }
-        aTextureHandle = GLES20.glGetAttribLocation(glProgram, "aTextureCoord");
-        GlRenderUtils.checkGlError("glGetAttribLocation aTextureCoord");
-        if (aTextureHandle == -1) {
-            throw new RuntimeException("Could not get attrib location for aTextureCoord");
-        }
-        mvpMatrixHandle = GLES20.glGetUniformLocation(glProgram, "uMVPMatrix");
-        GlRenderUtils.checkGlError("glGetUniformLocation uMVPMatrix");
-        if (mvpMatrixHandle == -1) {
-            throw new RuntimeException("Could not get attrib location for uMVPMatrix");
-        }
-        uStMatrixHandle = GLES20.glGetUniformLocation(glProgram, "uSTMatrix");
-        GlRenderUtils.checkGlError("glGetUniformLocation uSTMatrix");
-        if (uStMatrixHandle == -1) {
-            throw new RuntimeException("Could not get attrib location for uSTMatrix");
-        }
+    @Override
+    public void release() {
+        GLES20.glDeleteProgram(glProgram);
+        GLES20.glDeleteShader(vertexShaderHandle);
+        GLES20.glDeleteShader(fragmentShaderHandle);
+        GLES20.glDeleteBuffers(1, new int[]{aTextureHandle}, 0);
+        glProgram = 0;
+        vertexShaderHandle = 0;
+        fragmentShaderHandle = 0;
+        aTextureHandle = 0;
     }
 }
