@@ -16,6 +16,7 @@ public enum DemoCase {
     VIDEO_OVERLAY_GL(R.string.demo_case_free_transform_video_gl, "FreeTransformVideoGl", new FreeTransformVideoGlFragment()),
     VIDEO_WATERMARK(R.string.demo_case_video_watermark, "VideoWatermark", new VideoWatermarkFragment()),
     VIDEO_FILTERS(R.string.demo_case_video_filters, "VideoFilters", new VideoFiltersFragment()),
+    VIDEO_FILTERS_PREVIEW(R.string.demo_case_video_filters_preview, "VideoFiltersPreview", new VideoFilterPreviewFragment()),
     TRANSCODE_VIDEO_MOCK(R.string.demo_case_mock_transcode_video, "TranscodeVideoMock", new MockTranscodeFragment());
 
     @StringRes int displayName;
