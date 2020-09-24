@@ -18,7 +18,7 @@ By default, LiTr uses Android MediaCodec stack for hardware accelerated decoding
 Simply grab via Gradle:
 
 ```groovy
- implementation 'com.linkedin.android.litr:litr:1.4.0'
+ implementation 'com.linkedin.android.litr:litr:1.4.1'
 ``` 
 ...or Maven:
 
@@ -26,7 +26,7 @@ Simply grab via Gradle:
 <dependency>
   <groupId>com.linkedin.android.litr</groupId>
   <artifactId>litr</artifactId>
-  <version>1.4.0</version>
+  <version>1.4.1</version>
 </dependency>
 
 ```
@@ -135,7 +135,7 @@ You can use custom filters to modify video frames. Write your own in OpenGL as a
 LiTr now has 40 new GPU accelerated video filters ported from [Mp4Composer-android](https://github.com/MasayukiSuda/Mp4Composer-android) and [android-gpuimage](https://github.com/cats-oss/android-gpuimage) projects. You can also create your own filter simply by configuring VideoFrameRenderFilter with your custom shader, with no extra coding!
 
 ```groovy
- implementation 'com.linkedin.android.litr:litr-filters:1.4.0'
+ implementation 'com.linkedin.android.litr:litr-filters:1.4.1'
 ``` 
 ...or Maven:
 
@@ -143,7 +143,7 @@ LiTr now has 40 new GPU accelerated video filters ported from [Mp4Composer-andro
 <dependency>
   <groupId>com.linkedin.android.litr</groupId>
   <artifactId>litr-filters</artifactId>
-  <version>1.4.0</version>
+  <version>1.4.1</version>
 </dependency>
 
 ```
@@ -183,7 +183,7 @@ This project is licensed under the BSD 2-Clause License - see the [LICENSE](LICE
 ## Acknowledgments
 
 * A huge thank you to [ypresto](https://github.com/ypresto/) for his pioneering work on [android-transcoder](https://github.com/ypresto/android-transcoder) project, which was an inspiration and heavy influence on LiTr
-* A special thank you to [MasayukiSuda](https://github.com/MasayukiSuda) for his work on [Mp4Composer-android](https://github.com/MasayukiSuda/Mp4Composer-android) project, whose filters now power LiTr
+* A special thank you to [MasayukiSuda](https://github.com/MasayukiSuda) for his work on [Mp4Composer-android](https://github.com/MasayukiSuda/Mp4Composer-android) project, whose filters now power LiTr, and for his work on [ExoPlayerFilter](https://github.com/MasayukiSuda/ExoPlayerFilter) project which was a foundation for filter preview functionality in LiTr.
 * A special thank you to [android-gpuimage](https://github.com/cats-oss/android-gpuimage) project for amazing filter collection, which is now being migrated into LiTr
 * A thank you to Google's AOSP CTS team for writing Surface to Surface rendering implementation in OpenGL, which became a foundation for GlRenderer in LiTr 
 * A shout out to my awesome colleagues Amita Sahasrabudhe, Long Peng and Keerthi Korrapati for contributions and code reviews
