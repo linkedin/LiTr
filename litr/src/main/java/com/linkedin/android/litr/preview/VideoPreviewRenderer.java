@@ -11,7 +11,6 @@ import android.graphics.SurfaceTexture;
 import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
 import android.opengl.Matrix;
-import android.view.Surface;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -38,8 +37,8 @@ import static android.opengl.GLES20.GL_TEXTURE_WRAP_T;
 /**
  * An implementation of {@link GLSurfaceView.Renderer} which renders a preview of a video with
  * {@link GlFrameRenderFilter} applied. Works in conjunction with {@link VideoFilterPreviewView}
- * Once initialization is completed, calls back {@link InputSurfaceListener} with an instance of
- * a {@link Surface} video player (e.g. ExoPlayer) should render onto.
+ * Once initialization is completed, calls back {@link InputSurfaceTextureListener} with an instance of
+ * a {@link SurfaceTexture} a video player (e.g. ExoPlayer) or camera preview should render onto.
  */
 public class VideoPreviewRenderer implements GLSurfaceView.Renderer {
 
@@ -47,7 +46,7 @@ public class VideoPreviewRenderer implements GLSurfaceView.Renderer {
 
     private static final int GL_TEXTURE_EXTERNAL_OES = 0x8D65;
 
-    private final InputSurfaceListener inputSurfaceListener;
+    private final InputSurfaceTextureListener inputSurfaceTextureListener;
 
     private float[] stMatrix = new float[16];
     private float[] mvpMatrix = new float[16];
@@ -66,8 +65,8 @@ public class VideoPreviewRenderer implements GLSurfaceView.Renderer {
         }
     };
 
-    public VideoPreviewRenderer(@NonNull InputSurfaceListener inputSurfaceListener) {
-        this.inputSurfaceListener = inputSurfaceListener;
+    public VideoPreviewRenderer(@NonNull InputSurfaceTextureListener inputSurfaceTextureListener) {
+        this.inputSurfaceTextureListener = inputSurfaceTextureListener;
         this.frameRenderFilter = new DefaultVideoFrameRenderFilter();
 
         Matrix.setIdentityM(stMatrix, 0);
@@ -110,8 +109,7 @@ public class VideoPreviewRenderer implements GLSurfaceView.Renderer {
         GLES20.glTexParameteri(GL_TEXTURE_EXTERNAL_OES, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
         GLES20.glBindTexture(GL_TEXTURE_2D, 0);
 
-        Surface surface = new Surface(previewSurfaceTexture);
-        inputSurfaceListener.onSurfaceCreated(surface);
+        inputSurfaceTextureListener.onSurfaceTextureCreated(previewSurfaceTexture);
 
         frameRenderFilter.init();
 
@@ -165,13 +163,13 @@ public class VideoPreviewRenderer implements GLSurfaceView.Renderer {
     /**
      * A listener which notifies when input surface is created.
      */
-    public interface InputSurfaceListener {
+    public interface InputSurfaceTextureListener {
 
         /**
          * Input surface is created
-         * @param surface input surface, typically a surface a video player renders onto
+         * @param surfaceTexture input texture surface, which video player or camera preview can render onto
          */
-        void onSurfaceCreated(@NonNull Surface surface);
+        void onSurfaceTextureCreated(@NonNull SurfaceTexture surfaceTexture);
     }
 
     /**
