@@ -331,12 +331,6 @@ public class TransformationPresenter {
                 mediaFormat.setInteger(MediaFormat.KEY_BIT_RATE, trackFormat.bitrate);
                 mediaFormat.setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, trackFormat.keyFrameInterval);
                 mediaFormat.setInteger(MediaFormat.KEY_FRAME_RATE, trackFormat.frameRate);
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                    int codecProfile = CodecUtils.getHighestSupportedProfile(mimeType, true);
-                    if (codecProfile != CodecUtils.UNDEFINED_VALUE) {
-                        mediaFormat.setInteger(MediaFormat.KEY_PROFILE, codecProfile);
-                    }
-                }
             } else if (targetTrack.format.mimeType.startsWith("audio")) {
                 AudioTrackFormat trackFormat = (AudioTrackFormat) targetTrack.format;
                 mediaFormat.setString(MediaFormat.KEY_MIME, trackFormat.mimeType);
