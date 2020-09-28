@@ -11,6 +11,7 @@ import android.content.Context;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.LayoutInflater;
+import android.view.Surface;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
@@ -64,7 +65,7 @@ public class VideoFilterPreviewFragment extends BaseTransformationFragment imple
         exoPlayer = new SimpleExoPlayer.Builder(context)
                 .setTrackSelector(trackSelector)
                 .build();
-        renderer = new VideoPreviewRenderer(surface -> exoPlayer.setVideoSurface(surface));
+        renderer = new VideoPreviewRenderer(surfaceTexture -> exoPlayer.setVideoSurface(new Surface(surfaceTexture)));
     }
 
     @Override
