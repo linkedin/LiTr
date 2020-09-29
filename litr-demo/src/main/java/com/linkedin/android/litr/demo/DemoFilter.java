@@ -35,6 +35,7 @@ import com.linkedin.android.litr.filter.video.gl.InversionFilter;
 import com.linkedin.android.litr.filter.video.gl.KuwaharaFilter;
 import com.linkedin.android.litr.filter.video.gl.LaplacianFilter;
 import com.linkedin.android.litr.filter.video.gl.LevelsFilter;
+import com.linkedin.android.litr.filter.video.gl.LocalBinaryPatternFilter;
 import com.linkedin.android.litr.filter.video.gl.OpacityFilter;
 import com.linkedin.android.litr.filter.video.gl.PixelationFilter;
 import com.linkedin.android.litr.filter.video.gl.PosterizationFilter;
@@ -86,6 +87,7 @@ enum DemoFilter {
             0.5f, 1.0f, 0.5f
     }, 0.01f, 0.01f)),
     LEVELS("Levels", new LevelsFilter(new float[]{0.0f, 0.0f, 0.25f}, new float[]{1.0f, 1.0f, 0.6f}, new float[]{1.0f, 1.0f, 1.0f}, new float[]{0.0f, 0.0f, 0.0f}, new float[]{1.0f, 1.0f, 1.0f})),
+    LOCAL_BINARY_PATTERN("Local Binary Pattern", new LocalBinaryPatternFilter(0.002f,0.002f)),
     OPACITY("Opacity", new OpacityFilter(0.7f)),
     PIXELATION("Pixelation", new PixelationFilter(0.01f, 0.01f, 1.0f)),
     POSTERIZATION("Posterization", new PosterizationFilter(10)),
