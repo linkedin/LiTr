@@ -10,15 +10,19 @@ package com.linkedin.android.litr.demo;
 import android.content.Intent;
 import android.media.MediaExtractor;
 import android.media.MediaFormat;
+import android.media.MediaMetadataRetriever;
 import android.net.Uri;
 import android.os.Build;
 import android.util.Log;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+
 import com.linkedin.android.litr.demo.data.AudioTrackFormat;
 import com.linkedin.android.litr.demo.data.GenericTrackFormat;
 import com.linkedin.android.litr.demo.data.SourceMedia;
+import com.linkedin.android.litr.demo.data.TrimConfig;
 import com.linkedin.android.litr.demo.data.VideoTrackFormat;
 import com.linkedin.android.litr.utils.TranscoderUtils;
 
@@ -64,6 +68,7 @@ public class BaseTransformationFragment extends Fragment {
     protected void updateSourceMedia(@NonNull SourceMedia sourceMedia, @NonNull Uri uri) {
         sourceMedia.uri = uri;
         sourceMedia.size = TranscoderUtils.getSize(getContext(), uri);
+        sourceMedia.duration = getMediaDuration(uri) / 1000f;
 
         try {
             MediaExtractor mediaExtractor = new MediaExtractor();
@@ -105,6 +110,10 @@ public class BaseTransformationFragment extends Fragment {
         sourceMedia.notifyChange();
     }
 
+    protected void updateTrimConfig(@NonNull TrimConfig trimConfig, @NonNull SourceMedia sourceMedia) {
+        trimConfig.setTrimEnd(sourceMedia.duration);
+    }
+
     private int getInt(@NonNull MediaFormat mediaFormat, @NonNull String key) {
         return getInt(mediaFormat, key, -1);
     }
@@ -133,6 +142,13 @@ public class BaseTransformationFragment extends Fragment {
         intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, false);
         startActivityForResult(Intent.createChooser(intent, getString(R.string.pick_media)),
                                PICK_MEDIA);
+    }
+
+    private long getMediaDuration(@NonNull Uri uri) {
+        MediaMetadataRetriever mediaMetadataRetriever = new MediaMetadataRetriever();
+        mediaMetadataRetriever.setDataSource(getContext(), uri);
+        String durationStr = mediaMetadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION);
+        return Long.parseLong(durationStr);
     }
 
 }

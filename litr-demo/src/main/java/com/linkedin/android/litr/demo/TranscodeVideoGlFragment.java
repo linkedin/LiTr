@@ -21,6 +21,7 @@ import com.linkedin.android.litr.demo.data.TargetMedia;
 import com.linkedin.android.litr.demo.data.TranscodingConfigPresenter;
 import com.linkedin.android.litr.demo.data.TransformationPresenter;
 import com.linkedin.android.litr.demo.data.TransformationState;
+import com.linkedin.android.litr.demo.data.TrimConfig;
 import com.linkedin.android.litr.demo.databinding.FragmentTranscodeVideoGlBinding;
 import com.linkedin.android.litr.utils.TransformationUtil;
 
@@ -70,6 +71,8 @@ public class TranscodeVideoGlFragment extends BaseTransformationFragment impleme
         binding.setTranscodingConfigPresenter(transcodingConfigPresenter);
         binding.setTargetMedia(targetMedia);
 
+        binding.setTrimConfig(new TrimConfig());
+
         return binding.getRoot();
     }
 
@@ -77,6 +80,7 @@ public class TranscodeVideoGlFragment extends BaseTransformationFragment impleme
     public void onMediaPicked(@NonNull Uri uri) {
         SourceMedia sourceMedia = binding.getSourceMedia();
         updateSourceMedia(sourceMedia, uri);
+        updateTrimConfig(binding.getTrimConfig(), sourceMedia);
         File targetFile = new File(TransformationUtil.getTargetFileDirectory(),
                               "transcoded_" + TransformationUtil.getDisplayName(getContext(), sourceMedia.uri));
         binding.getTargetMedia().setTargetFile(targetFile);

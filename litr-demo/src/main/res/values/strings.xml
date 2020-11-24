@@ -18,6 +18,7 @@
     <string name="apply_overlay">Apply Overlay</string>
     <string name="transcode_video">Transcode Video</string>
     <string name="transcode_audio">Transcode Audio</string>
+    <string name="trim">Trim</string>
 
     <string name="pick_video">Pick Video</string>
     <string name="pick_video_overlay">Pick Video Overlay</string>

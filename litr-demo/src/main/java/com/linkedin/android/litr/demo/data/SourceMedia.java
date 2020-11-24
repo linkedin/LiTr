@@ -17,6 +17,7 @@ public class SourceMedia extends BaseObservable {
 
     public Uri uri;
     public long size;
+    public float duration;
 
     public List<MediaTrackFormat> tracks = new ArrayList<>();
 }
