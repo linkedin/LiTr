@@ -13,6 +13,7 @@ import com.linkedin.android.litr.codec.Decoder;
 import com.linkedin.android.litr.codec.Encoder;
 import com.linkedin.android.litr.codec.Frame;
 import com.linkedin.android.litr.exception.TrackTranscoderException;
+import com.linkedin.android.litr.io.MediaRange;
 import com.linkedin.android.litr.io.MediaSource;
 import com.linkedin.android.litr.io.MediaTarget;
 import com.linkedin.android.litr.render.Renderer;
@@ -39,6 +40,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class AudioTrackTranscoderShould {
 
@@ -72,6 +74,9 @@ public class AudioTrackTranscoderShould {
         doReturn(sourceMediaFormat).when(mediaSource).getTrackFormat(anyInt());
         doReturn(true).when(decoder).isRunning();
         doReturn(true).when(encoder).isRunning();
+
+        MediaRange mediaRange = new MediaRange(0, Long.MAX_VALUE);
+        when(mediaSource.getSelection()).thenReturn(mediaRange);
 
         targetAudioFormat = new MediaFormat();
         targetAudioFormat.setString(MediaFormat.KEY_MIME, "audio/aac");
