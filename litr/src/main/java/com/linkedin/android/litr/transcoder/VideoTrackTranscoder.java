@@ -142,19 +142,26 @@ public class VideoTrackTranscoder extends TrackTranscoder {
                     throw new TrackTranscoderException(TrackTranscoderException.Error.NO_FRAME_AVAILABLE);
                 }
                 int bytesRead = mediaSource.readSampleData(frame.buffer, 0);
-                // TODO here we are assuming that MediaSource will always produce bytes, which may not always be the case
-                if (bytesRead > 0) {
-                    long sampleTime = mediaSource.getSampleTime();
-                    int sampleFlags = mediaSource.getSampleFlags();
-                    frame.bufferInfo.set(0, bytesRead, sampleTime, sampleFlags);
-                    decoder.queueInputFrame(frame);
-                    mediaSource.advance();
-                    //Log.d(TAG, "Sample time: " + sampleTime + ", source bytes read: " + bytesRead);
-                } else {
+                long sampleTime = mediaSource.getSampleTime();
+                int sampleFlags = mediaSource.getSampleFlags();
+                if (bytesRead <= 0 || (sampleFlags & MediaCodec.BUFFER_FLAG_END_OF_STREAM) != 0) {
                     frame.bufferInfo.set(0, 0, -1, MediaCodec.BUFFER_FLAG_END_OF_STREAM);
                     decoder.queueInputFrame(frame);
                     extractFrameResult = RESULT_EOS_REACHED;
                     Log.d(TAG, "EoS reached on the input stream");
+                } else if (sampleTime >= sourceMediaSelection.getEnd()) {
+                    if (extractFrameResult != RESULT_EOS_REACHED) {
+                        frame.bufferInfo.set(0, 0, -1, MediaCodec.BUFFER_FLAG_END_OF_STREAM);
+                        decoder.queueInputFrame(frame);
+                        extractFrameResult = RESULT_EOS_REACHED;
+                        Log.d(TAG, "EoS reached on the input stream");
+                    }
+                    mediaSource.advance();
+                } else {
+                    frame.bufferInfo.set(0, bytesRead, sampleTime, sampleFlags);
+                    decoder.queueInputFrame(frame);
+                    mediaSource.advance();
+                    //Log.d(TAG, "Sample time: " + sampleTime + ", source bytes read: " + bytesRead);
                 }
             } else {
                 switch (tag) {
@@ -187,7 +194,9 @@ public class VideoTrackTranscoder extends TrackTranscoder {
                 decodeFrameResult = RESULT_EOS_REACHED;
             } else {
                 decoder.releaseOutputFrame(tag, true);
-                renderer.renderFrame(null, frame.bufferInfo.presentationTimeUs * MILLISECONDS_IN_SECOND);
+                if (frame.bufferInfo.presentationTimeUs >= sourceMediaSelection.getStart()) {
+                    renderer.renderFrame(null, (frame.bufferInfo.presentationTimeUs - sourceMediaSelection.getStart()) * MILLISECONDS_IN_SECOND);
+                }
             }
         } else {
             switch (tag) {

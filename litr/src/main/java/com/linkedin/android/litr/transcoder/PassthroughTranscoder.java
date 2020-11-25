@@ -92,29 +92,42 @@ public class PassthroughTranscoder extends TrackTranscoder {
         lastResult = RESULT_FRAME_PROCESSED;
 
         int bytesRead = mediaSource.readSampleData(outputBuffer, 0);
-        if (bytesRead > 0) {
-            int outputFlags = 0;
-            long sampleTime = mediaSource.getSampleTime();
-            int inputFlags = mediaSource.getSampleFlags();
+        long sampleTime = mediaSource.getSampleTime();
+        int inputFlags = mediaSource.getSampleFlags();
 
-            if ((inputFlags & MediaExtractor.SAMPLE_FLAG_SYNC) != 0) {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                    outputFlags = MediaCodec.BUFFER_FLAG_KEY_FRAME;
-                } else {
-                    outputFlags = MediaCodec.BUFFER_FLAG_SYNC_FRAME;
-                }
-            }
-            if (duration > 0) {
-                progress = ((float) sampleTime) / duration;
-            }
-            outputBufferInfo.set(0, bytesRead, sampleTime, outputFlags);
-            mediaMuxer.writeSampleData(targetTrack, outputBuffer, outputBufferInfo);
-            mediaSource.advance();
-        } else {
+        if (bytesRead <= 0 || (inputFlags & MediaCodec.BUFFER_FLAG_END_OF_STREAM) != 0) {
             outputBuffer.clear();
             progress = 1.0f;
             lastResult = RESULT_EOS_REACHED;
             Log.d(TAG, "Reach EoS on input stream");
+        } else if (sampleTime >= sourceMediaSelection.getEnd()) {
+            if (lastResult != RESULT_EOS_REACHED) {
+                outputBuffer.clear();
+                progress = 1.0f;
+                lastResult = RESULT_EOS_REACHED;
+                outputBufferInfo.set(0, 0, sampleTime - sourceMediaSelection.getStart(), outputBufferInfo.flags | MediaCodec.BUFFER_FLAG_END_OF_STREAM);
+                mediaMuxer.writeSampleData(targetTrack, outputBuffer, outputBufferInfo);
+                Log.d(TAG, "Reach selection end on input stream");
+            }
+            mediaSource.advance();
+        } else {
+            if (sampleTime >= sourceMediaSelection.getStart()) {
+                int outputFlags = 0;
+                if ((inputFlags & MediaExtractor.SAMPLE_FLAG_SYNC) != 0) {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                        outputFlags = MediaCodec.BUFFER_FLAG_KEY_FRAME;
+                    } else {
+                        outputFlags = MediaCodec.BUFFER_FLAG_SYNC_FRAME;
+                    }
+                }
+                sampleTime -= sourceMediaSelection.getStart();
+                if (duration > 0) {
+                    progress = ((float) sampleTime) / duration;
+                }
+                outputBufferInfo.set(0, bytesRead, sampleTime, outputFlags);
+                mediaMuxer.writeSampleData(targetTrack, outputBuffer, outputBufferInfo);
+            }
+            mediaSource.advance();
         }
 
         return lastResult;

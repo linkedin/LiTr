@@ -14,6 +14,7 @@ import androidx.annotation.RestrictTo;
 import com.linkedin.android.litr.codec.Decoder;
 import com.linkedin.android.litr.codec.Encoder;
 import com.linkedin.android.litr.exception.TrackTranscoderException;
+import com.linkedin.android.litr.io.MediaRange;
 import com.linkedin.android.litr.io.MediaSource;
 import com.linkedin.android.litr.io.MediaTarget;
 import com.linkedin.android.litr.render.Renderer;
@@ -34,6 +35,7 @@ public abstract class TrackTranscoder {
     @Nullable protected final Renderer renderer;
     @Nullable protected final Decoder decoder;
     @Nullable protected final Encoder encoder;
+    @NonNull protected final MediaRange sourceMediaSelection;
 
     protected int sourceTrack;
     protected int targetTrack;
@@ -61,6 +63,7 @@ public abstract class TrackTranscoder {
         this.renderer = renderer;
         this.decoder = decoder;
         this.encoder = encoder;
+        this.sourceMediaSelection = mediaSource.getSelection();
 
         MediaFormat sourceMedia = mediaSource.getTrackFormat(sourceTrack);
         if (sourceMedia.containsKey(MediaFormat.KEY_DURATION)) {
@@ -69,6 +72,10 @@ public abstract class TrackTranscoder {
                 targetFormat.setLong(MediaFormat.KEY_DURATION, duration);
             }
         }
+
+        // adjust for range
+        duration = Math.min(duration, sourceMediaSelection.getEnd());
+        duration -= sourceMediaSelection.getStart();
     }
 
     public abstract void start() throws TrackTranscoderException;
