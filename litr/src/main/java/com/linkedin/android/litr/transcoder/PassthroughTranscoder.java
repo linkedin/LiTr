@@ -109,7 +109,15 @@ public class PassthroughTranscoder extends TrackTranscoder {
                 mediaMuxer.writeSampleData(targetTrack, outputBuffer, outputBufferInfo);
                 Log.d(TAG, "Reach selection end on input stream");
             }
-            mediaSource.advance();
+            // done with this track, advance until track switches to let other track transcoders finish work
+            while (mediaSource.getSampleTrackIndex() == sourceTrack) {
+                mediaSource.advance();
+                if ((mediaSource.getSampleFlags() & MediaCodec.BUFFER_FLAG_END_OF_STREAM) != 0) {
+                    // reached the end of container, no more tracks left
+                    lastResult = RESULT_EOS_REACHED;
+                    break;
+                }
+            }
         } else {
             if (sampleTime >= sourceMediaSelection.getStart()) {
                 int outputFlags = 0;
