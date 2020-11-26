@@ -150,21 +150,11 @@ public class VideoTrackTranscoder extends TrackTranscoder {
                     extractFrameResult = RESULT_EOS_REACHED;
                     Log.d(TAG, "EoS reached on the input stream");
                 } else if (sampleTime >= sourceMediaSelection.getEnd()) {
-                    if (extractFrameResult != RESULT_EOS_REACHED) {
-                        frame.bufferInfo.set(0, 0, -1, MediaCodec.BUFFER_FLAG_END_OF_STREAM);
-                        decoder.queueInputFrame(frame);
-                        extractFrameResult = RESULT_EOS_REACHED;
-                        Log.d(TAG, "EoS reached on the input stream");
-                    }
-                    // done with this track, advance until track switches to let other track transcoders finish work
-                    while (mediaSource.getSampleTrackIndex() == sourceTrack) {
-                        mediaSource.advance();
-                        if ((mediaSource.getSampleFlags() & MediaCodec.BUFFER_FLAG_END_OF_STREAM) != 0) {
-                            // reached the end of container, no more tracks left
-                            extractFrameResult = RESULT_EOS_REACHED;
-                            break;
-                        }
-                    }
+                    frame.bufferInfo.set(0, 0, -1, MediaCodec.BUFFER_FLAG_END_OF_STREAM);
+                    decoder.queueInputFrame(frame);
+                    advanceToNextTrack();
+                    extractFrameResult = RESULT_EOS_REACHED;
+                    Log.d(TAG, "EoS reached on the input stream");
                 } else {
                     frame.bufferInfo.set(0, bytesRead, sampleTime, sampleFlags);
                     decoder.queueInputFrame(frame);

@@ -7,6 +7,7 @@
  */
 package com.linkedin.android.litr.transcoder;
 
+import android.media.MediaCodec;
 import android.media.MediaFormat;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -109,6 +110,17 @@ public abstract class TrackTranscoder {
     @NonNull
     public MediaFormat getTargetMediaFormat() {
         return targetFormat;
+    }
+
+    protected void advanceToNextTrack() {
+        // done with this track, advance until track switches to let other track transcoders finish work
+        while (mediaSource.getSampleTrackIndex() == sourceTrack) {
+            mediaSource.advance();
+            if ((mediaSource.getSampleFlags() & MediaCodec.BUFFER_FLAG_END_OF_STREAM) != 0) {
+                // reached the end of container, no more tracks left
+                return;
+            }
+        }
     }
 
 }
