@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 LinkedIn Corporation
+ * Copyright 2020 LinkedIn Corporation
  * All Rights Reserved.
  *
  * Licensed under the BSD 2-Clause License (the "License").  See License in the project root for
@@ -19,11 +19,15 @@ public class MediaRange {
     /**
      * Create an instance of MediaRange
      * @param start range start, in microseconds
-     * @param end range end, in microseconds
+     * @param end range end, in microseconds, greater than start
      */
     public MediaRange(long start, long end) {
         this.start = start;
         this.end = end;
+
+        if (end < start) {
+            throw new IllegalArgumentException("Range end should be greater than range start");
+        }
     }
 
     /**
