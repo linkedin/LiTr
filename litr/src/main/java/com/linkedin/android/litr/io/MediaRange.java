@@ -24,10 +24,6 @@ public class MediaRange {
     public MediaRange(long start, long end) {
         this.start = start;
         this.end = end;
-
-        if (end < start) {
-            throw new IllegalArgumentException("Range end should be greater than range start");
-        }
     }
 
     /**

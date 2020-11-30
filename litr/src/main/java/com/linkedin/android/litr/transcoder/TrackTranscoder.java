@@ -74,6 +74,11 @@ public abstract class TrackTranscoder {
             }
         }
 
+
+        if (sourceMediaSelection.getEnd() < sourceMediaSelection.getStart()) {
+            throw new IllegalArgumentException("Range end should be greater than range start");
+        }
+
         // adjust for range
         duration = Math.min(duration, sourceMediaSelection.getEnd());
         duration -= sourceMediaSelection.getStart();
