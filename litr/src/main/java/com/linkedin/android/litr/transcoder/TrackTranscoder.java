@@ -7,6 +7,7 @@
  */
 package com.linkedin.android.litr.transcoder;
 
+import android.media.MediaCodec;
 import android.media.MediaFormat;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -14,6 +15,7 @@ import androidx.annotation.RestrictTo;
 import com.linkedin.android.litr.codec.Decoder;
 import com.linkedin.android.litr.codec.Encoder;
 import com.linkedin.android.litr.exception.TrackTranscoderException;
+import com.linkedin.android.litr.io.MediaRange;
 import com.linkedin.android.litr.io.MediaSource;
 import com.linkedin.android.litr.io.MediaTarget;
 import com.linkedin.android.litr.render.Renderer;
@@ -34,6 +36,7 @@ public abstract class TrackTranscoder {
     @Nullable protected final Renderer renderer;
     @Nullable protected final Decoder decoder;
     @Nullable protected final Encoder encoder;
+    @NonNull protected final MediaRange sourceMediaSelection;
 
     protected int sourceTrack;
     protected int targetTrack;
@@ -61,6 +64,7 @@ public abstract class TrackTranscoder {
         this.renderer = renderer;
         this.decoder = decoder;
         this.encoder = encoder;
+        this.sourceMediaSelection = mediaSource.getSelection();
 
         MediaFormat sourceMedia = mediaSource.getTrackFormat(sourceTrack);
         if (sourceMedia.containsKey(MediaFormat.KEY_DURATION)) {
@@ -69,6 +73,15 @@ public abstract class TrackTranscoder {
                 targetFormat.setLong(MediaFormat.KEY_DURATION, duration);
             }
         }
+
+
+        if (sourceMediaSelection.getEnd() < sourceMediaSelection.getStart()) {
+            throw new IllegalArgumentException("Range end should be greater than range start");
+        }
+
+        // adjust for range
+        duration = Math.min(duration, sourceMediaSelection.getEnd());
+        duration -= sourceMediaSelection.getStart();
     }
 
     public abstract void start() throws TrackTranscoderException;
@@ -102,6 +115,17 @@ public abstract class TrackTranscoder {
     @NonNull
     public MediaFormat getTargetMediaFormat() {
         return targetFormat;
+    }
+
+    protected void advanceToNextTrack() {
+        // done with this track, advance until track switches to let other track transcoders finish work
+        while (mediaSource.getSampleTrackIndex() == sourceTrack) {
+            mediaSource.advance();
+            if ((mediaSource.getSampleFlags() & MediaCodec.BUFFER_FLAG_END_OF_STREAM) != 0) {
+                // reached the end of container, no more tracks left
+                return;
+            }
+        }
     }
 
 }

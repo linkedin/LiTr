@@ -33,6 +33,7 @@ import com.linkedin.android.litr.filter.Transform;
 import com.linkedin.android.litr.filter.video.gl.DefaultVideoFrameRenderFilter;
 import com.linkedin.android.litr.io.MediaExtractorMediaSource;
 import com.linkedin.android.litr.io.MediaMuxerMediaTarget;
+import com.linkedin.android.litr.io.MediaRange;
 import com.linkedin.android.litr.io.MediaSource;
 import com.linkedin.android.litr.io.MediaTarget;
 import com.linkedin.android.litr.render.GlVideoRenderer;
@@ -45,6 +46,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 public class TransformationPresenter {
 
@@ -65,6 +67,7 @@ public class TransformationPresenter {
 
     public void startTransformation(@NonNull SourceMedia sourceMedia,
                                     @NonNull TargetMedia targetMedia,
+                                    @NonNull TrimConfig trimConfig,
                                     @NonNull TransformationState transformationState) {
         if (targetMedia.getIncludedTrackCount() < 1) {
             return;
@@ -93,7 +96,14 @@ public class TransformationPresenter {
                                                                 MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4);
 
             List<TrackTransform> trackTransforms = new ArrayList<>(targetMedia.tracks.size());
-            MediaSource mediaSource = new MediaExtractorMediaSource(context, sourceMedia.uri);
+
+
+            MediaRange mediaRange = trimConfig.enabled
+                    ? new MediaRange(
+                            TimeUnit.MILLISECONDS.toMicros((long) (trimConfig.range.get(0) * 1000)),
+                            TimeUnit.MILLISECONDS.toMicros((long) (trimConfig.range.get(1) * 1000)))
+                    : new MediaRange(0, Long.MAX_VALUE);
+            MediaSource mediaSource = new MediaExtractorMediaSource(context, sourceMedia.uri, mediaRange);
 
             for (TargetTrack targetTrack : targetMedia.tracks) {
                 if (!targetTrack.shouldInclude) {

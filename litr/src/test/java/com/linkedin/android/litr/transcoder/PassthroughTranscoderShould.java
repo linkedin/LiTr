@@ -9,6 +9,8 @@ package com.linkedin.android.litr.transcoder;
 
 import android.media.MediaCodec;
 import android.media.MediaFormat;
+
+import com.linkedin.android.litr.io.MediaRange;
 import com.linkedin.android.litr.io.MediaSource;
 import com.linkedin.android.litr.io.MediaTarget;
 import org.junit.Before;
@@ -53,6 +55,9 @@ public class PassthroughTranscoderShould {
         sourceMediaFormat = new MediaFormat();
         sourceMediaFormat.setLong(MediaFormat.KEY_DURATION, DURATION);
         when(mediaSource.getTrackFormat(SOURCE_TRACK)).thenReturn(sourceMediaFormat);
+
+        MediaRange mediaRange = new MediaRange(0, Long.MAX_VALUE);
+        when(mediaSource.getSelection()).thenReturn(mediaRange);
 
         passthroughTranscoder = spy(new PassthroughTranscoder(mediaSource, SOURCE_TRACK, mediaTarget, TARGET_TRACK));
         passthroughTranscoder.start();

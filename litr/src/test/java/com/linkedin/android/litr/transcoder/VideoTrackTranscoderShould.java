@@ -14,6 +14,7 @@ import com.linkedin.android.litr.codec.Decoder;
 import com.linkedin.android.litr.codec.Encoder;
 import com.linkedin.android.litr.codec.Frame;
 import com.linkedin.android.litr.exception.TrackTranscoderException;
+import com.linkedin.android.litr.io.MediaRange;
 import com.linkedin.android.litr.io.MediaSource;
 import com.linkedin.android.litr.io.MediaTarget;
 import com.linkedin.android.litr.render.GlVideoRenderer;
@@ -86,6 +87,9 @@ public class VideoTrackTranscoderShould {
         doReturn(surface).when(renderer).getInputSurface();
         doReturn(true).when(decoder).isRunning();
         doReturn(true).when(encoder).isRunning();
+
+        MediaRange mediaRange = new MediaRange(0, Long.MAX_VALUE);
+        when(mediaSource.getSelection()).thenReturn(mediaRange);
 
         when(targetVideoFormat.containsKey(MediaFormat.KEY_MIME)).thenReturn(true);
         when(targetVideoFormat.getString(MediaFormat.KEY_MIME)).thenReturn(TARGET_MIME_TYPE);

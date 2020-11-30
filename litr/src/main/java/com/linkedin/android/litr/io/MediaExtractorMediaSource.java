@@ -26,17 +26,25 @@ import static com.linkedin.android.litr.exception.MediaSourceException.Error.DAT
  */
 public class MediaExtractorMediaSource implements MediaSource {
 
-    private MediaExtractor mediaExtractor;
+    private final MediaExtractor mediaExtractor;
+    private final MediaRange mediaRange;
 
     private int orientationHint;
     private long size;
 
     public MediaExtractorMediaSource(@NonNull Context context, @NonNull Uri uri) throws MediaSourceException {
+        this(context, uri, new MediaRange(0, Long.MAX_VALUE));
+    }
+
+    public MediaExtractorMediaSource(@NonNull Context context, @NonNull Uri uri, @NonNull MediaRange mediaRange) throws MediaSourceException {
+        this.mediaRange = mediaRange;
+
         mediaExtractor = new MediaExtractor();
         MediaMetadataRetriever mediaMetadataRetriever = new MediaMetadataRetriever();
         try {
             mediaExtractor.setDataSource(context, uri, null);
             mediaMetadataRetriever.setDataSource(context, uri);
+            mediaExtractor.seekTo(mediaRange.getStart(), MediaExtractor.SEEK_TO_PREVIOUS_SYNC);
         } catch (IOException ex) {
             throw new MediaSourceException(DATA_SOURCE, uri, ex);
         }
@@ -106,5 +114,11 @@ public class MediaExtractorMediaSource implements MediaSource {
     @Override
     public long getSize() {
         return size;
+    }
+
+    @NonNull
+    @Override
+    public MediaRange getSelection() {
+        return mediaRange;
     }
 }

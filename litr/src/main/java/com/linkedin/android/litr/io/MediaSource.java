@@ -91,4 +91,12 @@ public interface MediaSource {
      * @return size in bytes, -1 if unknown
      */
     long getSize();
+
+    /**
+     * Get media selection. Default selection is entire media.
+     */
+    @NonNull
+    default MediaRange getSelection() {
+        return new MediaRange(0, Long.MAX_VALUE);
+    }
 }
