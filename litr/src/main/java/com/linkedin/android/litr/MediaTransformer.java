@@ -103,7 +103,10 @@ public class MediaTransformer {
      * @param granularity progress reporting granularity. NO_GRANULARITY for per-frame progress reporting,
      *                    or positive integer value for number of times transformation progress should be reported
      * @param filters optional OpenGL filters to apply to video frames
+     *
+     * @deprecated use the version with {@link TransformationOptions}
      */
+    @Deprecated
     public void transform(@NonNull String requestId,
                           @NonNull Uri inputUri,
                           @NonNull String outputFilePath,
@@ -112,25 +115,63 @@ public class MediaTransformer {
                           @NonNull TransformationListener listener,
                           @IntRange(from = GRANULARITY_NONE) int granularity,
                           @Nullable List<GlFilter> filters) {
+        TransformationOptions transformationOptions = new TransformationOptions.Builder()
+                .setGranularity(granularity)
+                .setVideoFilters(filters)
+                .build();
+        transform(requestId,
+                inputUri,
+                outputFilePath,
+                targetVideoFormat,
+                targetAudioFormat,
+                listener,
+                transformationOptions);
+    }
+
+    /**
+     * Transform video and audio track(s): change resolution, frame rate, bitrate, etc. Video track transformation
+     * uses default hardware accelerated codecs and OpenGL renderer.
+     *
+     * If overlay(s) are provided, video track(s) will be transcoded with parameters as close to source format as possible.
+     *
+     * @param requestId client defined unique id for a transformation request. If not unique, {@link IllegalArgumentException} will be thrown.
+     * @param inputUri input video {@link Uri}
+     * @param outputFilePath Absolute path of output media file
+     * @param targetVideoFormat target format parameters for video track(s), null to keep them as is
+     * @param targetAudioFormat target format parameters for audio track(s), null to keep them as is
+     * @param listener {@link TransformationListener} implementation, to get updates on transformation status/result/progress
+     * @param transformationOptions optional instance of {@link TransformationOptions}
+     */
+    public void transform(@NonNull String requestId,
+                          @NonNull Uri inputUri,
+                          @NonNull String outputFilePath,
+                          @Nullable MediaFormat targetVideoFormat,
+                          @Nullable MediaFormat targetAudioFormat,
+                          @NonNull TransformationListener listener,
+                          @Nullable TransformationOptions transformationOptions) {
         try {
-            MediaSource mediaSource = new MediaExtractorMediaSource(context, inputUri);
+            TransformationOptions options = transformationOptions;
+            if (transformationOptions == null) {
+                options = new TransformationOptions.Builder().build();
+            }
+            MediaSource mediaSource = new MediaExtractorMediaSource(context, inputUri, options.sourceMediaRange);
             MediaTarget mediaTarget = new MediaMuxerMediaTarget(outputFilePath,
-                                                                mediaSource.getTrackCount(),
-                                                                mediaSource.getOrientationHint(),
-                                                                MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4);
-            Renderer renderer = new GlVideoRenderer(filters);
+                    mediaSource.getTrackCount(),
+                    mediaSource.getOrientationHint(),
+                    MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4);
+            Renderer renderer = new GlVideoRenderer(options.videoFilters);
             Decoder decoder = new MediaCodecDecoder();
             Encoder encoder = new MediaCodecEncoder();
             transform(requestId,
-                      mediaSource,
-                      decoder,
-                      renderer,
-                      encoder,
-                      mediaTarget,
-                      targetVideoFormat,
-                      targetAudioFormat,
-                      listener,
-                      granularity);
+                    mediaSource,
+                    decoder,
+                    renderer,
+                    encoder,
+                    mediaTarget,
+                    targetVideoFormat,
+                    targetAudioFormat,
+                    listener,
+                    options.granularity);
         } catch (MediaSourceException | MediaTargetException ex) {
             listener.onError(requestId, ex, null);
         }

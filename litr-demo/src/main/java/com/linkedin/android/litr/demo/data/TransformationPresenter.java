@@ -24,6 +24,7 @@ import androidx.core.content.FileProvider;
 
 import com.linkedin.android.litr.MediaTransformer;
 import com.linkedin.android.litr.TrackTransform;
+import com.linkedin.android.litr.TransformationOptions;
 import com.linkedin.android.litr.codec.MediaCodecDecoder;
 import com.linkedin.android.litr.codec.MediaCodecEncoder;
 import com.linkedin.android.litr.exception.MediaTransformationException;
@@ -210,6 +211,7 @@ public class TransformationPresenter {
 
     public void applyWatermark(@NonNull SourceMedia sourceMedia,
                                @NonNull TargetMedia targetMedia,
+                               @NonNull TrimConfig trimConfig,
                                @NonNull TransformationState transformationState) {
         if (targetMedia.targetFile.exists()) {
             targetMedia.targetFile.delete();
@@ -233,6 +235,17 @@ public class TransformationPresenter {
             }
         }
 
+        MediaRange mediaRange = trimConfig.enabled
+                ? new MediaRange(
+                TimeUnit.MILLISECONDS.toMicros((long) (trimConfig.range.get(0) * 1000)),
+                TimeUnit.MILLISECONDS.toMicros((long) (trimConfig.range.get(1) * 1000)))
+                : new MediaRange(0, Long.MAX_VALUE);
+        TransformationOptions transformationOptions = new TransformationOptions.Builder()
+                .setGranularity(MediaTransformer.GRANULARITY_DEFAULT)
+                .setVideoFilters(watermarkImageFilter)
+                .setSourceMediaRange(mediaRange)
+                .build();
+
         mediaTransformer.transform(
                 transformationState.requestId,
                 sourceMedia.uri,
@@ -240,8 +253,7 @@ public class TransformationPresenter {
                 null,
                 null,
                 transformationListener,
-                MediaTransformer.GRANULARITY_DEFAULT,
-                watermarkImageFilter);
+                transformationOptions);
     }
 
     public void applyFilter(@NonNull SourceMedia sourceMedia,
