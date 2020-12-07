@@ -25,6 +25,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import java.nio.ByteBuffer;
+import java.util.concurrent.TimeUnit;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
@@ -325,7 +326,7 @@ public class AudioTrackTranscoderShould {
 
         int result = audioTrackTranscoder.processNextFrame();
 
-        verify(renderer).renderFrame(frame, CURRENT_PRESENTATION_TIME);
+        verify(renderer).renderFrame(frame, TimeUnit.MICROSECONDS.toNanos(CURRENT_PRESENTATION_TIME));
         verify(encoder, never()).getInputFrame(anyInt());
 
         assertThat(result, is(TrackTranscoder.RESULT_FRAME_PROCESSED));
@@ -351,7 +352,7 @@ public class AudioTrackTranscoderShould {
 
         int result = audioTrackTranscoder.processNextFrame();
 
-        verify(renderer).renderFrame(decoderOutputFrame, CURRENT_PRESENTATION_TIME);
+        verify(renderer).renderFrame(decoderOutputFrame, TimeUnit.MICROSECONDS.toNanos(CURRENT_PRESENTATION_TIME));
         verify(decoder).releaseOutputFrame(BUFFER_INDEX, false);
 
         assertThat(result, is(TrackTranscoder.RESULT_EOS_REACHED));
