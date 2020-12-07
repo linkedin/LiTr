@@ -191,8 +191,9 @@ public class VideoTrackTranscoder extends TrackTranscoder {
                 encoder.signalEndOfInputStream();
                 decodeFrameResult = RESULT_EOS_REACHED;
             } else {
-                decoder.releaseOutputFrame(tag, true);
-                if (frame.bufferInfo.presentationTimeUs >= sourceMediaSelection.getStart()) {
+                boolean isFrameAfterSelectionStart = frame.bufferInfo.presentationTimeUs >= sourceMediaSelection.getStart();
+                decoder.releaseOutputFrame(tag, isFrameAfterSelectionStart);
+                if (isFrameAfterSelectionStart) {
                     renderer.renderFrame(null, (frame.bufferInfo.presentationTimeUs - sourceMediaSelection.getStart()) * MILLISECONDS_IN_SECOND);
                 }
             }
