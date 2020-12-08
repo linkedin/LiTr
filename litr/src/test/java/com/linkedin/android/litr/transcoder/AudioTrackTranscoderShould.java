@@ -558,7 +558,7 @@ public class AudioTrackTranscoderShould {
 
         audioTrackTranscoder.processNextFrame();
 
-        verify(renderer).renderFrame(frame, CURRENT_PRESENTATION_TIME - SELECTION_START);
+        verify(renderer).renderFrame(frame, TimeUnit.MICROSECONDS.toNanos(CURRENT_PRESENTATION_TIME - SELECTION_START));
         verify(decoder).releaseOutputFrame(tag, false);
     }
 
