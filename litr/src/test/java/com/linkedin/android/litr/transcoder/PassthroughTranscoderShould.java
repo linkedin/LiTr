@@ -13,6 +13,7 @@ import android.media.MediaFormat;
 import com.linkedin.android.litr.io.MediaRange;
 import com.linkedin.android.litr.io.MediaSource;
 import com.linkedin.android.litr.io.MediaTarget;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -22,7 +23,7 @@ import java.nio.ByteBuffer;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.doReturn;
@@ -32,35 +33,43 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class PassthroughTranscoderShould {
-    private static final int SOURCE_TRACK = 1;
-    private static final int TARGET_TRACK = 1;
+    private static final int SOURCE_TRACK = 0;
+    private static final int TARGET_TRACK = 0;
+    private static final int OTHER_SOURCE_TRACK = 1;
 
-    private static final long DURATION = 42;
+    private static final long DURATION = 84;
     private static final long SAMPLE_TIME = 21;
     private static final int BUFFER_SIZE = 512;
+
+    private static final long CURRENT_PRESENTATION_TIME = 42;
+    private static final long SELECTION_START = 16;
+    private static final long SELECTION_END = 64;
 
     @Mock private MediaSource mediaSource;
     @Mock private MediaTarget mediaTarget;
     @Mock private MediaCodec.BufferInfo outputBufferInfo;
     @Mock private ByteBuffer outputBuffer;
 
-    private MediaFormat sourceMediaFormat;
+    @Mock private MediaFormat sourceMediaFormat;
 
     private PassthroughTranscoder passthroughTranscoder;
+
+    private MediaRange fullMediaRange;
+    private MediaRange trimmedMediaRange;
 
     @Before
     public void setup() throws Exception {
         MockitoAnnotations.initMocks(this);
 
-        sourceMediaFormat = new MediaFormat();
-        sourceMediaFormat.setLong(MediaFormat.KEY_DURATION, DURATION);
+        fullMediaRange = new MediaRange(0, Long.MAX_VALUE);
+        trimmedMediaRange = new MediaRange(SELECTION_START, SELECTION_END);
+        when(mediaSource.getSelection()).thenReturn(fullMediaRange);
+
+        when(sourceMediaFormat.containsKey(MediaFormat.KEY_DURATION)).thenReturn(true);
+        when(sourceMediaFormat.getLong(MediaFormat.KEY_DURATION)).thenReturn(DURATION);
         when(mediaSource.getTrackFormat(SOURCE_TRACK)).thenReturn(sourceMediaFormat);
 
-        MediaRange mediaRange = new MediaRange(0, Long.MAX_VALUE);
-        when(mediaSource.getSelection()).thenReturn(mediaRange);
-
         passthroughTranscoder = spy(new PassthroughTranscoder(mediaSource, SOURCE_TRACK, mediaTarget, TARGET_TRACK));
-        passthroughTranscoder.start();
 
         passthroughTranscoder.outputBufferInfo = outputBufferInfo;
         passthroughTranscoder.outputBuffer = outputBuffer;
@@ -205,5 +214,107 @@ public class PassthroughTranscoderShould {
         assertThat(passthroughTranscoder.progress, is(0f));
         assertThat(result, is(TrackTranscoder.RESULT_FRAME_PROCESSED));
         assertThat(passthroughTranscoder.lastResult, is(TrackTranscoder.RESULT_FRAME_PROCESSED));
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void failWhenSelectionEndIsBeforeStart() {
+        MediaRange selection = new MediaRange(42L, 6L);
+        when(mediaSource.getSelection()).thenReturn(selection);
+
+        PassthroughTranscoder passthroughTranscoder = new PassthroughTranscoder(
+                mediaSource,
+                SOURCE_TRACK,
+                mediaTarget,
+                TARGET_TRACK);
+    }
+
+    @Test
+    public void adjustDurationToMediaSelection() {
+        when(mediaSource.getSelection()).thenReturn(trimmedMediaRange);
+
+        PassthroughTranscoder passthroughTranscoder = new PassthroughTranscoder(
+                mediaSource,
+                SOURCE_TRACK,
+                mediaTarget,
+                TARGET_TRACK);
+
+        assertThat(passthroughTranscoder.duration, is(SELECTION_END - SELECTION_START));
+    }
+
+    @Test
+    public void notWriteFrameBeforeSelectionStart() {
+        when(mediaSource.getSelection()).thenReturn(trimmedMediaRange);
+        when(mediaSource.getSampleTrackIndex()).thenReturn(SOURCE_TRACK);
+        when(mediaSource.readSampleData(outputBuffer, 0)).thenReturn(BUFFER_SIZE);
+        when(mediaSource.getSampleTime()).thenReturn(SELECTION_START - 1);
+        when(mediaSource.getSampleFlags()).thenReturn(0);
+
+        PassthroughTranscoder passthroughTranscoder = new PassthroughTranscoder(
+                mediaSource,
+                SOURCE_TRACK,
+                mediaTarget,
+                TARGET_TRACK);
+        passthroughTranscoder.targetTrackAdded = true;
+        passthroughTranscoder.outputBufferInfo = outputBufferInfo;
+        passthroughTranscoder.outputBuffer = outputBuffer;
+
+        passthroughTranscoder.processNextFrame();
+
+        verify(mediaTarget, never()).writeSampleData(anyInt(), any(ByteBuffer.class), any(MediaCodec.BufferInfo.class));
+        verify(mediaSource).advance();
+    }
+
+    @Test
+    public void writeTestWithinSelection() {
+        when(mediaSource.getSelection()).thenReturn(trimmedMediaRange);
+        when(mediaSource.getSampleTrackIndex()).thenReturn(SOURCE_TRACK);
+        when(mediaSource.readSampleData(outputBuffer, 0)).thenReturn(BUFFER_SIZE);
+        when(mediaSource.getSampleTime()).thenReturn(CURRENT_PRESENTATION_TIME);
+        when(mediaSource.getSampleFlags()).thenReturn(0);
+
+        PassthroughTranscoder passthroughTranscoder = new PassthroughTranscoder(
+                mediaSource,
+                SOURCE_TRACK,
+                mediaTarget,
+                TARGET_TRACK);
+        passthroughTranscoder.targetTrackAdded = true;
+        passthroughTranscoder.outputBufferInfo = outputBufferInfo;
+        passthroughTranscoder.outputBuffer = outputBuffer;
+
+        passthroughTranscoder.processNextFrame();
+
+        verify(mediaTarget).writeSampleData(TARGET_TRACK, outputBuffer, outputBufferInfo);
+        verify(outputBufferInfo).set(0, BUFFER_SIZE, CURRENT_PRESENTATION_TIME - SELECTION_START,0);
+        verify(mediaSource).advance();
+    }
+
+    @Test
+    public void writeEosAndAdvanceToOtherTrackAfterSelectionEnd() {
+        when(mediaSource.getSelection()).thenReturn(trimmedMediaRange);
+        when(mediaSource.getSampleTrackIndex()).thenReturn(SOURCE_TRACK);
+        when(mediaSource.readSampleData(outputBuffer, 0)).thenReturn(BUFFER_SIZE);
+        when(mediaSource.getSampleTime()).thenReturn(SELECTION_END + 1);
+        when(mediaSource.getSampleFlags()).thenReturn(0);
+        when(mediaSource.getSampleTrackIndex())
+                .thenReturn(SOURCE_TRACK)
+                .thenReturn(SOURCE_TRACK)
+                .thenReturn(OTHER_SOURCE_TRACK);
+
+        PassthroughTranscoder passthroughTranscoder = new PassthroughTranscoder(
+                mediaSource,
+                SOURCE_TRACK,
+                mediaTarget,
+                TARGET_TRACK);
+        passthroughTranscoder.targetTrackAdded = true;
+        passthroughTranscoder.outputBufferInfo = outputBufferInfo;
+        passthroughTranscoder.outputBuffer = outputBuffer;
+
+        passthroughTranscoder.processNextFrame();
+
+        verify(mediaTarget).writeSampleData(TARGET_TRACK, outputBuffer, outputBufferInfo);
+        verify(outputBufferInfo).set(0, 0, SELECTION_END + 1 - SELECTION_START, MediaCodec.BUFFER_FLAG_END_OF_STREAM);
+        verify(mediaSource).advance();
+
+        assertThat(passthroughTranscoder.lastResult, is(PassthroughTranscoder.RESULT_EOS_REACHED));
     }
 }

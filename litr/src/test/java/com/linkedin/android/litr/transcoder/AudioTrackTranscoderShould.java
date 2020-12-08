@@ -46,11 +46,15 @@ import static org.mockito.Mockito.when;
 public class AudioTrackTranscoderShould {
 
     private static final int AUDIO_TRACK = 0;
+    private static final int VIDEO_TRACK = 1;
     private static final int BUFFER_INDEX = 0;
     private static final int BUFFER_SIZE = 42;
     private static final long DURATION = 84;
     private static final long CURRENT_PRESENTATION_TIME = 42L;
     private static final float CURRENT_PROGRESS = 0.5f;
+
+    private static final long SELECTION_START = 16;
+    private static final long SELECTION_END = 64;
 
     @Mock private MediaSource mediaSource;
     @Mock private MediaTarget mediaTarget;
@@ -65,19 +69,22 @@ public class AudioTrackTranscoderShould {
     private AudioTrackTranscoder audioTrackTranscoder;
 
     private Frame sampleFrame;
+    private MediaRange fullMediaRange;
+    private MediaRange trimmedMediaRange;
 
     @Before
     public void setup() throws Exception {
         MockitoAnnotations.initMocks(this);
 
         sampleFrame = new Frame(BUFFER_INDEX, ByteBuffer.allocate(BUFFER_SIZE), bufferInfo);
+        fullMediaRange = new MediaRange(0, Long.MAX_VALUE);
+        trimmedMediaRange = new MediaRange(SELECTION_START, SELECTION_END);
 
         doReturn(sourceMediaFormat).when(mediaSource).getTrackFormat(anyInt());
         doReturn(true).when(decoder).isRunning();
         doReturn(true).when(encoder).isRunning();
 
-        MediaRange mediaRange = new MediaRange(0, Long.MAX_VALUE);
-        when(mediaSource.getSelection()).thenReturn(mediaRange);
+        when(mediaSource.getSelection()).thenReturn(fullMediaRange);
 
         targetAudioFormat = new MediaFormat();
         targetAudioFormat.setString(MediaFormat.KEY_MIME, "audio/aac");
@@ -453,4 +460,141 @@ public class AudioTrackTranscoderShould {
     }
 
     // endregion: receiving & writing encoded frames
+
+    // region: trimming media
+
+    @Test(expected = IllegalArgumentException.class)
+    public void failWhenSelectionEndIsBeforeStart() throws Exception {
+        MediaRange selection = new MediaRange(42L, 6L);
+        when(mediaSource.getSelection()).thenReturn(selection);
+
+        AudioTrackTranscoder audioTrackTranscoder = new AudioTrackTranscoder(
+                mediaSource,
+                AUDIO_TRACK,
+                mediaTarget,
+                AUDIO_TRACK,
+                targetAudioFormat,
+                renderer,
+                decoder,
+                encoder);
+    }
+
+    @Test
+    public void adjustDurationToMediaSelection() throws Exception {
+        when(sourceMediaFormat.containsKey(MediaFormat.KEY_DURATION)).thenReturn(true);
+        when(sourceMediaFormat.getLong(MediaFormat.KEY_DURATION)).thenReturn(DURATION);
+        when(mediaSource.getSelection()).thenReturn(trimmedMediaRange);
+
+        AudioTrackTranscoder audioTrackTranscoder = new AudioTrackTranscoder(
+                mediaSource,
+                AUDIO_TRACK,
+                mediaTarget,
+                AUDIO_TRACK,
+                targetAudioFormat,
+                renderer,
+                decoder,
+                encoder);
+
+        assertThat(audioTrackTranscoder.duration, is(SELECTION_END - SELECTION_START));
+    }
+
+    @Test
+    public void notRenderFrameBeforeSelectionStart() throws Exception {
+        int tag = 1;
+        MediaCodec.BufferInfo bufferInfo = new MediaCodec.BufferInfo();
+        bufferInfo.flags = 0;
+        bufferInfo.presentationTimeUs = SELECTION_START - 1;
+        Frame frame = new Frame(BUFFER_INDEX, ByteBuffer.allocate(BUFFER_SIZE), bufferInfo);
+
+        when(decoder.isRunning()).thenReturn(true);
+        when(encoder.isRunning()).thenReturn(true);
+        when(mediaSource.getSelection()).thenReturn(trimmedMediaRange);
+        when(decoder.dequeueOutputFrame(anyLong())).thenReturn(tag);
+        when(decoder.getOutputFrame(tag)).thenReturn(frame);
+
+        AudioTrackTranscoder audioTrackTranscoder = new AudioTrackTranscoder(
+                mediaSource,
+                AUDIO_TRACK,
+                mediaTarget,
+                AUDIO_TRACK,
+                targetAudioFormat,
+                renderer,
+                decoder,
+                encoder);
+        audioTrackTranscoder.lastExtractFrameResult = VideoTrackTranscoder.RESULT_EOS_REACHED;
+        audioTrackTranscoder.lastEncodeFrameResult = VideoTrackTranscoder.RESULT_EOS_REACHED;
+
+        audioTrackTranscoder.processNextFrame();
+
+        verify(renderer, never()).renderFrame(any(Frame.class), anyLong());
+        verify(decoder).releaseOutputFrame(tag, false);
+    }
+
+    @Test
+    public void renderFrameWithinSelection() throws Exception {
+        int tag = 1;
+        MediaCodec.BufferInfo bufferInfo = new MediaCodec.BufferInfo();
+        bufferInfo.flags = 0;
+        bufferInfo.presentationTimeUs = CURRENT_PRESENTATION_TIME;
+        Frame frame = new Frame(BUFFER_INDEX, ByteBuffer.allocate(BUFFER_SIZE), bufferInfo);
+
+        when(decoder.isRunning()).thenReturn(true);
+        when(encoder.isRunning()).thenReturn(true);
+        when(mediaSource.getSelection()).thenReturn(trimmedMediaRange);
+        when(decoder.dequeueOutputFrame(anyLong())).thenReturn(tag);
+        when(decoder.getOutputFrame(tag)).thenReturn(frame);
+
+        AudioTrackTranscoder audioTrackTranscoder = new AudioTrackTranscoder(
+                mediaSource,
+                AUDIO_TRACK,
+                mediaTarget,
+                AUDIO_TRACK,
+                targetAudioFormat,
+                renderer,
+                decoder,
+                encoder);
+        audioTrackTranscoder.lastExtractFrameResult = VideoTrackTranscoder.RESULT_EOS_REACHED;
+        audioTrackTranscoder.lastEncodeFrameResult = VideoTrackTranscoder.RESULT_EOS_REACHED;
+
+        audioTrackTranscoder.processNextFrame();
+
+        verify(renderer).renderFrame(frame, CURRENT_PRESENTATION_TIME - SELECTION_START);
+        verify(decoder).releaseOutputFrame(tag, false);
+    }
+
+    @Test
+    public void notDecodeFrameAndAdvanceToOtherTrackAndSendEosWhenFrameAfterSelectionEnd() throws Exception {
+        int tag = 1;
+
+        when(decoder.dequeueInputFrame(anyLong())).thenReturn(tag);
+        when(decoder.getInputFrame(tag)).thenReturn(sampleFrame);
+        when(mediaSource.getSelection()).thenReturn(trimmedMediaRange);
+        when(mediaSource.getSampleTime()).thenReturn(SELECTION_END + 1);
+        when(mediaSource.getSampleFlags()).thenReturn(0);
+        when(mediaSource.readSampleData(sampleFrame.buffer, 0)).thenReturn(BUFFER_SIZE);
+        when(mediaSource.getSampleTrackIndex())
+                .thenReturn(AUDIO_TRACK)
+                .thenReturn(AUDIO_TRACK)
+                .thenReturn(VIDEO_TRACK);
+
+        AudioTrackTranscoder audioTrackTranscoder = new AudioTrackTranscoder(
+                mediaSource,
+                AUDIO_TRACK,
+                mediaTarget,
+                AUDIO_TRACK,
+                targetAudioFormat,
+                renderer,
+                decoder,
+                encoder);
+        audioTrackTranscoder.lastDecodeFrameResult = VideoTrackTranscoder.RESULT_EOS_REACHED;
+        audioTrackTranscoder.lastEncodeFrameResult = VideoTrackTranscoder.RESULT_EOS_REACHED;
+
+        audioTrackTranscoder.processNextFrame();
+
+        verify(decoder).queueInputFrame(sampleFrame);
+        verify(sampleFrame.bufferInfo).set(0, 0, -1, MediaCodec.BUFFER_FLAG_END_OF_STREAM);
+        assertThat(audioTrackTranscoder.lastExtractFrameResult, is(VideoTrackTranscoder.RESULT_EOS_REACHED));
+    }
+
+    // endregion: trimming media
 }
