@@ -21,6 +21,8 @@ import com.linkedin.android.litr.io.MediaSource;
 import com.linkedin.android.litr.io.MediaTarget;
 import com.linkedin.android.litr.render.Renderer;
 
+import java.util.concurrent.TimeUnit;
+
 @RestrictTo(RestrictTo.Scope.LIBRARY)
 public class AudioTrackTranscoder extends TrackTranscoder {
     private static final String TAG = AudioTrackTranscoder.class.getSimpleName();
@@ -168,7 +170,8 @@ public class AudioTrackTranscoder extends TrackTranscoder {
 
             if (decoderOutputFrame.bufferInfo.presentationTimeUs >= sourceMediaSelection.getStart()
                     || (decoderOutputFrame.bufferInfo.flags & MediaCodec.BUFFER_FLAG_END_OF_STREAM) != 0) {
-                renderer.renderFrame(decoderOutputFrame, decoderOutputFrame.bufferInfo.presentationTimeUs - sourceMediaSelection.getStart());
+                renderer.renderFrame(decoderOutputFrame,
+                        TimeUnit.MICROSECONDS.toNanos(decoderOutputFrame.bufferInfo.presentationTimeUs - sourceMediaSelection.getStart()));
             }
             decoder.releaseOutputFrame(tag, false);
 
