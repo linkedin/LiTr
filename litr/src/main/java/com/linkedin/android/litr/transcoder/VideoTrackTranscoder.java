@@ -22,14 +22,14 @@ import com.linkedin.android.litr.io.MediaTarget;
 import com.linkedin.android.litr.render.GlVideoRenderer;
 import com.linkedin.android.litr.render.Renderer;
 
+import java.util.concurrent.TimeUnit;
+
 /**
  * Transcoder that processes video tracks.
  */
 @RestrictTo(RestrictTo.Scope.LIBRARY)
 public class VideoTrackTranscoder extends TrackTranscoder {
     private static final String TAG = VideoTrackTranscoder.class.getSimpleName();
-
-    private static final long MILLISECONDS_IN_SECOND = 1000;
 
     @VisibleForTesting int lastExtractFrameResult;
     @VisibleForTesting int lastDecodeFrameResult;
@@ -194,7 +194,8 @@ public class VideoTrackTranscoder extends TrackTranscoder {
                 boolean isFrameAfterSelectionStart = frame.bufferInfo.presentationTimeUs >= sourceMediaSelection.getStart();
                 decoder.releaseOutputFrame(tag, isFrameAfterSelectionStart);
                 if (isFrameAfterSelectionStart) {
-                    renderer.renderFrame(null, (frame.bufferInfo.presentationTimeUs - sourceMediaSelection.getStart()) * MILLISECONDS_IN_SECOND);
+                    renderer.renderFrame(null,
+                            TimeUnit.MICROSECONDS.toNanos(frame.bufferInfo.presentationTimeUs - sourceMediaSelection.getStart()));
                 }
             }
         } else {

@@ -64,7 +64,7 @@ public class PassthroughSoftwareRenderer implements Renderer {
             outputFrame.bufferInfo.set(
                     0,
                     frame.bufferInfo.size,
-                    presentationTimeNs,
+                    TimeUnit.NANOSECONDS.toMicros(presentationTimeNs),
                     frame.bufferInfo.flags);
             encoder.queueInputFrame(outputFrame);
         } else {
