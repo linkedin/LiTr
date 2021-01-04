@@ -149,29 +149,54 @@ public class MediaTransformer {
                           @Nullable MediaFormat targetAudioFormat,
                           @NonNull TransformationListener listener,
                           @Nullable TransformationOptions transformationOptions) {
+
+        TransformationOptions options = transformationOptions == null
+                ? new TransformationOptions.Builder().build()
+                : transformationOptions;
+
         try {
-            TransformationOptions options = transformationOptions;
-            if (transformationOptions == null) {
-                options = new TransformationOptions.Builder().build();
-            }
             MediaSource mediaSource = new MediaExtractorMediaSource(context, inputUri, options.sourceMediaRange);
-            MediaTarget mediaTarget = new MediaMuxerMediaTarget(outputFilePath,
+            MediaTarget mediaTarget = new MediaMuxerMediaTarget(
+                    outputFilePath,
                     mediaSource.getTrackCount(),
                     mediaSource.getOrientationHint(),
                     MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4);
-            Renderer renderer = new GlVideoRenderer(options.videoFilters);
-            Decoder decoder = new MediaCodecDecoder();
-            Encoder encoder = new MediaCodecEncoder();
-            transform(requestId,
-                    mediaSource,
-                    decoder,
-                    renderer,
-                    encoder,
-                    mediaTarget,
-                    targetVideoFormat,
-                    targetAudioFormat,
-                    listener,
-                    options.granularity);
+
+            int trackCount = mediaSource.getTrackCount();
+            List<TrackTransform> trackTransforms = new ArrayList<>(trackCount);
+            for (int track = 0; track < trackCount; track++) {
+                MediaFormat sourceMediaFormat = mediaSource.getTrackFormat(track);
+                String mimeType = null;
+                if (sourceMediaFormat.containsKey(MediaFormat.KEY_MIME)) {
+                    mimeType = sourceMediaFormat.getString(MediaFormat.KEY_MIME);
+                }
+
+                if (mimeType == null) {
+                    Log.e(TAG, "Mime type is null for track " + track);
+                    continue;
+                }
+
+                Decoder decoder = new MediaCodecDecoder();
+                Encoder encoder = new MediaCodecEncoder();
+
+                TrackTransform.Builder trackTransformBuilder = new TrackTransform.Builder(mediaSource, track, mediaTarget)
+                        .setTargetTrack(track);
+
+                if (mimeType.startsWith("video")) {
+                    trackTransformBuilder.setDecoder(decoder)
+                            .setRenderer(new GlVideoRenderer(options.videoFilters))
+                            .setEncoder(encoder)
+                            .setTargetFormat(targetVideoFormat);
+                } else if (mimeType.startsWith("audio")) {
+                    trackTransformBuilder.setDecoder(decoder)
+                            .setEncoder(encoder)
+                            .setTargetFormat(targetAudioFormat);
+                }
+
+                trackTransforms.add(trackTransformBuilder.build());
+            }
+
+            transform(requestId, trackTransforms, listener, options.granularity);
         } catch (MediaSourceException | MediaTargetException ex) {
             listener.onError(requestId, ex, null);
         }
@@ -186,16 +211,18 @@ public class MediaTransformer {
      *
      * @param requestId client defined unique id for a transformation request. If not unique, {@link IllegalArgumentException} will be thrown.
      * @param mediaSource {@link MediaSource} to provide input frames
-     * @param decoder {@link Decoder} to decode input frames
+     * @param decoder {@link Decoder} to decode input video frames
      * @param videoRenderer {@link Renderer} to draw (with optional filters) decoder's output frame onto encoder's input frame
-     * @param encoder {@link Encoder} to encode output frames into target format
+     * @param encoder {@link Encoder} to encode output video frames into target format
      * @param mediaTarget {@link MediaTarget} to write/mux output frames
      * @param targetVideoFormat target format parameters for video track(s), null to keep them as is
      * @param targetAudioFormat target format parameters for audio track(s), null to keep them as is
      * @param listener {@link TransformationListener} implementation, to get updates on transformation status/result/progress
      * @param granularity progress reporting granularity. NO_GRANULARITY for per-frame progress reporting,
      *                    or positive integer value for number of times transformation progress should be reported
+     * @deprecated use transform(List<TrackTransform>> instead
      */
+    @Deprecated
     public void transform(@NonNull String requestId,
                           @NonNull MediaSource mediaSource,
                           @NonNull Decoder decoder,
@@ -233,8 +260,8 @@ public class MediaTransformer {
                                      .setEncoder(encoder)
                                      .setTargetFormat(targetVideoFormat);
             } else if (mimeType.startsWith("audio")) {
-                trackTransformBuilder.setDecoder(decoder)
-                                     .setEncoder(encoder)
+                trackTransformBuilder.setDecoder(new MediaCodecDecoder())
+                                     .setEncoder(new MediaCodecEncoder())
                                      .setTargetFormat(targetAudioFormat);
             }
 

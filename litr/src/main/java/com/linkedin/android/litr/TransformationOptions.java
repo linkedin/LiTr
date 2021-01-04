@@ -28,7 +28,7 @@ import static com.linkedin.android.litr.MediaTransformer.GRANULARITY_NONE;
 public class TransformationOptions {
     @IntRange(from = GRANULARITY_NONE) public final int granularity;
     @Nullable public final List<GlFilter> videoFilters;
-    @Nullable public final MediaRange sourceMediaRange;
+    @NonNull public final MediaRange sourceMediaRange;
 
     private TransformationOptions(@IntRange(from = GRANULARITY_NONE) int granularity,
                                   @Nullable List<GlFilter> videoFilters,
