@@ -268,6 +268,11 @@ public class TransformationPresenter {
                 transformationState.requestId,
                 transformationState);
 
+        TransformationOptions transformationOptions = new TransformationOptions.Builder()
+                .setGranularity(MediaTransformer.GRANULARITY_DEFAULT)
+                .setVideoFilters(Collections.singletonList(targetMedia.filter))
+                .build();
+
         mediaTransformer.transform(
                 transformationState.requestId,
                 sourceMedia.uri,
@@ -275,8 +280,7 @@ public class TransformationPresenter {
                 null,
                 null,
                 transformationListener,
-                MediaTransformer.GRANULARITY_DEFAULT,
-                Collections.singletonList(targetMedia.filter));
+                transformationOptions);
     }
 
     public void cancelTransformation(@NonNull String requestId) {

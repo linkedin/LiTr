@@ -194,7 +194,7 @@ public class VideoTrackTranscoder extends TrackTranscoder {
                 boolean isFrameAfterSelectionStart = frame.bufferInfo.presentationTimeUs >= sourceMediaSelection.getStart();
                 decoder.releaseOutputFrame(tag, isFrameAfterSelectionStart);
                 if (isFrameAfterSelectionStart) {
-                    renderer.renderFrame(null, 
+                    renderer.renderFrame(null,
                             TimeUnit.MICROSECONDS.toNanos(frame.bufferInfo.presentationTimeUs - sourceMediaSelection.getStart()));
                 }
             }
