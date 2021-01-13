@@ -7,12 +7,15 @@
  */
 package com.linkedin.android.litr;
 
+import android.media.MediaExtractor;
 import android.text.TextUtils;
 import android.util.Log;
+
 import androidx.annotation.IntRange;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.VisibleForTesting;
+
 import com.linkedin.android.litr.analytics.TransformationStatsCollector;
 import com.linkedin.android.litr.exception.InsufficientDiskSpaceException;
 import com.linkedin.android.litr.exception.MediaTransformationException;
@@ -93,6 +96,7 @@ class TransformationJob implements Runnable {
         verifyAvailableDiskSpace();
         createTrackTranscoders();
         startTrackTranscoders();
+        seekToMediaRangeStart();
 
         boolean completed = false;
 
@@ -185,6 +189,14 @@ class TransformationJob implements Runnable {
     void startTrackTranscoders() throws TrackTranscoderException {
         for (TrackTranscoder trackTranscoder : trackTranscoders) {
             trackTranscoder.start();
+        }
+    }
+
+    private void seekToMediaRangeStart() {
+        for (TrackTransform trackTransform : trackTransforms) {
+            trackTransform.getMediaSource().seekTo(
+                    trackTransform.getMediaSource().getSelection().getStart(),
+                    MediaExtractor.SEEK_TO_PREVIOUS_SYNC);
         }
     }
 
