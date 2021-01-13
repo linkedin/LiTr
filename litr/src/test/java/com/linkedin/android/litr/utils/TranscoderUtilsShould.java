@@ -29,6 +29,9 @@ public class TranscoderUtilsShould {
     private static final long MISC_DURATION_S = 25;
     private static final long MISC_DURATION_US = MISC_DURATION_S * 1000 * 1000;
 
+    private static final long TRIM_DURATION_S = DURATION_S / 2;
+    private static final long TRIM_DURATION_US = TRIM_DURATION_S * 1000 * 1000;
+
     private static final int VIDEO_BIT_RATE = 19 * 1000 * 1000;
     private static final int AUDIO_BIT_RATE = 96 * 1000;
     private static final int MISC_BIT_RATE = 5 * 1000;
@@ -245,5 +248,25 @@ public class TranscoderUtilsShould {
 
         // estimation is affected by integer division, so let's account for that
         assertEquals(estimatedBitrate, VIDEO_BIT_RATE, 1);
+    }
+
+
+    @Test
+    public void useMediaRangeToEstimateSizeWhenAvailable() {
+        when(mediaSource.getTrackCount()).thenReturn(2);
+        when(videoMediaFormat.containsKey(MediaFormat.KEY_BIT_RATE)).thenReturn(false);
+        when(audioMediaFormat.containsKey(MediaFormat.KEY_BIT_RATE)).thenReturn(true);
+        when(audioMediaFormat.getInteger(MediaFormat.KEY_BIT_RATE)).thenReturn(AUDIO_BIT_RATE);
+
+        // Trimmer has not been set (use the default MediaRange object)
+        when(mediaSource.getSelection()).thenReturn(new MediaRange(0, Long.MAX_VALUE));
+        long defaultSize = TranscoderUtils.getEstimatedTargetVideoFileSize(mediaSource, targetVideoFormat, null);
+
+        // Trimmer has been set, trim duration here is half of our track length
+        when(mediaSource.getSelection()).thenReturn(new MediaRange(0, TRIM_DURATION_US));
+        long trimmedSize = TranscoderUtils.getEstimatedTargetVideoFileSize(mediaSource, targetVideoFormat, null);
+
+        // Since we trim half of the video, the estimated size should be half of the untrimmed one
+        assertThat(trimmedSize, is(defaultSize / 2));
     }
 }
