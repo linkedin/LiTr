@@ -8,7 +8,10 @@
 package com.linkedin.android.litr.utils;
 
 import android.media.MediaFormat;
+
+import com.linkedin.android.litr.io.MediaRange;
 import com.linkedin.android.litr.io.MediaSource;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -69,6 +72,7 @@ public class TranscoderUtilsShould {
 
         when(mediaSource.getTrackFormat(0)).thenReturn(videoMediaFormat);
         when(mediaSource.getTrackFormat(1)).thenReturn(audioMediaFormat);
+        when(mediaSource.getSelection()).thenReturn(new MediaRange(0, Long.MAX_VALUE));
     }
 
     @Test

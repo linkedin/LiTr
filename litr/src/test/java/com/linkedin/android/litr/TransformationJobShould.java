@@ -14,6 +14,7 @@ import com.linkedin.android.litr.codec.Decoder;
 import com.linkedin.android.litr.codec.Encoder;
 import com.linkedin.android.litr.exception.InsufficientDiskSpaceException;
 import com.linkedin.android.litr.exception.TrackTranscoderException;
+import com.linkedin.android.litr.io.MediaRange;
 import com.linkedin.android.litr.io.MediaSource;
 import com.linkedin.android.litr.io.MediaTarget;
 import com.linkedin.android.litr.render.Renderer;
@@ -94,6 +95,8 @@ public class TransformationJobShould {
 
         doReturn(sourceVideoFormat).when(mediaSource).getTrackFormat(0);
         doReturn(sourceAudioFormat).when(mediaSource).getTrackFormat(1);
+
+        when(mediaSource.getSelection()).thenReturn(new MediaRange(0, Long.MAX_VALUE));
 
         doReturn("video/avc").when(sourceVideoFormat).getString(MediaFormat.KEY_MIME);
         doReturn("audio/aac").when(sourceAudioFormat).getString(MediaFormat.KEY_MIME);
