@@ -13,10 +13,13 @@ import android.content.res.AssetFileDescriptor;
 import android.media.MediaFormat;
 import android.net.Uri;
 import android.util.Log;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.VisibleForTesting;
+
 import com.linkedin.android.litr.TrackTransform;
+import com.linkedin.android.litr.io.MediaRange;
 import com.linkedin.android.litr.io.MediaSource;
 
 import java.io.File;
@@ -49,16 +52,14 @@ public final class TranscoderUtils {
 
         // calculate maximum track duration, we might need it later
         long maxDurationUs = 0;
-        for (TrackTransform trackTransform : trackTransforms) {
-            MediaFormat trackFormat = trackTransform.getMediaSource().getTrackFormat(trackTransform.getSourceTrack());
-            long durationUs = getDuration(trackFormat);
-            maxDurationUs = Math.max(durationUs, maxDurationUs);
+        for (final @NonNull TrackTransform trackTransform : trackTransforms) {
+            maxDurationUs = Math.max(getDuration(trackTransform), maxDurationUs);
         }
 
         for (TrackTransform trackTransform : trackTransforms) {
             MediaFormat sourceTrackFormat = trackTransform.getMediaSource().getTrackFormat(trackTransform.getSourceTrack());
             int bitrate = getBitrate(sourceTrackFormat);
-            long duration = getDuration(sourceTrackFormat);
+            long duration = getDuration(trackTransform);
 
             if (duration < 0) {
                 Log.d(TAG, "Track duration is not available, using maximum duration");
@@ -212,11 +213,21 @@ public final class TranscoderUtils {
         return bitrate;
     }
 
-    private static long getDuration(@NonNull MediaFormat trackFormat) {
-        long duration = -1;
+    private static long getDuration(final @NonNull TrackTransform trackTransform) {
+        // Get the user specified MediaRange's duration
+        final MediaRange mediaRange = trackTransform.getMediaSource().getSelection();
+        final long trimmedDuration = mediaRange.getEnd() - mediaRange.getStart();
+
+        final MediaFormat trackFormat = trackTransform.getMediaSource()
+                .getTrackFormat(trackTransform.getSourceTrack());
+
+        // Get the track's duration
+        long trackDuration = -1;
         if (trackFormat.containsKey(MediaFormat.KEY_DURATION)) {
-            duration = trackFormat.getLong(MediaFormat.KEY_DURATION);
+            trackDuration = trackFormat.getLong(MediaFormat.KEY_DURATION);
         }
-        return duration;
+
+        // Trimmed duration could be Long.MAX_VALUE, return the track duration in that case
+        return Math.min(trimmedDuration, trackDuration);
     }
 }
