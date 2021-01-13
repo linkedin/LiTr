@@ -7,6 +7,7 @@
  */
 package com.linkedin.android.litr;
 
+import android.media.MediaExtractor;
 import android.media.MediaFormat;
 import com.linkedin.android.litr.analytics.TrackTransformationInfo;
 import com.linkedin.android.litr.analytics.TransformationStatsCollector;
@@ -34,6 +35,7 @@ import org.mockito.MockitoAnnotations;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import static com.linkedin.android.litr.transcoder.TrackTranscoder.RESULT_EOS_REACHED;
 import static junit.framework.Assert.assertFalse;
@@ -49,6 +51,7 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -398,6 +401,17 @@ public class TransformationJobShould {
         verify(statsCollector).setTargetFormat(0, videoTrackTranscoder.getTargetMediaFormat());
         verify(statsCollector).setTargetFormat(1, audioTrackTranscoder.getTargetMediaFormat());
         assertThat(trackTransformationInfosCaptor.getValue(), is(trackTransformationInfos));
+    }
+
+    @Test
+    public void seekToMediaRangeStartWhenTransforming() {
+        long trimStart = TimeUnit.SECONDS.toMicros(42);
+        MediaRange mediaRange = new MediaRange(trimStart, Long.MAX_VALUE);
+        when(mediaSource.getSelection()).thenReturn(mediaRange);
+
+        transformationJob.run();
+
+        verify(mediaSource, times(2)).seekTo(trimStart, MediaExtractor.SEEK_TO_PREVIOUS_SYNC);
     }
 
     private void loadTrackTranscoders() {
