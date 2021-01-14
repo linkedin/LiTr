@@ -17,6 +17,7 @@ import androidx.annotation.IntRange;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import com.linkedin.android.litr.exception.TrackTranscoderException;
+import com.linkedin.android.litr.utils.CodecUtils;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -44,6 +45,9 @@ public class MediaCodecEncoder implements Encoder {
             if (Build.VERSION.SDK_INT > Build.VERSION_CODES.LOLLIPOP) {
                 mediaCodecList = new MediaCodecList(MediaCodecList.ALL_CODECS);
                 String encoderCodecName = mediaCodecList.findEncoderForFormat(targetFormat);
+                if (encoderCodecName == null) {
+                    encoderCodecName = CodecUtils.getSupportedCodecName(targetFormat.getString(MediaFormat.KEY_MIME), true);
+                }
                 if (encoderCodecName != null) {
                     mediaCodec = MediaCodec.createByCodecName(encoderCodecName);
                 }
