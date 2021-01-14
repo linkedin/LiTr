@@ -156,6 +156,34 @@ public class CodecUtils {
         return highestSupportedProfile;
     }
 
+    /**
+     * Attempts to find a supported codec name for a given MIME type. Iterates through all codecs
+     * available, and filters by encoders and/or decoders, depending on the flag passed in the
+     * parameters.
+     *
+     * @param mimeType media MIME type
+     * @param isEncoder search through encoder codecs if true, decoder codecs if false
+     * @return a String with the first codec name supported in the device for that MIME type
+     */
+    public static String getSupportedCodecName(String mimeType, boolean isEncoder) {
+        int numCodecs = MediaCodecList.getCodecCount();
+        for (int i = 0; i < numCodecs; i++) {
+            MediaCodecInfo codecInfo = MediaCodecList.getCodecInfoAt(i);
+
+            if (codecInfo.isEncoder() != isEncoder) {
+                continue;
+            }
+
+            String[] types = codecInfo.getSupportedTypes();
+            for (int j = 0; j < types.length; j++) {
+                if (types[j].equalsIgnoreCase(mimeType)) {
+                    return codecInfo.getName();
+                }
+            }
+        }
+        return null;
+    }
+
     private static boolean supportsType(@NonNull MediaCodecInfo mediaCodecInfo, @NonNull String mimeType) {
         String[] supportedTypes = mediaCodecInfo.getSupportedTypes();
         for (String supportedType : supportedTypes) {
