@@ -44,7 +44,6 @@ public class MediaExtractorMediaSource implements MediaSource {
         try {
             mediaExtractor.setDataSource(context, uri, null);
             mediaMetadataRetriever.setDataSource(context, uri);
-            mediaExtractor.seekTo(mediaRange.getStart(), MediaExtractor.SEEK_TO_PREVIOUS_SYNC);
         } catch (IOException ex) {
             throw new MediaSourceException(DATA_SOURCE, uri, ex);
         }
