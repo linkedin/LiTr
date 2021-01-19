@@ -13,9 +13,11 @@ import android.media.MediaCodecList;
 import android.media.MediaFormat;
 import android.os.Build;
 import android.view.Surface;
+
 import androidx.annotation.IntRange;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+
 import com.linkedin.android.litr.exception.TrackTranscoderException;
 import com.linkedin.android.litr.utils.CodecUtils;
 
@@ -24,12 +26,22 @@ import java.nio.ByteBuffer;
 
 public class MediaCodecEncoder implements Encoder {
 
+    private final boolean forceGetCodecByType;
+
     private MediaCodec mediaCodec;
 
     private boolean isReleased = true;
     private boolean isRunning;
 
     private MediaCodec.BufferInfo encoderOutputBufferInfo = new MediaCodec.BufferInfo();
+
+    public MediaCodecEncoder() {
+        this(false);
+    }
+
+    public MediaCodecEncoder(boolean forceGetCodecByType) {
+        this.forceGetCodecByType = forceGetCodecByType;
+    }
 
     @Override
     public void init(@NonNull MediaFormat targetFormat) throws TrackTranscoderException {
@@ -42,7 +54,7 @@ public class MediaCodecEncoder implements Encoder {
         }
 
         try {
-            if (Build.VERSION.SDK_INT > Build.VERSION_CODES.LOLLIPOP) {
+            if (Build.VERSION.SDK_INT > Build.VERSION_CODES.LOLLIPOP && !forceGetCodecByType) {
                 mediaCodecList = new MediaCodecList(MediaCodecList.ALL_CODECS);
                 String encoderCodecName = mediaCodecList.findEncoderForFormat(targetFormat);
                 if (encoderCodecName == null) {
