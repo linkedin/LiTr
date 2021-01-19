@@ -67,15 +67,14 @@ public class TrackTranscoderFactory {
                                                    null);
             }
         }
-        // TODO move into statement above when audio renderer is implemented
-        if (trackMimeType.startsWith("video") && renderer == null) {
-            throw new TrackTranscoderException(TrackTranscoderException.Error.RENDERER_NOT_PROVIDED,
-                                               targetFormat,
-                                               null,
-                                               null);
-        }
 
         if (trackMimeType.startsWith("video")) {
+            if (renderer == null) {
+                throw new TrackTranscoderException(TrackTranscoderException.Error.RENDERER_NOT_PROVIDED,
+                        targetFormat,
+                        null,
+                        null);
+            }
             return new VideoTrackTranscoder(mediaSource,
                                             sourceTrack,
                                             mediaTarget,
