@@ -10,17 +10,16 @@ package com.linkedin.android.litr.transcoder;
 import android.media.MediaExtractor;
 import android.media.MediaFormat;
 import android.util.Log;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RestrictTo;
+
 import com.linkedin.android.litr.codec.Decoder;
 import com.linkedin.android.litr.codec.Encoder;
-import com.linkedin.android.litr.codec.MediaCodecDecoder;
-import com.linkedin.android.litr.codec.MediaCodecEncoder;
 import com.linkedin.android.litr.exception.TrackTranscoderException;
 import com.linkedin.android.litr.io.MediaSource;
 import com.linkedin.android.litr.io.MediaTarget;
-import com.linkedin.android.litr.render.GlVideoRenderer;
 import com.linkedin.android.litr.render.PassthroughSoftwareRenderer;
 import com.linkedin.android.litr.render.Renderer;
 
@@ -86,10 +85,8 @@ public class TrackTranscoderFactory {
                                             decoder,
                                             encoder);
         } else if (trackMimeType.startsWith("audio")) {
-            Decoder audioDecoder = new MediaCodecDecoder();
-            Encoder audioEncoder = new MediaCodecEncoder();
             Renderer audioRenderer = renderer == null
-                    ? new PassthroughSoftwareRenderer(audioEncoder)
+                    ? new PassthroughSoftwareRenderer(encoder)
                     : renderer;
 
             return new AudioTrackTranscoder(mediaSource,
@@ -98,8 +95,8 @@ public class TrackTranscoderFactory {
                                             targetTrack,
                                             targetFormat,
                                             audioRenderer,
-                                            audioDecoder,
-                                            audioEncoder);
+                                            decoder,
+                                            encoder);
         } else {
             Log.i(TAG, "Unsupported track mime type: " + trackMimeType + ", will use passthrough transcoder");
             return new PassthroughTranscoder(mediaSource, sourceTrack, mediaTarget, targetTrack);
