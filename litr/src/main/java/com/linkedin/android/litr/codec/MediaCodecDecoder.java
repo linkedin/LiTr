@@ -23,11 +23,21 @@ import java.nio.ByteBuffer;
 
 public final class MediaCodecDecoder implements Decoder {
 
+    private final boolean forceGetCodecByType;
+
     private MediaCodec mediaCodec;
 
     private boolean isRunning;
     private boolean isReleased;
     private MediaCodec.BufferInfo outputBufferInfo = new MediaCodec.BufferInfo();
+
+    public MediaCodecDecoder() {
+        this(false);
+    }
+
+    public MediaCodecDecoder(boolean forceGetCodecByType) {
+        this.forceGetCodecByType = forceGetCodecByType;
+    }
 
     @Override
     public void init(@NonNull MediaFormat mediaFormat, @Nullable Surface surface) throws TrackTranscoderException {
@@ -36,7 +46,7 @@ public final class MediaCodecDecoder implements Decoder {
         MediaCodecList mediaCodecList = null;
         String sourceMimeType = mediaFormat.getString(MediaFormat.KEY_MIME);
         try {
-            if (Build.VERSION.SDK_INT > Build.VERSION_CODES.LOLLIPOP) {
+            if (Build.VERSION.SDK_INT > Build.VERSION_CODES.LOLLIPOP && !forceGetCodecByType) {
                 mediaCodecList = new MediaCodecList(MediaCodecList.ALL_CODECS);
                 String decoderCodecName = mediaCodecList.findDecoderForFormat(mediaFormat);
                 if (decoderCodecName == null) {

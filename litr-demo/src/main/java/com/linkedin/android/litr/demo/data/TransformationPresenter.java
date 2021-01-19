@@ -115,8 +115,8 @@ public class TransformationPresenter {
                                                                                           mediaTarget)
                     .setTargetTrack(trackTransforms.size())
                     .setTargetFormat(targetTrack.shouldTranscode ? createMediaFormat(targetTrack) : null)
-                    .setEncoder(new MediaCodecEncoder())
-                    .setDecoder(new MediaCodecDecoder());
+                    .setEncoder(new MediaCodecEncoder(true))
+                    .setDecoder(new MediaCodecDecoder(true));
                 if (targetTrack.format instanceof VideoTrackFormat) {
                     trackTransformBuilder.setRenderer(new GlVideoRenderer(createGlFilters(sourceMedia,
                             (TargetVideoTrack) targetTrack,
