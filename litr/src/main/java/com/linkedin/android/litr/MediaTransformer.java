@@ -260,8 +260,8 @@ public class MediaTransformer {
                                      .setEncoder(encoder)
                                      .setTargetFormat(targetVideoFormat);
             } else if (mimeType.startsWith("audio")) {
-                trackTransformBuilder.setDecoder(decoder)
-                                     .setEncoder(encoder)
+                trackTransformBuilder.setDecoder(new MediaCodecDecoder())
+                                     .setEncoder(new MediaCodecEncoder())
                                      .setTargetFormat(targetAudioFormat);
             }
 
