@@ -49,8 +49,7 @@ mediaTransformer.transform(requestId,
                            targetVideoFormat,
                            targetAudioFormat,
                            videoTransformationListener,
-                           MediaTransformer.GRANULARITY_DEFAULT,
-                           glFilters);
+                           transformationOptions);
 ```
 
 Few notable things related to transformation:
@@ -59,10 +58,11 @@ Few notable things related to transformation:
  - passing `null` target format means that you don't want to modify track(s) of that type
  - transformation is performed asynchronously, listener will be called with any transformation progress or state changes
  - by default listener callbacks happen on a UI thread, it is safe to update UI in listener implementation. It is also possible to have them on a non-UI transformation thread, for example, if any "heavy" works needs to be done in listener implementation.
- - if you want to modify video frames, pass in a list of `GlFilter`s, which will be applied in order
+ - if you want to modify video frames, pass in a list of `GlFilter`s in `TransformationOptions`, which will be applied in order
  - client can call `transform` multiple times, to queue transformation requests
  - video will be written into MP4 container, we recommend using H.264 ("video/avc" MIME type) for target encoding
- - progress update granularity is 100 by default, to match percentage 
+ - progress update granularity is 100 by default, to match percentage, and can be set in `TransformationOptions`
+ - media can be optionally trimmed by specifying a `MediaRange` in `TransformationOptions`
  
  Ongoing transformation can be cancelled by calling `cancel` with its `requestId`:
  
@@ -102,24 +102,10 @@ Each transformation step is performed by a component. Each component is abstract
  - `Encoder`
  - `MediaTarget`
 
-This allows clients pass in their own implementations of different transformation steps using more "low level" `transform` API:
-
-```java
-transform(requestId,
-          mediaSource,
-          decoder,
-          videoRenderer,
-          encoder,
-          mediaTarget,
-          targetVideoFormat,
-          targetAudioFormat,
-          listener,
-          granularity)
-``` 
-
 When using your own component implementations, make sure that output of a component matches the expected input of a next component. For example, if you are using a custom `Encoder` (AV1?), make sure it accepts whatever frame format `Renderer` produces (`GlSurface`, `ByteBuffer`) and outputs what `MediaTarget` expects as an input.
 
-Another way to gain even finer control over transformation is to use "track transformation" API:
+Custom components can be used in `TrackTransform`s in below "low level" transform method:
+
 ```java
 tranform(requestId,
          List<TrackTransform> trackTransforms,
