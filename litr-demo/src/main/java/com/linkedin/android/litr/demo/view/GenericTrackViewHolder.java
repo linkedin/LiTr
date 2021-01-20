@@ -10,6 +10,8 @@ package com.linkedin.android.litr.demo.view;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 import com.linkedin.android.litr.demo.data.MediaTrackFormat;
+import com.linkedin.android.litr.demo.data.TargetTrack;
+import com.linkedin.android.litr.demo.data.TranscodingConfigPresenter;
 import com.linkedin.android.litr.demo.databinding.ItemGenericTrackBinding;
 
 public class GenericTrackViewHolder extends RecyclerView.ViewHolder {
@@ -21,8 +23,12 @@ public class GenericTrackViewHolder extends RecyclerView.ViewHolder {
         this.binding = binding;
     }
 
-    public void bind(@NonNull MediaTrackFormat mediaTrackFormat) {
+    public void bind(@NonNull TranscodingConfigPresenter presenter,
+                     @NonNull MediaTrackFormat mediaTrackFormat,
+                     @NonNull TargetTrack targetTrack) {
+        binding.setPresenter(presenter);
         binding.setMediaTrack(mediaTrackFormat);
+        binding.setTargetTrack(targetTrack);
         binding.executePendingBindings();
     }
 }

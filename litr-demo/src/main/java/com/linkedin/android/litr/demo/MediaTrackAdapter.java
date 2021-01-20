@@ -63,15 +63,20 @@ public class MediaTrackAdapter extends RecyclerView.Adapter {
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
         MediaTrackFormat mediaTrackFormat = sourceMedia.tracks.get(position);
         if (holder instanceof VideoTrackViewHolder) {
-            ((VideoTrackViewHolder) holder).bind(presenter,
-                                                 (VideoTrackFormat) mediaTrackFormat,
-                                                 (TargetVideoTrack) targetMedia.tracks.get(position));
+            ((VideoTrackViewHolder) holder).bind(
+                    presenter,
+                    (VideoTrackFormat) mediaTrackFormat,
+                    (TargetVideoTrack) targetMedia.tracks.get(position));
         } else if (holder instanceof AudioTrackViewHolder) {
-            ((AudioTrackViewHolder) holder).bind(presenter,
-                                                 (AudioTrackFormat) mediaTrackFormat,
-                                                 (TargetAudioTrack) targetMedia.tracks.get(position));
+            ((AudioTrackViewHolder) holder).bind(
+                    presenter,
+                    (AudioTrackFormat) mediaTrackFormat,
+                    (TargetAudioTrack) targetMedia.tracks.get(position));
         } else {
-            ((GenericTrackViewHolder) holder).bind(mediaTrackFormat);
+            ((GenericTrackViewHolder) holder).bind(
+                    presenter,
+                    mediaTrackFormat,
+                    targetMedia.tracks.get(position));
         }
     }
 
