@@ -207,19 +207,16 @@ public class AudioTrackTranscoder extends TrackTranscoder {
                 throw new TrackTranscoderException(TrackTranscoderException.Error.NO_FRAME_AVAILABLE);
             }
 
-            if (frame.bufferInfo.size > 0
-                    && (frame.bufferInfo.flags & MediaCodec.BUFFER_FLAG_CODEC_CONFIG) == 0
-                    && frame.bufferInfo.presentationTimeUs >= 0) {
-                mediaMuxer.writeSampleData(targetTrack, frame.buffer, frame.bufferInfo);
-                if (duration > 0) {
-                    progress = ((float) frame.bufferInfo.presentationTimeUs) / duration;
-                }
-            }
-
             if ((frame.bufferInfo.flags & MediaCodec.BUFFER_FLAG_END_OF_STREAM) != 0) {
                 Log.d(TAG, "Encoder produced EoS, we are done");
                 progress = 1.0f;
                 encodeFrameResult = RESULT_EOS_REACHED;
+            } else if (frame.bufferInfo.size > 0
+                    && (frame.bufferInfo.flags & MediaCodec.BUFFER_FLAG_CODEC_CONFIG) == 0) {
+                mediaMuxer.writeSampleData(targetTrack, frame.buffer, frame.bufferInfo);
+                if (duration > 0) {
+                    progress = ((float) frame.bufferInfo.presentationTimeUs) / duration;
+                }
             }
 
             encoder.releaseOutputFrame(tag);
