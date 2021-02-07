@@ -437,6 +437,31 @@ public class AudioTrackTranscoderShould {
     }
 
     @Test
+    public void notWriteWhenEncodedFrameHasIllegalPresentationTime() throws Exception {
+        audioTrackTranscoder.lastExtractFrameResult = TrackTranscoder.RESULT_EOS_REACHED;
+        audioTrackTranscoder.lastDecodeFrameResult = TrackTranscoder.RESULT_EOS_REACHED;
+        audioTrackTranscoder.lastEncodeFrameResult = TrackTranscoder.RESULT_FRAME_PROCESSED;
+        audioTrackTranscoder.targetTrack = AUDIO_TRACK;
+        audioTrackTranscoder.duration = DURATION;
+
+        MediaCodec.BufferInfo bufferInfo = new MediaCodec.BufferInfo();
+        bufferInfo.flags = 0;
+        bufferInfo.size = BUFFER_SIZE;
+        bufferInfo.presentationTimeUs = -1;
+        Frame frame = new Frame(BUFFER_INDEX, ByteBuffer.allocate(BUFFER_SIZE), bufferInfo);
+
+        doReturn(BUFFER_INDEX).when(encoder).dequeueOutputFrame(anyLong());
+        doReturn(frame).when(encoder).getOutputFrame(anyInt());
+
+        int result = audioTrackTranscoder.processNextFrame();
+
+        verify(mediaTarget, never()).writeSampleData(anyInt(), any(ByteBuffer.class), any(MediaCodec.BufferInfo.class));
+
+        verify(encoder).releaseOutputFrame(eq(BUFFER_INDEX));
+        assertThat(result, is(TrackTranscoder.RESULT_FRAME_PROCESSED));
+    }
+
+    @Test
     public void finishWhenEosReceived() throws Exception {
         audioTrackTranscoder.lastExtractFrameResult = TrackTranscoder.RESULT_EOS_REACHED;
         audioTrackTranscoder.lastDecodeFrameResult = TrackTranscoder.RESULT_EOS_REACHED;

@@ -208,7 +208,8 @@ public class AudioTrackTranscoder extends TrackTranscoder {
             }
 
             if (frame.bufferInfo.size > 0
-                && (frame.bufferInfo.flags & MediaCodec.BUFFER_FLAG_CODEC_CONFIG) == 0) {
+                    && (frame.bufferInfo.flags & MediaCodec.BUFFER_FLAG_CODEC_CONFIG) == 0
+                    && frame.bufferInfo.presentationTimeUs >= 0) {
                 mediaMuxer.writeSampleData(targetTrack, frame.buffer, frame.bufferInfo);
                 if (duration > 0) {
                     progress = ((float) frame.bufferInfo.presentationTimeUs) / duration;
