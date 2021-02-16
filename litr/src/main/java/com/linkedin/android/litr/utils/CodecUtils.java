@@ -248,9 +248,16 @@ public class CodecUtils {
         MediaCodec mediaCodec = null;
 
         MediaCodecList mediaCodecList = new MediaCodecList(MediaCodecList.ALL_CODECS);
-        String decoderCodecName = mediaCodecList.findDecoderForFormat(mediaFormat);
-        if (decoderCodecName != null) {
-            mediaCodec = MediaCodec.createByCodecName(decoderCodecName);
+        if (isEncoder) {
+            String encoderCodecName = mediaCodecList.findEncoderForFormat(mediaFormat);
+            if (encoderCodecName != null) {
+                mediaCodec = MediaCodec.createByCodecName(encoderCodecName);
+            }
+        } else {
+            String decoderCodecName = mediaCodecList.findDecoderForFormat(mediaFormat);
+            if (decoderCodecName != null) {
+                mediaCodec = MediaCodec.createByCodecName(decoderCodecName);
+            }
         }
         if (mediaCodec != null) {
             mediaCodec.configure(mediaFormat, surface, null, isEncoder ? MediaCodec.CONFIGURE_FLAG_ENCODE : 0);
