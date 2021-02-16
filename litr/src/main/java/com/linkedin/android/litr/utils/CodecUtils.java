@@ -243,8 +243,8 @@ public class CodecUtils {
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     @Nullable
     private static MediaCodec getAndConfigureCodecByConfig(@NonNull MediaFormat mediaFormat,
-                                                          @Nullable Surface surface,
-                                                          boolean isEncoder) throws IOException, IllegalStateException {
+                                                           @Nullable Surface surface,
+                                                           boolean isEncoder) throws IOException, IllegalStateException {
         MediaCodec mediaCodec = null;
 
         MediaCodecList mediaCodecList = new MediaCodecList(MediaCodecList.ALL_CODECS);
