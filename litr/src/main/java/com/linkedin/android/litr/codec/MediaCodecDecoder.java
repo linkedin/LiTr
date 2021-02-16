@@ -8,22 +8,22 @@
 package com.linkedin.android.litr.codec;
 
 import android.media.MediaCodec;
-import android.media.MediaCodecList;
 import android.media.MediaFormat;
 import android.os.Build;
 import android.view.Surface;
+
 import androidx.annotation.IntRange;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+
 import com.linkedin.android.litr.exception.TrackTranscoderException;
 import com.linkedin.android.litr.utils.CodecUtils;
 
-import java.io.IOException;
 import java.nio.ByteBuffer;
 
 public final class MediaCodecDecoder implements Decoder {
 
-    private final boolean forceGetCodecByType;
+    private final boolean fallbackToGetCodecByType;
 
     private MediaCodec mediaCodec;
 
@@ -32,49 +32,24 @@ public final class MediaCodecDecoder implements Decoder {
     private MediaCodec.BufferInfo outputBufferInfo = new MediaCodec.BufferInfo();
 
     public MediaCodecDecoder() {
-        this(false);
+        this(true);
     }
 
-    public MediaCodecDecoder(boolean forceGetCodecByType) {
-        this.forceGetCodecByType = forceGetCodecByType;
+    public MediaCodecDecoder(boolean fallbackToGetCodecByType) {
+        this.fallbackToGetCodecByType = fallbackToGetCodecByType;
     }
 
     @Override
     public void init(@NonNull MediaFormat mediaFormat, @Nullable Surface surface) throws TrackTranscoderException {
-        mediaCodec = null;
-        isReleased = true;
-        MediaCodecList mediaCodecList = null;
-        String sourceMimeType = mediaFormat.getString(MediaFormat.KEY_MIME);
-        try {
-            if (Build.VERSION.SDK_INT > Build.VERSION_CODES.LOLLIPOP && !forceGetCodecByType) {
-                mediaCodecList = new MediaCodecList(MediaCodecList.ALL_CODECS);
-                String decoderCodecName = mediaCodecList.findDecoderForFormat(mediaFormat);
-                if (decoderCodecName == null) {
-                    decoderCodecName = CodecUtils.getSupportedCodecName(sourceMimeType, false);
-                }
-                if (decoderCodecName != null) {
-                    mediaCodec = MediaCodec.createByCodecName(decoderCodecName);
-                }
-            } else {
-                mediaCodec = MediaCodec.createDecoderByType(sourceMimeType);
-            }
-
-            if (mediaCodec != null) {
-                mediaCodec.configure(mediaFormat, surface, null, 0);
-                isReleased = false;
-            } else {
-                throw new TrackTranscoderException(TrackTranscoderException.Error.DECODER_NOT_FOUND, mediaFormat, mediaCodec, mediaCodecList);
-            }
-        } catch (IOException e) {
-            throw new TrackTranscoderException(TrackTranscoderException.Error.DECODER_FORMAT_NOT_FOUND, mediaFormat, mediaCodec, mediaCodecList, e);
-        } catch (IllegalStateException e) {
-            if (mediaCodec != null) {
-                mediaCodec.release();
-                isReleased = true;
-            }
-            mediaCodecList = null;
-            throw new TrackTranscoderException(TrackTranscoderException.Error.DECODER_CONFIGURATION_ERROR, mediaFormat, mediaCodec, mediaCodecList, e);
-        }
+        mediaCodec = CodecUtils.getAndConfigureCodec(
+                mediaFormat,
+                surface,
+                false,
+                TrackTranscoderException.Error.DECODER_NOT_FOUND,
+                TrackTranscoderException.Error.DECODER_FORMAT_NOT_FOUND,
+                TrackTranscoderException.Error.DECODER_CONFIGURATION_ERROR,
+                fallbackToGetCodecByType);
+        isReleased = mediaCodec == null;
     }
 
     @Override
