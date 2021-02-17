@@ -9,7 +9,6 @@ package com.linkedin.android.litr.codec;
 
 import android.media.MediaCodec;
 import android.media.MediaCodecInfo;
-import android.media.MediaCodecList;
 import android.media.MediaFormat;
 import android.os.Build;
 import android.view.Surface;
@@ -21,12 +20,11 @@ import androidx.annotation.Nullable;
 import com.linkedin.android.litr.exception.TrackTranscoderException;
 import com.linkedin.android.litr.utils.CodecUtils;
 
-import java.io.IOException;
 import java.nio.ByteBuffer;
 
 public class MediaCodecEncoder implements Encoder {
 
-    private final boolean forceGetCodecByType;
+    private final boolean fallbackToGetCodecByType;
 
     private MediaCodec mediaCodec;
 
@@ -36,59 +34,29 @@ public class MediaCodecEncoder implements Encoder {
     private MediaCodec.BufferInfo encoderOutputBufferInfo = new MediaCodec.BufferInfo();
 
     public MediaCodecEncoder() {
-        this(false);
+        this(true);
     }
 
-    public MediaCodecEncoder(boolean forceGetCodecByType) {
-        this.forceGetCodecByType = forceGetCodecByType;
+    public MediaCodecEncoder(boolean fallbackToGetCodecByType) {
+        this.fallbackToGetCodecByType = fallbackToGetCodecByType;
     }
 
     @Override
     public void init(@NonNull MediaFormat targetFormat) throws TrackTranscoderException {
-        mediaCodec = null;
-        MediaCodecList mediaCodecList = null;
-
         // unless specified otherwise, we use default color format for the surface
         if (!targetFormat.containsKey(MediaFormat.KEY_COLOR_FORMAT)) {
             targetFormat.setInteger(MediaFormat.KEY_COLOR_FORMAT, MediaCodecInfo.CodecCapabilities.COLOR_FormatSurface);
         }
 
-        try {
-            if (Build.VERSION.SDK_INT > Build.VERSION_CODES.LOLLIPOP && !forceGetCodecByType) {
-                mediaCodecList = new MediaCodecList(MediaCodecList.ALL_CODECS);
-                String encoderCodecName = mediaCodecList.findEncoderForFormat(targetFormat);
-                if (encoderCodecName == null) {
-                    encoderCodecName = CodecUtils.getSupportedCodecName(targetFormat.getString(MediaFormat.KEY_MIME), true);
-                }
-                if (encoderCodecName != null) {
-                    mediaCodec = MediaCodec.createByCodecName(encoderCodecName);
-                }
-            } else {
-                mediaCodec = MediaCodec.createEncoderByType(targetFormat.getString(MediaFormat.KEY_MIME));
-            }
-            if (mediaCodec != null) {
-                mediaCodec.configure(targetFormat, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE);
-                isReleased = false;
-            } else {
-                throw new TrackTranscoderException(TrackTranscoderException.Error.ENCODER_NOT_FOUND,
-                                                   targetFormat,
-                                                   mediaCodec,
-                                                   mediaCodecList);
-            }
-        } catch (IOException e) {
-            throw new TrackTranscoderException(TrackTranscoderException.Error.ENCODER_FORMAT_NOT_FOUND, targetFormat,
-                                               mediaCodec, mediaCodecList, e);
-        } catch (IllegalStateException e) {
-            if (mediaCodec != null) {
-                mediaCodec.release();
-                isReleased = true;
-            }
-            throw new TrackTranscoderException(TrackTranscoderException.Error.ENCODER_CONFIGURATION_ERROR,
-                                               targetFormat,
-                                               mediaCodec,
-                                               mediaCodecList,
-                                               e);
-        }
+        mediaCodec = CodecUtils.getAndConfigureCodec(
+                targetFormat,
+                null,
+                true,
+                TrackTranscoderException.Error.ENCODER_NOT_FOUND,
+                TrackTranscoderException.Error.ENCODER_FORMAT_NOT_FOUND,
+                TrackTranscoderException.Error.ENCODER_CONFIGURATION_ERROR,
+                fallbackToGetCodecByType);
+        isReleased = mediaCodec == null;
     }
 
     @Override
