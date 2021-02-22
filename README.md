@@ -1,6 +1,7 @@
 # LiTr
+[![Build Status](https://img.shields.io/github/workflow/status/linkedin/LiTr/Merge%20checks)](https://img.shields.io/github/workflow/status/linkedin/LiTr/Merge%20checks)
 
-LiTr (pronounced "lai-tr") is a lightweight video/audio transformation tool which supports transcoding video and audio tracks with optional frame modification. 
+LiTr (pronounced "lai-tr") is a lightweight video/audio transformation tool which supports transcoding video and audio tracks with optional frame modification.
 
 In its current iteration LiTr supports:
  - changing resolution and/or bitrate of a video track(s)
@@ -8,19 +9,19 @@ In its current iteration LiTr supports:
  - overlaying bitmap watermark onto video track(s)
  - applying different effects (brightness/contrast, saturation/hue, blur, etc.) to video pixels
  - including/excluding tracks, which allows muxing/demuxing tracks
- - transforming tracks individually (e.g. apply overlay to one video track, but not the other)  
+ - transforming tracks individually (e.g. apply overlay to one video track, but not the other)
  - positioning source video frame arbitrarily onto target video frame
  - trimming video/audio
- 
-By default, LiTr uses Android MediaCodec stack for hardware accelerated decoding/encoding and OpenGL for rendering. It also uses MediaExtractor and MediaMuxer to read/write media. 
- 
+
+By default, LiTr uses Android MediaCodec stack for hardware accelerated decoding/encoding and OpenGL for rendering. It also uses MediaExtractor and MediaMuxer to read/write media.
+
 ## Getting Started
 
 Simply grab via Gradle:
 
 ```groovy
  implementation 'com.linkedin.android.litr:litr:1.4.6'
-``` 
+```
 ...or Maven:
 
 ```xml
@@ -63,9 +64,9 @@ Few notable things related to transformation:
  - video will be written into MP4 container, we recommend using H.264 ("video/avc" MIME type) for target encoding
  - progress update granularity is 100 by default, to match percentage, and can be set in `TransformationOptions`
  - media can be optionally trimmed by specifying a `MediaRange` in `TransformationOptions`
- 
+
  Ongoing transformation can be cancelled by calling `cancel` with its `requestId`:
- 
+
  ```java
 mediaTransformer.cancel(requestId);
 ```
@@ -78,7 +79,7 @@ mediaTransformer.release();
 
 ## Handling errors
 
-When transformation fails, exception is not thrown, but rather provided in `TransformationListener.onError` callback. LiTr defines its own exceptions for different scenarios. For API >= 23, LiTr exception will also contain `MediaCodec.CodecException` as a cause. 
+When transformation fails, exception is not thrown, but rather provided in `TransformationListener.onError` callback. LiTr defines its own exceptions for different scenarios. For API >= 23, LiTr exception will also contain `MediaCodec.CodecException` as a cause.
 
 ## Reporting statistics
 
@@ -86,7 +87,7 @@ When possible, transformation statistics will be provided in listener callbacks.
 
 ## Beyond Defaults
 
-By default, LiTr uses Android MediaCodec stack to do all media work, and OpenGl for rendering. But this is not set in stone. 
+By default, LiTr uses Android MediaCodec stack to do all media work, and OpenGl for rendering. But this is not set in stone.
 
 At high level, LiTr breaks down transformation into five essential steps:
  - reading encoded frame from source container
@@ -94,7 +95,7 @@ At high level, LiTr breaks down transformation into five essential steps:
  - rendering a source frame onto target frame, optionally modifying it (for example, overlaying a bitmap)
  - encoding target frame
  - writing encoded target frame into target container
- 
+
 Each transformation step is performed by a component. Each component is abstracted as an interface:
  - `MediaSource`
  - `Decoder`
@@ -123,7 +124,7 @@ LiTr now has 40 new GPU accelerated video filters ported from [Mp4Composer-andro
 
 ```groovy
  implementation 'com.linkedin.android.litr:litr-filters:1.4.6'
-``` 
+```
 ...or Maven:
 
 ```xml
@@ -155,7 +156,7 @@ Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on our code of conduc
 
 ## Versioning
 
-For the versions available, see the [tags on this repository](https://github.com/linkedin/litr/tags). 
+For the versions available, see the [tags on this repository](https://github.com/linkedin/litr/tags).
 
 ## Authors
 
@@ -172,7 +173,7 @@ This project is licensed under the BSD 2-Clause License - see the [LICENSE](LICE
 * A huge thank you to [ypresto](https://github.com/ypresto/) for his pioneering work on [android-transcoder](https://github.com/ypresto/android-transcoder) project, which was an inspiration and heavy influence on LiTr
 * A special thank you to [MasayukiSuda](https://github.com/MasayukiSuda) for his work on [Mp4Composer-android](https://github.com/MasayukiSuda/Mp4Composer-android) project, whose filters now power LiTr, and for his work on [ExoPlayerFilter](https://github.com/MasayukiSuda/ExoPlayerFilter) project which was a foundation for filter preview functionality in LiTr.
 * A special thank you to [android-gpuimage](https://github.com/cats-oss/android-gpuimage) project for amazing filter collection, which is now being migrated into LiTr
-* A thank you to Google's AOSP CTS team for writing Surface to Surface rendering implementation in OpenGL, which became a foundation for GlRenderer in LiTr 
+* A thank you to Google's AOSP CTS team for writing Surface to Surface rendering implementation in OpenGL, which became a foundation for GlRenderer in LiTr
 * A shout out to my awesome colleagues Amita Sahasrabudhe, Long Peng and Keerthi Korrapati for contributions and code reviews
 * A shout out to my colleague Vidhya Pandurangan for prototyping video trimming, which now became a feature
 * A shout out to our designer Mauroof Ahmed for giving LiTr a visual identity
