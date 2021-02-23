@@ -1,0 +1,91 @@
+apply plugin: 'maven-publish'
+apply plugin: 'signing'
+
+// Ideally AGP should provide sources and javadoc integration for their components:
+// https://issuetracker.google.com/issues/145670440
+tasks.register("sourcesJar", Jar) {
+    classifier 'sources'
+    from android.sourceSets.main.java.srcDirs
+}
+
+tasks.register("javadoc", Javadoc) {
+    failOnError false
+    source = android.sourceSets.main.java.srcDirs
+    classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
+}
+
+tasks.register("javadocJar", Jar) {
+    dependsOn javadoc
+    classifier 'javadoc'
+    from javadoc.destinationDir
+}
+
+// AGP creates the components in afterEvaluate, so we need to use it too
+// https://developer.android.com/studio/build/maven-publish-plugin
+afterEvaluate {
+    publishing {
+        publications {
+            maven(MavenPublication) {
+                from components.release
+
+                artifact sourcesJar
+                artifact javadocJar
+
+                pom {
+                    name = 'LiTr'
+                    description = project.description
+                    url = 'https://github.com/linkedin/LiTr'
+                    licenses {
+                        license {
+                            name = 'BSD 2-Clause License'
+                            url = 'https://opensource.org/licenses/BSD-2-Clause'
+                        }
+                    }
+                    developers {
+                        developer {
+                            id = 'com.linkedin'
+                            name = 'LinkedIn Corp'
+                        }
+                    }
+                    scm {
+                        connection = 'scm:git:git://github.com/linkedin/LiTr.git'
+                        developerConnection = 'scm:git:ssh://github.com:linkedin/LiTr.git'
+                        url = 'https://github.com/linkedin/LiTr/tree/master'
+                    }
+                }
+
+                repositories {
+                    def sonatypeUsername = System.getenv("SONATYPE_USER")
+                    def sonatypePassword = System.getenv("SONATYPE_PASSWORD")
+                    maven {
+                        name = "sonatypeSnapshot"
+                        url = "https://oss.sonatype.org/content/repositories/snapshots"
+                        credentials {
+                            username = sonatypeUsername
+                            password = sonatypePassword
+                        }
+                    }
+                    maven {
+                        name = "mavenCentral"
+                        url = "https://oss.sonatype.org/service/local/staging/deploy/maven2"
+                        credentials {
+                            username = sonatypeUsername
+                            password = sonatypePassword
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // LITR_GPG_PRIVATE_KEY should contain the armoured private key that
+    // starts with -----BEGIN PGP PRIVATE KEY BLOCK-----
+    // It can be obtained with gpg --armour --export-secret-keys KEY_ID
+    def signingKey = System.getenv("LITR_GPG_PRIVATE_KEY")
+    def signingPassword = System.getenv("LITR_GPG_PRIVATE_KEY_PASSWORD")
+    signing {
+        required { signingKey != null && signingPassword != null }
+        useInMemoryPgpKeys(signingKey, signingPassword)
+        sign publishing.publications.maven
+    }
+}
