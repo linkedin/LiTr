@@ -190,7 +190,11 @@ public class CodecUtils {
                 mediaCodec = getAndConfigureCodecByType(mediaFormat, surface, isEncoder);
             }
             if (mediaCodec == null) {
-                throw new TrackTranscoderException(codecNotFoundError, mediaFormat, mediaCodec, null);
+                if (Build.VERSION.SDK_INT > Build.VERSION_CODES.LOLLIPOP && fallbackToGetCodecByType) {
+                    throw new IllegalStateException("Try fallbackToGetCodecByType");
+                } else {
+                    throw new TrackTranscoderException(codecNotFoundError, mediaFormat, mediaCodec, null);
+                }
             }
         } catch (IOException e) {
             throw new TrackTranscoderException(codecFormatNotFoundError, mediaFormat, mediaCodec, null, e);
