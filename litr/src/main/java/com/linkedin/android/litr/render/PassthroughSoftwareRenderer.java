@@ -20,7 +20,6 @@ import com.linkedin.android.litr.codec.Encoder;
 import com.linkedin.android.litr.codec.Frame;
 
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 
 public class PassthroughSoftwareRenderer implements Renderer {
@@ -30,6 +29,8 @@ public class PassthroughSoftwareRenderer implements Renderer {
     private static final String TAG = "PassthroughSwRenderer";
 
     @NonNull public final Encoder encoder;
+
+    private byte[] inputByteBuffer = null;
 
     public PassthroughSoftwareRenderer(@NonNull Encoder encoder) {
         this.encoder = encoder;
@@ -51,12 +52,12 @@ public class PassthroughSoftwareRenderer implements Renderer {
             return;
         }
 
-        ArrayList<Frame> outputFrames = new ArrayList<>();
         ByteBuffer inputBuffer = null;
-        boolean isFirst = true;
-        boolean isContinue;
+        int capacity;
+        boolean isNewInputFrame = true;
+        boolean areBytesRemaining;
         do {
-            isContinue = false;
+            areBytesRemaining = false;
             int tag = encoder.dequeueInputFrame(FRAME_WAIT_TIMEOUT);
             if (tag >= 0) {
                 Frame outputFrame = encoder.getInputFrame(tag);
@@ -65,26 +66,31 @@ public class PassthroughSoftwareRenderer implements Renderer {
                     return;
                 }
 
-                if (isFirst) {
-                    isFirst = false;
+                if (isNewInputFrame) {
+                    isNewInputFrame = false;
                     inputBuffer = frame.buffer.asReadOnlyBuffer();
                     inputBuffer.rewind();
                 }
 
-                int capacity = Math.min(outputFrame.buffer.remaining(), inputBuffer.remaining());
-                byte[] inputBytes = new byte[capacity];
-                inputBuffer.get(inputBytes, 0, capacity);
+                if (outputFrame.buffer.remaining() < inputBuffer.remaining()) {
+                    capacity = outputFrame.buffer.remaining();
+                    inputByteBuffer = new byte[capacity];
+                    inputBuffer.get(inputByteBuffer, 0, capacity);
 
-                outputFrame.buffer.put(inputBytes);
+                    outputFrame.buffer.put(inputByteBuffer);
+                } else {
+                    capacity = inputBuffer.remaining();
+                    outputFrame.buffer.put(inputBuffer);
+                }
 
                 outputFrame.bufferInfo.set(
                         0,
                         capacity,
                         TimeUnit.NANOSECONDS.toMicros(presentationTimeNs),
                         frame.bufferInfo.flags);
-                outputFrames.add(outputFrame);
+                encoder.queueInputFrame(outputFrame);
 
-                isContinue = inputBuffer.hasRemaining();
+                areBytesRemaining = inputBuffer.hasRemaining();
             } else {
                 switch (tag) {
                     case MediaCodec.INFO_TRY_AGAIN_LATER:
@@ -96,11 +102,7 @@ public class PassthroughSoftwareRenderer implements Renderer {
                 }
             }
         }
-        while (isContinue);
-
-        for (Frame outputFrame : outputFrames) {
-            encoder.queueInputFrame(outputFrame);
-        }
+        while (areBytesRemaining);
     }
 
     @Override
