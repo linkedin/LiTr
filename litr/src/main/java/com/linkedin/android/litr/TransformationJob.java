@@ -245,20 +245,10 @@ class TransformationJob implements Runnable {
             mediaTargets.add(trackTransform.getMediaTarget());
         }
         for (MediaSource mediaSource : mediaSources) {
-            try {
-                // Sometimes this method will throw an exception, so we just need to catch it.
-                mediaSource.release();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+            mediaSource.release();
         }
         for (MediaTarget mediaTarget : mediaTargets) {
-            try {
-                // Sometimes this method will throw an exception, so we just need to catch it.
-                mediaTarget.release();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+            mediaTarget.release();
             if (!success) {
                 deleteOutputFile(mediaTarget.getOutputFilePath());
             }
