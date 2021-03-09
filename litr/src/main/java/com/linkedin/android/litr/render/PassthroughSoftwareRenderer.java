@@ -83,11 +83,11 @@ public class PassthroughSoftwareRenderer implements Renderer {
                     outputFrame.buffer.put(inputBuffer);
                 }
 
-                outputFrame.bufferInfo.set(
-                        0,
-                        capacity,
-                        TimeUnit.NANOSECONDS.toMicros(presentationTimeNs),
-                        frame.bufferInfo.flags);
+                MediaCodec.BufferInfo bufferInfo = outputFrame.bufferInfo;
+                bufferInfo.offset = 0;
+                bufferInfo.size = capacity;
+                bufferInfo.presentationTimeUs = TimeUnit.NANOSECONDS.toMicros(presentationTimeNs);
+                bufferInfo.flags = frame.bufferInfo.flags;
                 encoder.queueInputFrame(outputFrame);
 
                 areBytesRemaining = inputBuffer.hasRemaining();
