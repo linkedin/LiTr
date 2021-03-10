@@ -105,7 +105,7 @@ public final class MediaCodecDecoder implements Decoder {
 
     @Override
     public int dequeueOutputFrame(long timeout) {
-        return mediaCodec.dequeueOutputBuffer(outputBufferInfo, 0);
+        return mediaCodec.dequeueOutputBuffer(outputBufferInfo, timeout);
     }
 
     @Override

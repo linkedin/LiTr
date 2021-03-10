@@ -30,6 +30,8 @@ public class PassthroughSoftwareRenderer implements Renderer {
 
     @NonNull public final Encoder encoder;
 
+    private byte[] inputByteBuffer = null;
+
     public PassthroughSoftwareRenderer(@NonNull Encoder encoder) {
         this.encoder = encoder;
     }
@@ -49,34 +51,59 @@ public class PassthroughSoftwareRenderer implements Renderer {
             Log.e(TAG, "Null or empty input frame provided");
             return;
         }
-        int tag = encoder.dequeueInputFrame(FRAME_WAIT_TIMEOUT);
-        if (tag >= 0) {
-            Frame outputFrame = encoder.getInputFrame(tag);
-            if (outputFrame == null) {
-                Log.e(TAG, "No input frame returned by an encoder, dropping a frame");
-                return;
-            }
 
-            ByteBuffer inputBuffer = frame.buffer.asReadOnlyBuffer();
-            inputBuffer.rewind();
-            outputFrame.buffer.put(inputBuffer);
+        ByteBuffer inputBuffer = null;
+        int capacity;
+        boolean isNewInputFrame = true;
+        boolean areBytesRemaining;
+        do {
+            areBytesRemaining = false;
+            int tag = encoder.dequeueInputFrame(FRAME_WAIT_TIMEOUT);
+            if (tag >= 0) {
+                Frame outputFrame = encoder.getInputFrame(tag);
+                if (outputFrame == null) {
+                    Log.e(TAG, "No input frame returned by an encoder, dropping a frame");
+                    return;
+                }
 
-            outputFrame.bufferInfo.set(
-                    0,
-                    frame.bufferInfo.size,
-                    TimeUnit.NANOSECONDS.toMicros(presentationTimeNs),
-                    frame.bufferInfo.flags);
-            encoder.queueInputFrame(outputFrame);
-        } else {
-            switch (tag) {
-                case MediaCodec.INFO_TRY_AGAIN_LATER:
-                    Log.e(TAG, "Encoder input frame timeout, dropping a frame");
-                    break;
-                default:
-                    Log.e(TAG, "Unhandled value " + tag + " when receiving decoded input frame");
-                    break;
+                if (isNewInputFrame) {
+                    isNewInputFrame = false;
+                    inputBuffer = frame.buffer.asReadOnlyBuffer();
+                    inputBuffer.rewind();
+                }
+
+                if (outputFrame.buffer.remaining() < inputBuffer.remaining()) {
+                    capacity = outputFrame.buffer.remaining();
+                    if (inputByteBuffer == null || inputByteBuffer.length < capacity) {
+                        inputByteBuffer = new byte[capacity];
+                    }
+                    inputBuffer.get(inputByteBuffer, 0, capacity);
+                    outputFrame.buffer.put(inputByteBuffer, 0, capacity);
+                } else {
+                    capacity = inputBuffer.remaining();
+                    outputFrame.buffer.put(inputBuffer);
+                }
+
+                MediaCodec.BufferInfo bufferInfo = outputFrame.bufferInfo;
+                bufferInfo.offset = 0;
+                bufferInfo.size = capacity;
+                bufferInfo.presentationTimeUs = TimeUnit.NANOSECONDS.toMicros(presentationTimeNs);
+                bufferInfo.flags = frame.bufferInfo.flags;
+                encoder.queueInputFrame(outputFrame);
+
+                areBytesRemaining = inputBuffer.hasRemaining();
+            } else {
+                switch (tag) {
+                    case MediaCodec.INFO_TRY_AGAIN_LATER:
+                        Log.e(TAG, "Encoder input frame timeout, dropping a frame");
+                        break;
+                    default:
+                        Log.e(TAG, "Unhandled value " + tag + " when receiving decoded input frame");
+                        break;
+                }
             }
         }
+        while (areBytesRemaining);
     }
 
     @Override
