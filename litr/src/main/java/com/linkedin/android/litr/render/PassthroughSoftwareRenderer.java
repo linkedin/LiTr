@@ -74,10 +74,11 @@ public class PassthroughSoftwareRenderer implements Renderer {
 
                 if (outputFrame.buffer.remaining() < inputBuffer.remaining()) {
                     capacity = outputFrame.buffer.remaining();
-                    inputByteBuffer = new byte[capacity];
+                    if (inputByteBuffer == null || inputByteBuffer.length < capacity) {
+                        inputByteBuffer = new byte[capacity];
+                    }
                     inputBuffer.get(inputByteBuffer, 0, capacity);
-
-                    outputFrame.buffer.put(inputByteBuffer);
+                    outputFrame.buffer.put(inputByteBuffer, 0, capacity);
                 } else {
                     capacity = inputBuffer.remaining();
                     outputFrame.buffer.put(inputBuffer);
