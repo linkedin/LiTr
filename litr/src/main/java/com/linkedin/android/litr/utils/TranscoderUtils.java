@@ -154,13 +154,15 @@ public final class TranscoderUtils {
             }
         }
 
+        long videoTrackDuration = TimeUnit.MICROSECONDS.toSeconds(videoTrackFormat.getLong(MediaFormat.KEY_DURATION));
         long trackPixels = videoTrackFormat.getInteger(MediaFormat.KEY_WIDTH)
             * videoTrackFormat.getInteger(MediaFormat.KEY_HEIGHT)
-            * TimeUnit.MICROSECONDS.toSeconds(videoTrackFormat.getLong(MediaFormat.KEY_DURATION));
+            * videoTrackDuration;
 
-        long trackSize = unallocatedSize * trackPixels / totalPixels;
-
-        return (int) (trackSize * 8 / TimeUnit.MICROSECONDS.toSeconds(videoTrackFormat.getLong(MediaFormat.KEY_DURATION)));
+        // Fix an issue where the duration is less than 1 sec, which will cause divide by zero exception
+        long trackSize = totalPixels > 0 ? unallocatedSize * trackPixels / totalPixels : unallocatedSize;
+        videoTrackDuration = videoTrackDuration == 0 ? 1 : videoTrackDuration;
+        return (int) (trackSize * 8 / videoTrackDuration);
     }
 
     /**
