@@ -24,7 +24,7 @@ import java.util.concurrent.TimeUnit;
 
 public class PassthroughSoftwareRenderer implements Renderer {
 
-    @VisibleForTesting static final long FRAME_WAIT_TIMEOUT = TimeUnit.SECONDS.toMicros(0);
+    @VisibleForTesting static final long FRAME_WAIT_TIMEOUT = TimeUnit.SECONDS.toMicros(10);
 
     private static final String TAG = "PassthroughSwRenderer";
 
