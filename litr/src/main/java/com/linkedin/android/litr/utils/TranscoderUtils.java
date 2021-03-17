@@ -131,6 +131,10 @@ public final class TranscoderUtils {
         if (videoTrackFormat.containsKey(MediaFormat.KEY_BIT_RATE)) {
             return videoTrackFormat.getInteger(MediaFormat.KEY_BIT_RATE);
         }
+        float videoTrackDuration = TimeUtils.microsToSeconds(videoTrackFormat.getLong(MediaFormat.KEY_DURATION));
+        if (videoTrackDuration == 0) {
+            return 0;
+        }
 
         float unallocatedSize = mediaSource.getSize();
         float totalPixels = 0;
@@ -153,13 +157,11 @@ public final class TranscoderUtils {
             }
         }
 
-        float videoTrackDuration = TimeUtils.microsToSeconds(videoTrackFormat.getLong(MediaFormat.KEY_DURATION));
         float trackPixels = videoTrackFormat.getInteger(MediaFormat.KEY_WIDTH)
-            * videoTrackFormat.getInteger(MediaFormat.KEY_HEIGHT)
-            * videoTrackDuration;
+                * videoTrackFormat.getInteger(MediaFormat.KEY_HEIGHT)
+                * videoTrackDuration;
 
         float trackSize = totalPixels > 0 ? unallocatedSize * trackPixels / totalPixels : unallocatedSize;
-        videoTrackDuration = videoTrackDuration == 0 ? 1 : videoTrackDuration;
         return (int) (trackSize * BITS_IN_BYTE / videoTrackDuration);
     }
 

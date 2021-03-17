@@ -9,7 +9,7 @@ class TimeUtils {
      * @return the time as float to keep the fractions of a second
      */
     public static float microsToSeconds(long timeUs) {
-        return timeUs / 1000_000F;
+        return timeUs / 1_000_000F;
     }
 
     /**
@@ -19,6 +19,6 @@ class TimeUtils {
      * @return the time as float to keep the fractions of a second
      */
     public static float millisToSeconds(long timeMs) {
-        return timeMs / 1000F;
+        return timeMs / 1_000F;
     }
 }
