@@ -45,6 +45,7 @@ public class MediaExtractorMediaSource implements MediaSource {
             mediaExtractor.setDataSource(context, uri, null);
             mediaMetadataRetriever.setDataSource(context, uri);
         } catch (IOException ex) {
+            mediaMetadataRetriever.release();
             throw new MediaSourceException(DATA_SOURCE, uri, ex);
         }
         String rotation = mediaMetadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_ROTATION);
@@ -52,6 +53,8 @@ public class MediaExtractorMediaSource implements MediaSource {
             orientationHint = Integer.parseInt(rotation);
         }
         size = TranscoderUtils.getSize(context, uri);
+        // Release unused anymore MediaMetadataRetriever instance
+        mediaMetadataRetriever.release();
     }
 
     @Override
