@@ -24,16 +24,22 @@ import java.util.concurrent.TimeUnit;
 
 public class PassthroughSoftwareRenderer implements Renderer {
 
-    @VisibleForTesting static final long FRAME_WAIT_TIMEOUT = TimeUnit.SECONDS.toMicros(10);
+    @VisibleForTesting static final long FRAME_WAIT_TIMEOUT = TimeUnit.SECONDS.toMicros(0);
 
     private static final String TAG = "PassthroughSwRenderer";
 
     @NonNull public final Encoder encoder;
+    public final long frameWaitTimeoutUs;
 
     private byte[] inputByteBuffer = null;
 
     public PassthroughSoftwareRenderer(@NonNull Encoder encoder) {
+        this(encoder, FRAME_WAIT_TIMEOUT);
+    }
+
+    public PassthroughSoftwareRenderer(@NonNull Encoder encoder, long frameWaitTimeoutUs) {
         this.encoder = encoder;
+        this.frameWaitTimeoutUs = frameWaitTimeoutUs;
     }
 
     @Override
@@ -58,7 +64,7 @@ public class PassthroughSoftwareRenderer implements Renderer {
         boolean areBytesRemaining;
         do {
             areBytesRemaining = false;
-            int tag = encoder.dequeueInputFrame(FRAME_WAIT_TIMEOUT);
+            int tag = encoder.dequeueInputFrame(frameWaitTimeoutUs);
             if (tag >= 0) {
                 Frame outputFrame = encoder.getInputFrame(tag);
                 if (outputFrame == null) {

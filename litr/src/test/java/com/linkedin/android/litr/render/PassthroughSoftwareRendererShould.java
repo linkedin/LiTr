@@ -59,7 +59,7 @@ public class PassthroughSoftwareRendererShould {
                 inputBuffer,
                 bufferInfo);
 
-        renderer = new PassthroughSoftwareRenderer(encoder);
+        renderer = new PassthroughSoftwareRenderer(encoder, FRAME_WAIT_TIMEOUT);
     }
 
     @Test
