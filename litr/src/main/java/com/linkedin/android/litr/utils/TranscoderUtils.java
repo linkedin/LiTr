@@ -27,7 +27,6 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 public final class TranscoderUtils {
 
@@ -48,7 +47,7 @@ public final class TranscoderUtils {
      * @return estimated size, zero if estimation fails
      */
     public static long getEstimatedTargetFileSize(@NonNull List<TrackTransform> trackTransforms) {
-        long estimatedFileSize = 0;
+        float estimatedFileSize = 0;
 
         // calculate maximum track duration, we might need it later
         long maxDurationUs = 0;
@@ -80,12 +79,12 @@ public final class TranscoderUtils {
                 bitrate = 0;
             }
 
-            estimatedFileSize += bitrate * TimeUnit.MICROSECONDS.toSeconds(duration);
+            estimatedFileSize += bitrate * TimeUtils.microsToSeconds(duration);
         }
 
         estimatedFileSize /= BITS_IN_BYTE;
 
-        return estimatedFileSize;
+        return (long) estimatedFileSize;
     }
 
     /**
@@ -133,8 +132,8 @@ public final class TranscoderUtils {
             return videoTrackFormat.getInteger(MediaFormat.KEY_BIT_RATE);
         }
 
-        long unallocatedSize = mediaSource.getSize();
-        long totalPixels = 0;
+        float unallocatedSize = mediaSource.getSize();
+        float totalPixels = 0;
         int trackCount = mediaSource.getTrackCount();
         for (int track = 0; track < trackCount; track++) {
             MediaFormat trackFormat = mediaSource.getTrackFormat(track);
@@ -142,27 +141,26 @@ public final class TranscoderUtils {
                 if (trackFormat.containsKey(MediaFormat.KEY_BIT_RATE) && trackFormat.containsKey(MediaFormat.KEY_DURATION)) {
                     int bitrate = trackFormat.getInteger(MediaFormat.KEY_BIT_RATE);
                     long duration = trackFormat.getLong(MediaFormat.KEY_DURATION);
-                    unallocatedSize -= bitrate * TimeUnit.MICROSECONDS.toSeconds(duration) / 8;
+                    unallocatedSize -= bitrate * TimeUtils.microsToSeconds(duration) / BITS_IN_BYTE;
                 } else {
                     String mimeType = trackFormat.getString(MediaFormat.KEY_MIME);
                     if (mimeType.startsWith("video")) {
                         totalPixels += trackFormat.getInteger(MediaFormat.KEY_WIDTH)
                             * trackFormat.getInteger(MediaFormat.KEY_HEIGHT)
-                            * TimeUnit.MICROSECONDS.toSeconds(trackFormat.getLong(MediaFormat.KEY_DURATION));
+                            * TimeUtils.microsToSeconds(trackFormat.getLong(MediaFormat.KEY_DURATION));
                     }
                 }
             }
         }
 
-        long videoTrackDuration = TimeUnit.MICROSECONDS.toSeconds(videoTrackFormat.getLong(MediaFormat.KEY_DURATION));
-        long trackPixels = videoTrackFormat.getInteger(MediaFormat.KEY_WIDTH)
+        float videoTrackDuration = TimeUtils.microsToSeconds(videoTrackFormat.getLong(MediaFormat.KEY_DURATION));
+        float trackPixels = videoTrackFormat.getInteger(MediaFormat.KEY_WIDTH)
             * videoTrackFormat.getInteger(MediaFormat.KEY_HEIGHT)
             * videoTrackDuration;
 
-        // Fix an issue where the duration is less than 1 sec, which will cause divide by zero exception
-        long trackSize = totalPixels > 0 ? unallocatedSize * trackPixels / totalPixels : unallocatedSize;
+        float trackSize = totalPixels > 0 ? unallocatedSize * trackPixels / totalPixels : unallocatedSize;
         videoTrackDuration = videoTrackDuration == 0 ? 1 : videoTrackDuration;
-        return (int) (trackSize * 8 / videoTrackDuration);
+        return (int) (trackSize * BITS_IN_BYTE / videoTrackDuration);
     }
 
     /**
