@@ -184,18 +184,32 @@ public class CodecUtils {
                                                   @NonNull TrackTranscoderException.Error codecNotFoundError,
                                                   @NonNull TrackTranscoderException.Error codecFormatNotFoundError,
                                                   @NonNull TrackTranscoderException.Error codecConfigurationError,
-                                                  boolean fallbackToGetCodecByType) throws TrackTranscoderException {
+                                                  boolean fallbackToGetCodecByType,
+                                                  boolean filterByTypeAndFormat) throws TrackTranscoderException {
+        MediaCodec mediaCodec;
         try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                return getAndConfigureCodecByConfig(mediaFormat, surface, isEncoder);
+                mediaCodec = getAndConfigureCodecByConfig(mediaFormat, surface, isEncoder, filterByTypeAndFormat);
             } else {
-                return getAndConfigureCodecByType(mediaFormat, surface, isEncoder);
+                mediaCodec = getAndConfigureCodecByType(mediaFormat, surface, isEncoder, filterByTypeAndFormat);
             }
+            if (mediaCodec == null) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && fallbackToGetCodecByType) {
+                    throw new IllegalStateException("Try fallbackToGetCodecByType");
+                } else {
+                    throw new TrackTranscoderException(codecNotFoundError, mediaFormat, null, null);
+                }
+            }
+            return mediaCodec;
         } catch (IOException | IllegalStateException e) {
             Exception exception = e;
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && fallbackToGetCodecByType) {
                 try {
-                    return getAndConfigureCodecByType(mediaFormat, surface, isEncoder);
+                    mediaCodec = getAndConfigureCodecByType(mediaFormat, surface, isEncoder, filterByTypeAndFormat);
+                    if (mediaCodec == null) {
+                        throw new TrackTranscoderException(codecNotFoundError, mediaFormat, null, null);
+                    }
+                    return mediaCodec;
                 } catch (IOException | IllegalStateException ex) {
                     exception = ex;
                 }
@@ -208,27 +222,60 @@ public class CodecUtils {
         }
     }
 
-    @NonNull
+    @Nullable
     private static MediaCodec getAndConfigureCodecByType(@NonNull MediaFormat mediaFormat,
                                                          @Nullable Surface surface,
-                                                         boolean isEncoder) throws IOException, IllegalStateException {
+                                                         boolean isEncoder,
+                                                         boolean filterByTypeAndFormat) throws IOException, IllegalStateException {
         String mimeType = mediaFormat.getString(MediaFormat.KEY_MIME);
-        List<Callable<MediaCodec>> supportedMediaCodecs = findCodecForFormatOrType(isEncoder, mimeType, null);
-        return getAndConfigureCodec(mediaFormat, surface, isEncoder, supportedMediaCodecs);
+        MediaCodec mediaCodec = null;
+        if (filterByTypeAndFormat) {
+            List<Callable<MediaCodec>> supportedMediaCodecs = findCodecForFormatOrType(isEncoder, mimeType, null);
+            if (!supportedMediaCodecs.isEmpty()) {
+                mediaCodec = createAndConfigureCodec(mediaFormat, surface, isEncoder, supportedMediaCodecs);
+            }
+        } else {
+            mediaCodec = isEncoder
+                    ? MediaCodec.createEncoderByType(mimeType)
+                    : MediaCodec.createDecoderByType(mimeType);
+            if (mediaCodec != null) {
+                configureMediaFormat(mediaCodec, mediaFormat, surface, isEncoder);
+            }
+        }
+        return mediaCodec;
     }
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-    @NonNull
+    @Nullable
     private static MediaCodec getAndConfigureCodecByConfig(@NonNull MediaFormat mediaFormat,
                                                            @Nullable Surface surface,
-                                                           boolean isEncoder) throws IOException, IllegalStateException {
-        String mimeType = mediaFormat.getString(MediaFormat.KEY_MIME);
-        List<Callable<MediaCodec>> supportedMediaCodecs = findCodecForFormatOrType(isEncoder, mimeType, mediaFormat);
-        return getAndConfigureCodec(mediaFormat, surface, isEncoder, supportedMediaCodecs);
+                                                           boolean isEncoder,
+                                                           boolean filterByTypeAndFormat) throws IOException, IllegalStateException {
+        MediaCodec mediaCodec = null;
+        if (filterByTypeAndFormat) {
+            String mimeType = mediaFormat.getString(MediaFormat.KEY_MIME);
+            List<Callable<MediaCodec>> supportedMediaCodecs = findCodecForFormatOrType(isEncoder, mimeType,
+                    mediaFormat);
+            if (!supportedMediaCodecs.isEmpty()) {
+                mediaCodec = createAndConfigureCodec(mediaFormat, surface, isEncoder, supportedMediaCodecs);
+            }
+        } else {
+            MediaCodecList mediaCodecList = new MediaCodecList(MediaCodecList.ALL_CODECS);
+            String codecName = isEncoder
+                    ? mediaCodecList.findEncoderForFormat(mediaFormat)
+                    : mediaCodecList.findDecoderForFormat(mediaFormat);
+            if (codecName != null) {
+                mediaCodec = MediaCodec.createByCodecName(codecName);
+            }
+            if (mediaCodec != null) {
+                configureMediaFormat(mediaCodec, mediaFormat, surface, isEncoder);
+            }
+        }
+        return mediaCodec;
     }
 
     @NonNull
-    private static MediaCodec getAndConfigureCodec(
+    private static MediaCodec createAndConfigureCodec(
             @NonNull MediaFormat mediaFormat,
             @Nullable Surface surface,
             boolean isEncoder,
@@ -240,7 +287,7 @@ public class CodecUtils {
             try {
                 mediaCodec = callable.call();
                 if (mediaCodec != null) {
-                    mediaCodec.configure(mediaFormat, surface, null, isEncoder ? MediaCodec.CONFIGURE_FLAG_ENCODE : 0);
+                    configureMediaFormat(mediaCodec, mediaFormat, surface, isEncoder);
                     break;
                 }
             } catch (Exception e) {
@@ -264,6 +311,13 @@ public class CodecUtils {
         return mediaCodec;
     }
 
+    private static void configureMediaFormat(@NonNull MediaCodec mediaCodec,
+                                             @NonNull MediaFormat mediaFormat,
+                                             @Nullable Surface surface,
+                                             boolean isEncoder) throws IllegalStateException {
+        mediaCodec.configure(mediaFormat, surface, null, isEncoder ? MediaCodec.CONFIGURE_FLAG_ENCODE : 0);
+    }
+
     /**
      * This will iterate over all available codecs that support the mimeType param, and return them as a list of
      * {@link Callable Callable#MediaCodec}, when will create the codec once calling {@link Callable#call()}
@@ -272,9 +326,9 @@ public class CodecUtils {
      * @param mediaFormat {@link MediaFormat} if non-null, then only get the codecs that support the mediaFormat
      */
     @NonNull
-    private static List<Callable<MediaCodec>> findCodecForFormatOrType(boolean encoder, @NonNull String mimeType,
-            @Nullable MediaFormat mediaFormat) {
-
+    private static List<Callable<MediaCodec>> findCodecForFormatOrType(boolean encoder,
+                                                                       @NonNull String mimeType,
+                                                                       @Nullable MediaFormat mediaFormat) {
         List<Callable<MediaCodec>> supportedMediaCodecs = new ArrayList<>();
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             MediaCodecList mediaCodecList = new MediaCodecList(MediaCodecList.ALL_CODECS);

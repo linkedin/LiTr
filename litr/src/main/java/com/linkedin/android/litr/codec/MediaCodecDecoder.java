@@ -24,19 +24,21 @@ import java.nio.ByteBuffer;
 public final class MediaCodecDecoder implements Decoder {
 
     private final boolean fallbackToGetCodecByType;
+    private final boolean filterByTypeAndFormat;
 
     private MediaCodec mediaCodec;
 
     private boolean isRunning;
     private boolean isReleased;
-    private MediaCodec.BufferInfo outputBufferInfo = new MediaCodec.BufferInfo();
+    private final MediaCodec.BufferInfo outputBufferInfo = new MediaCodec.BufferInfo();
 
     public MediaCodecDecoder() {
-        this(true);
+        this(true, true);
     }
 
-    public MediaCodecDecoder(boolean fallbackToGetCodecByType) {
+    public MediaCodecDecoder(boolean fallbackToGetCodecByType, boolean filterByTypeAndFormat) {
         this.fallbackToGetCodecByType = fallbackToGetCodecByType;
+        this.filterByTypeAndFormat = filterByTypeAndFormat;
     }
 
     @Override
@@ -48,7 +50,8 @@ public final class MediaCodecDecoder implements Decoder {
                 TrackTranscoderException.Error.DECODER_NOT_FOUND,
                 TrackTranscoderException.Error.DECODER_FORMAT_NOT_FOUND,
                 TrackTranscoderException.Error.DECODER_CONFIGURATION_ERROR,
-                fallbackToGetCodecByType);
+                fallbackToGetCodecByType,
+                filterByTypeAndFormat);
         isReleased = mediaCodec == null;
     }
 
