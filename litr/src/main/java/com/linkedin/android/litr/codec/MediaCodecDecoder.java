@@ -33,7 +33,11 @@ public final class MediaCodecDecoder implements Decoder {
     private final MediaCodec.BufferInfo outputBufferInfo = new MediaCodec.BufferInfo();
 
     public MediaCodecDecoder() {
-        this(true, true);
+        this(true);
+    }
+
+    public MediaCodecDecoder(boolean fallbackToGetCodecByType) {
+        this(fallbackToGetCodecByType, false);
     }
 
     public MediaCodecDecoder(boolean fallbackToGetCodecByType, boolean filterByTypeAndFormat) {

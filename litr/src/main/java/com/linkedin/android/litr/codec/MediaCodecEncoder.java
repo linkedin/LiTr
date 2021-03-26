@@ -35,7 +35,11 @@ public class MediaCodecEncoder implements Encoder {
     private final MediaCodec.BufferInfo encoderOutputBufferInfo = new MediaCodec.BufferInfo();
 
     public MediaCodecEncoder() {
-        this(true, true);
+        this(true);
+    }
+
+    public MediaCodecEncoder(boolean fallbackToGetCodecByType) {
+        this(fallbackToGetCodecByType, false);
     }
 
     public MediaCodecEncoder(boolean fallbackToGetCodecByType, boolean filterByTypeAndFormat) {
