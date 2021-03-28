@@ -1,5 +1,9 @@
 # Change Log
 
+## Version 1.4.12 (2021-03-28)
+
+- Enhance the logic for finding a media codec for a media format (by @Ma7moudHatem) [#109](https://github.com/linkedin/LiTr/pull/109)
+
 ## Version 1.4.11 (2021-03-17)
 
 - Release unused anymore MediaMetadataRetriever instance (by @Ma7moudHatem) [#106](https://github.com/linkedin/LiTr/pull/106)
