@@ -351,7 +351,7 @@ public class VideoTrackTranscoderShould {
         verify(decoder).releaseOutputFrame(BUFFER_INDEX, true);
 
         ArgumentCaptor<Long> presentationTimeCaptor = ArgumentCaptor.forClass(Long.class);
-        verify(renderer).renderFrame((Frame) isNull(), presentationTimeCaptor.capture());
+        verify(renderer).renderFrame((Frame) isNull(), presentationTimeCaptor.capture(), eq(sourceMediaFormat), eq(targetVideoFormat));
         assertThat(presentationTimeCaptor.getValue(), is(CURRENT_PRESENTATION_TIME * 1000L));
 
         assertThat(result, is(TrackTranscoder.RESULT_FRAME_PROCESSED));
@@ -542,7 +542,7 @@ public class VideoTrackTranscoderShould {
 
         videoTrackTranscoder.processNextFrame();
 
-        verify(renderer, never()).renderFrame(any(Frame.class), anyLong());
+        verify(renderer, never()).renderFrame(any(Frame.class), anyLong(), any(MediaFormat.class), any(MediaFormat.class));
         verify(decoder).releaseOutputFrame(tag, false);
     }
 
@@ -574,7 +574,7 @@ public class VideoTrackTranscoderShould {
 
         videoTrackTranscoder.processNextFrame();
 
-        verify(renderer).renderFrame(null, (CURRENT_PRESENTATION_TIME - SELECTION_START) * 1000);
+        verify(renderer).renderFrame(null, (CURRENT_PRESENTATION_TIME - SELECTION_START) * 1000, sourceMediaFormat, targetVideoFormat);
         verify(decoder).releaseOutputFrame(tag, true);
     }
 

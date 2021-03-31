@@ -333,7 +333,7 @@ public class AudioTrackTranscoderShould {
 
         int result = audioTrackTranscoder.processNextFrame();
 
-        verify(renderer).renderFrame(frame, TimeUnit.MICROSECONDS.toNanos(CURRENT_PRESENTATION_TIME));
+        verify(renderer).renderFrame(frame, TimeUnit.MICROSECONDS.toNanos(CURRENT_PRESENTATION_TIME), sourceMediaFormat, targetAudioFormat);
         verify(encoder, never()).getInputFrame(anyInt());
 
         assertThat(result, is(TrackTranscoder.RESULT_FRAME_PROCESSED));
@@ -359,7 +359,7 @@ public class AudioTrackTranscoderShould {
 
         int result = audioTrackTranscoder.processNextFrame();
 
-        verify(renderer).renderFrame(decoderOutputFrame, TimeUnit.MICROSECONDS.toNanos(CURRENT_PRESENTATION_TIME));
+        verify(renderer).renderFrame(decoderOutputFrame, TimeUnit.MICROSECONDS.toNanos(CURRENT_PRESENTATION_TIME), sourceMediaFormat, targetAudioFormat);
         verify(decoder).releaseOutputFrame(BUFFER_INDEX, false);
 
         assertThat(result, is(TrackTranscoder.RESULT_EOS_REACHED));
@@ -526,7 +526,7 @@ public class AudioTrackTranscoderShould {
 
         audioTrackTranscoder.processNextFrame();
 
-        verify(renderer, never()).renderFrame(any(Frame.class), anyLong());
+        verify(renderer, never()).renderFrame(any(Frame.class), anyLong(), any(MediaFormat.class), any(MediaFormat.class));
         verify(decoder).releaseOutputFrame(tag, false);
     }
 
@@ -558,7 +558,7 @@ public class AudioTrackTranscoderShould {
 
         audioTrackTranscoder.processNextFrame();
 
-        verify(renderer).renderFrame(frame, TimeUnit.MICROSECONDS.toNanos(CURRENT_PRESENTATION_TIME - SELECTION_START));
+        verify(renderer).renderFrame(frame, TimeUnit.MICROSECONDS.toNanos(CURRENT_PRESENTATION_TIME - SELECTION_START), sourceMediaFormat, targetAudioFormat);
         verify(decoder).releaseOutputFrame(tag, false);
     }
 

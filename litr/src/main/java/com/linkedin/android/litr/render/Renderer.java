@@ -32,12 +32,15 @@ public interface Renderer {
     @Nullable Surface getInputSurface();
 
     /**
-     * Render a frame
-     * @param frame {@link Frame} to operate with. Non-null ror non OpenGL renderer, will contain raw pixels.
+     * Render an input frame
+     * @param inputFrame {@link Frame} to operate with. Non-null ror non OpenGL renderer, will contain raw pixels.
      *                           null for GL renderer, which should assume that environment has been set and just invoke Gl calls.
      * @param presentationTimeNs frame presentation time in nanoseconds
+     * @param sourceMediaFormat the raw(source) {@link MediaFormat}
+     * @param targetMediaFormat the target {@link MediaFormat}
      */
-    void renderFrame(@Nullable Frame frame, long presentationTimeNs);
+    void renderFrame(@Nullable Frame inputFrame, long presentationTimeNs, MediaFormat sourceMediaFormat,
+            MediaFormat targetMediaFormat);
 
     /**
      * Release the renderer and all it resources.

@@ -18,10 +18,15 @@ import androidx.annotation.VisibleForTesting;
 
 import com.linkedin.android.litr.codec.Encoder;
 import com.linkedin.android.litr.codec.Frame;
+import com.linkedin.android.litr.resample.AudioResampler;
+import com.linkedin.android.litr.resample.DefaultAudioResampler;
 
 import java.nio.ByteBuffer;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * This {@link Renderer} only used with Audio transcoding
+ */
 public class PassthroughSoftwareRenderer implements Renderer {
 
     @VisibleForTesting static final long FRAME_WAIT_TIMEOUT = TimeUnit.SECONDS.toMicros(0);
@@ -30,8 +35,17 @@ public class PassthroughSoftwareRenderer implements Renderer {
 
     @NonNull public final Encoder encoder;
     public final long frameWaitTimeoutUs;
+    private final AudioResampler audioResampler = new DefaultAudioResampler();
 
-    private byte[] inputByteBuffer = null;
+    @VisibleForTesting
+    static int getSampleRate(MediaFormat format) {
+        return format.getInteger(MediaFormat.KEY_SAMPLE_RATE);
+    }
+
+    @VisibleForTesting
+    static int getChannels(MediaFormat format) {
+        return format.getInteger(MediaFormat.KEY_CHANNEL_COUNT);
+    }
 
     public PassthroughSoftwareRenderer(@NonNull Encoder encoder) {
         this(encoder, FRAME_WAIT_TIMEOUT);
@@ -52,14 +66,14 @@ public class PassthroughSoftwareRenderer implements Renderer {
     }
 
     @Override
-    public void renderFrame(@Nullable Frame frame, long presentationTimeNs) {
-        if (frame == null || frame.buffer == null) {
+    public void renderFrame(@Nullable Frame inputFrame, long presentationTimeNs, MediaFormat sourceMediaFormat,
+            MediaFormat targetMediaFormat) {
+        if (inputFrame == null || inputFrame.buffer == null) {
             Log.e(TAG, "Null or empty input frame provided");
             return;
         }
 
         ByteBuffer inputBuffer = null;
-        int capacity;
         boolean isNewInputFrame = true;
         boolean areBytesRemaining;
         do {
@@ -71,33 +85,36 @@ public class PassthroughSoftwareRenderer implements Renderer {
                     Log.e(TAG, "No input frame returned by an encoder, dropping a frame");
                     return;
                 }
+                ByteBuffer outputBuffer = outputFrame.buffer;
 
                 if (isNewInputFrame) {
                     isNewInputFrame = false;
-                    inputBuffer = frame.buffer.asReadOnlyBuffer();
+                    inputBuffer = inputFrame.buffer.asReadOnlyBuffer();
                     inputBuffer.rewind();
                 }
 
-                if (outputFrame.buffer.remaining() < inputBuffer.remaining()) {
-                    capacity = outputFrame.buffer.remaining();
-                    if (inputByteBuffer == null || inputByteBuffer.length < capacity) {
-                        inputByteBuffer = new byte[capacity];
-                    }
-                    inputBuffer.get(inputByteBuffer, 0, capacity);
-                    outputFrame.buffer.put(inputByteBuffer, 0, capacity);
-                } else {
-                    capacity = inputBuffer.remaining();
-                    outputFrame.buffer.put(inputBuffer);
+                int outSize = outputBuffer.remaining();
+                int inSize = inputBuffer.remaining();
+
+                // check if need to set a new limit for the inputBuffer to fit the outputBuffer, then restore the old limit after writing the data
+                int inputBufferLimit = inputBuffer.limit();
+                if (outSize < inSize) {
+                    inputBuffer.limit(inputBuffer.position() + outSize);
                 }
+
+                // Resampling will change the input size based on the sample rate ratio.
+                audioResampler.resample(inputBuffer, getSampleRate(sourceMediaFormat), outputBuffer,
+                        getSampleRate(targetMediaFormat), getChannels(targetMediaFormat));
+
+                inputBuffer.limit(inputBufferLimit);
+                areBytesRemaining = inputBuffer.hasRemaining();
 
                 MediaCodec.BufferInfo bufferInfo = outputFrame.bufferInfo;
                 bufferInfo.offset = 0;
-                bufferInfo.size = capacity;
+                bufferInfo.size = outputBuffer.position();
                 bufferInfo.presentationTimeUs = TimeUnit.NANOSECONDS.toMicros(presentationTimeNs);
-                bufferInfo.flags = frame.bufferInfo.flags;
+                bufferInfo.flags = inputFrame.bufferInfo.flags;
                 encoder.queueInputFrame(outputFrame);
-
-                areBytesRemaining = inputBuffer.hasRemaining();
             } else {
                 switch (tag) {
                     case MediaCodec.INFO_TRY_AGAIN_LATER:

@@ -124,7 +124,8 @@ public class GlVideoRenderer implements Renderer {
     }
 
     @Override
-    public void renderFrame(@Nullable Frame frame, long presentationTimeNs) {
+    public void renderFrame(@Nullable Frame inputFrame, long presentationTimeNs, MediaFormat sourceMediaFormat,
+            MediaFormat targetMediaFormat) {
         inputSurface.awaitNewImage();
         drawFrame(presentationTimeNs);
         outputSurface.setPresentationTime(presentationTimeNs);
