@@ -35,6 +35,10 @@ public class PassthroughSoftwareRenderer implements Renderer {
 
     @NonNull public final Encoder encoder;
     public final long frameWaitTimeoutUs;
+
+    private MediaFormat sourceAudioFormat;
+    private MediaFormat targetAudioFormat;
+
     private final AudioResampler audioResampler = new DefaultAudioResampler();
 
     @VisibleForTesting
@@ -57,7 +61,16 @@ public class PassthroughSoftwareRenderer implements Renderer {
     }
 
     @Override
-    public void init(@Nullable Surface outputSurface, @Nullable MediaFormat sourceMediaFormat, @Nullable MediaFormat targetMediaFormat) {}
+    public void init(@Nullable Surface outputSurface, @Nullable MediaFormat sourceMediaFormat, @Nullable MediaFormat targetMediaFormat) {
+        this.sourceAudioFormat = sourceMediaFormat;
+        this.targetAudioFormat = targetMediaFormat;
+    }
+
+    @Override
+    public void onMediaFormatChanged(@Nullable MediaFormat sourceMediaFormat, @Nullable MediaFormat targetMediaFormat) {
+        this.sourceAudioFormat = sourceMediaFormat;
+        this.targetAudioFormat = targetMediaFormat;
+    }
 
     @Nullable
     @Override
@@ -66,8 +79,7 @@ public class PassthroughSoftwareRenderer implements Renderer {
     }
 
     @Override
-    public void renderFrame(@Nullable Frame inputFrame, long presentationTimeNs, MediaFormat sourceMediaFormat,
-            MediaFormat targetMediaFormat) {
+    public void renderFrame(@Nullable Frame inputFrame, long presentationTimeNs) {
         if (inputFrame == null || inputFrame.buffer == null) {
             Log.e(TAG, "Null or empty input frame provided");
             return;
@@ -103,8 +115,8 @@ public class PassthroughSoftwareRenderer implements Renderer {
                 }
 
                 // Resampling will change the input size based on the sample rate ratio.
-                audioResampler.resample(inputBuffer, getSampleRate(sourceMediaFormat), outputBuffer,
-                        getSampleRate(targetMediaFormat), getChannels(targetMediaFormat));
+                audioResampler.resample(inputBuffer, getSampleRate(sourceAudioFormat), outputBuffer,
+                        getSampleRate(targetAudioFormat), getChannels(targetAudioFormat));
 
                 inputBuffer.limit(inputBufferLimit);
                 areBytesRemaining = inputBuffer.hasRemaining();

@@ -56,6 +56,7 @@ public class AudioTrackTranscoder extends TrackTranscoder {
         sourceAudioFormat = mediaSource.getTrackFormat(sourceTrack);
 
         encoder.init(targetFormat);
+        renderer.init(null, sourceAudioFormat, targetFormat);
         decoder.init(sourceAudioFormat, null);
     }
 
@@ -171,8 +172,7 @@ public class AudioTrackTranscoder extends TrackTranscoder {
             if (decoderOutputFrame.bufferInfo.presentationTimeUs >= sourceMediaSelection.getStart()
                     || (decoderOutputFrame.bufferInfo.flags & MediaCodec.BUFFER_FLAG_END_OF_STREAM) != 0) {
                 renderer.renderFrame(decoderOutputFrame,
-                        TimeUnit.MICROSECONDS.toNanos(decoderOutputFrame.bufferInfo.presentationTimeUs - sourceMediaSelection.getStart()),
-                        sourceAudioFormat, targetFormat);
+                        TimeUnit.MICROSECONDS.toNanos(decoderOutputFrame.bufferInfo.presentationTimeUs - sourceMediaSelection.getStart()));
             }
             decoder.releaseOutputFrame(tag, false);
 
@@ -187,6 +187,7 @@ public class AudioTrackTranscoder extends TrackTranscoder {
                     break;
                 case MediaCodec.INFO_OUTPUT_FORMAT_CHANGED:
                     sourceAudioFormat = decoder.getOutputFormat();
+                    renderer.onMediaFormatChanged(sourceAudioFormat, targetFormat);
                     Log.d(TAG, "Decoder output format changed: " + sourceAudioFormat);
                     break;
                 default:
@@ -233,6 +234,7 @@ public class AudioTrackTranscoder extends TrackTranscoder {
                         targetFormat = outputMediaFormat;
                         targetTrack = mediaMuxer.addTrack(outputMediaFormat, targetTrack);
                         targetTrackAdded = true;
+                        renderer.onMediaFormatChanged(sourceAudioFormat, targetFormat);
                     }
                     encodeFrameResult = RESULT_OUTPUT_MEDIA_FORMAT_CHANGED;
                     Log.d(TAG, "Encoder output format received " + outputMediaFormat);

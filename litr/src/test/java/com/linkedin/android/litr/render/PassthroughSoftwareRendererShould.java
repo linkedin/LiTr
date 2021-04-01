@@ -6,13 +6,14 @@ import android.media.MediaFormat;
 import com.linkedin.android.litr.codec.Encoder;
 import com.linkedin.android.litr.codec.Frame;
 
-import java.nio.ByteBuffer;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+
+import java.nio.ByteBuffer;
 
 import static com.linkedin.android.litr.render.PassthroughSoftwareRenderer.FRAME_WAIT_TIMEOUT;
 import static org.hamcrest.CoreMatchers.is;
@@ -62,6 +63,7 @@ public class PassthroughSoftwareRendererShould {
                 bufferInfo);
 
         renderer = new PassthroughSoftwareRenderer(encoder, FRAME_WAIT_TIMEOUT);
+        renderer.onMediaFormatChanged(sourceMediaFormat, targetAudioFormat);
     }
 
     @Test
@@ -71,7 +73,7 @@ public class PassthroughSoftwareRendererShould {
 
     @Test
     public void notRenderWhenNoFrameProvided() {
-        renderer.renderFrame(null, FRAME_PRESENTATION_TIME_NS, sourceMediaFormat, targetAudioFormat);
+        renderer.renderFrame(null, FRAME_PRESENTATION_TIME_NS);
 
         verify(encoder, never()).dequeueInputFrame(anyLong());
     }
@@ -80,7 +82,7 @@ public class PassthroughSoftwareRendererShould {
     public void notRenderWhenFrameHasNullBuffer() {
         Frame frame = new Frame(0, null, null);
 
-        renderer.renderFrame(frame, FRAME_PRESENTATION_TIME_NS, sourceMediaFormat, targetAudioFormat);
+        renderer.renderFrame(frame, FRAME_PRESENTATION_TIME_NS);
 
         verify(encoder, never()).dequeueInputFrame(anyLong());
     }
@@ -89,7 +91,7 @@ public class PassthroughSoftwareRendererShould {
     public void dropFrameWhenCannotQueueToEncoder() {
         when(encoder.dequeueInputFrame(FRAME_WAIT_TIMEOUT)).thenReturn(MediaCodec.INFO_TRY_AGAIN_LATER);
 
-        renderer.renderFrame(frame, FRAME_PRESENTATION_TIME_NS, sourceMediaFormat, targetAudioFormat);
+        renderer.renderFrame(frame, FRAME_PRESENTATION_TIME_NS);
 
         verify(encoder, never()).getInputFrame(anyInt());
     }
@@ -99,7 +101,7 @@ public class PassthroughSoftwareRendererShould {
         when(encoder.dequeueInputFrame(FRAME_WAIT_TIMEOUT)).thenReturn(FRAME_TAG);
         when(encoder.getInputFrame(FRAME_TAG)).thenReturn(null);
 
-        renderer.renderFrame(frame, FRAME_PRESENTATION_TIME_NS, sourceMediaFormat, targetAudioFormat);
+        renderer.renderFrame(frame, FRAME_PRESENTATION_TIME_NS);
 
         verify(encoder, never()).queueInputFrame(frame);
     }
@@ -114,7 +116,7 @@ public class PassthroughSoftwareRendererShould {
         when(encoder.dequeueInputFrame(FRAME_WAIT_TIMEOUT)).thenReturn(FRAME_TAG);
         when(encoder.getInputFrame(FRAME_TAG)).thenReturn(encoderInputFrame);
 
-        renderer.renderFrame(frame, FRAME_PRESENTATION_TIME_NS, sourceMediaFormat, targetAudioFormat);
+        renderer.renderFrame(frame, FRAME_PRESENTATION_TIME_NS);
 
         verify(encoder).queueInputFrame(encoderInputFrame);
         assertThat(encoderInputFrame.bufferInfo.flags, is(frame.bufferInfo.flags));
@@ -153,7 +155,7 @@ public class PassthroughSoftwareRendererShould {
         when(PassthroughSoftwareRenderer.getSampleRate(targetAudioFormat)).thenReturn(sampleRate);
         when(PassthroughSoftwareRenderer.getChannels(targetAudioFormat)).thenReturn(channels);
 
-        renderer.renderFrame(frame, FRAME_PRESENTATION_TIME_NS, sourceMediaFormat, targetAudioFormat);
+        renderer.renderFrame(frame, FRAME_PRESENTATION_TIME_NS);
 
         verifyEncoderWithSpecificFrame(encoderInputFrame1, encoderInputBuffer1, frameSize1, 0);
         verifyEncoderWithSpecificFrame(encoderInputFrame2, encoderInputBuffer2, frameSize2, frameSize1);
@@ -193,7 +195,7 @@ public class PassthroughSoftwareRendererShould {
         when(PassthroughSoftwareRenderer.getSampleRate(targetAudioFormat)).thenReturn(downSampleRate);
         when(PassthroughSoftwareRenderer.getChannels(targetAudioFormat)).thenReturn(channels);
 
-        renderer.renderFrame(frame, FRAME_PRESENTATION_TIME_NS, sourceMediaFormat, targetAudioFormat);
+        renderer.renderFrame(frame, FRAME_PRESENTATION_TIME_NS);
 
         float sampleRateRatio = (float) downSampleRate / sampleRate;
         verifyEncoderWithSpecificFrame(encoderInputFrame1, encoderInputBuffer1, (int) (frameSize1 * sampleRateRatio), 0, true);
