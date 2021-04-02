@@ -1,5 +1,9 @@
 # Change Log
 
+## Version 1.4.13 (2021-04-02)
+
+- Support for reducing audio sampling rate (by @Ma7moudHatem) [#111](https://github.com/linkedin/LiTr/pull/111)
+
 ## Version 1.4.12 (2021-03-28)
 
 - Enhance the logic for finding a media codec for a media format (by @Ma7moudHatem) [#109](https://github.com/linkedin/LiTr/pull/109)
