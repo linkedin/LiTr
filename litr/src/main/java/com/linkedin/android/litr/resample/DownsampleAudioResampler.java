@@ -14,10 +14,12 @@
  * limitations under the License.
  */
 // from: https://github.com/natario1/Transcoder/blob/main/lib/src/main/java/com/otaliastudios/transcoder/resample/DownsampleAudioResampler.java
+// modified: changed the signature of resample() method
 // modified: small modification for "outputBuffer.put(inputBuffer.get());" logic
 // modified: small modification for "inputBuffer.position(inputBuffer.position() + 1);" logic
 package com.linkedin.android.litr.resample;
 
+import android.media.MediaFormat;
 import androidx.annotation.NonNull;
 import java.nio.ByteBuffer;
 
@@ -31,7 +33,11 @@ public class DownsampleAudioResampler implements AudioResampler {
     }
 
     @Override
-    public void resample(@NonNull ByteBuffer inputBuffer, int inputSampleRate, @NonNull ByteBuffer outputBuffer, int outputSampleRate, int channels) {
+    public void resample(@NonNull ByteBuffer inputBuffer, @NonNull ByteBuffer outputBuffer,
+            @NonNull MediaFormat sourceMediaFormat, @NonNull MediaFormat targetMediaFormat) {
+        int inputSampleRate = getSampleRate(sourceMediaFormat);
+        int outputSampleRate = getSampleRate(targetMediaFormat);
+        int channels = getChannels(targetMediaFormat);
         if (inputSampleRate < outputSampleRate) {
             throw new IllegalArgumentException("Illegal use of DownsampleAudioResampler");
         }

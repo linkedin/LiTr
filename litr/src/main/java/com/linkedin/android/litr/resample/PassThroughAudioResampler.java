@@ -14,8 +14,11 @@
  * limitations under the License.
  */
 // from: https://github.com/natario1/Transcoder/blob/main/lib/src/main/java/com/otaliastudios/transcoder/resample/PassThroughAudioResampler.java
+// modified: changed the signature of resample() method
+// modified: removed the first if-condition in resample() method
 package com.linkedin.android.litr.resample;
 
+import android.media.MediaFormat;
 import androidx.annotation.NonNull;
 import java.nio.ByteBuffer;
 
@@ -26,11 +29,8 @@ import java.nio.ByteBuffer;
 public class PassThroughAudioResampler implements AudioResampler {
 
     @Override
-    public void resample(@NonNull ByteBuffer inputBuffer, int inputSampleRate,
-                         @NonNull ByteBuffer outputBuffer, int outputSampleRate, int channels) {
-        if (inputSampleRate != outputSampleRate) {
-            throw new IllegalArgumentException("Illegal use of PassThroughAudioResampler");
-        }
+    public void resample(@NonNull ByteBuffer inputBuffer, @NonNull ByteBuffer outputBuffer,
+            @NonNull MediaFormat sourceMediaFormat, @NonNull MediaFormat targetMediaFormat) {
         outputBuffer.put(inputBuffer);
     }
 }

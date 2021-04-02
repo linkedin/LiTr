@@ -6,14 +6,13 @@ import android.media.MediaFormat;
 import com.linkedin.android.litr.codec.Encoder;
 import com.linkedin.android.litr.codec.Frame;
 
+import java.nio.ByteBuffer;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-
-import java.nio.ByteBuffer;
 
 import static com.linkedin.android.litr.render.PassthroughSoftwareRenderer.FRAME_WAIT_TIMEOUT;
 import static org.hamcrest.CoreMatchers.is;
@@ -31,6 +30,8 @@ public class PassthroughSoftwareRendererShould {
     private static final int FRAME_TAG = 1;
     private static final int FRAME_SIZE = 128;
     private static final int FRAME_OFFSET = 0;
+    private static final int SAMPLE_RATE = 44100;
+    private static final int CHANNELS = 2;
 
     @Mock private Encoder encoder;
     @Mock private MediaFormat sourceMediaFormat;
@@ -62,8 +63,13 @@ public class PassthroughSoftwareRendererShould {
                 inputBuffer,
                 bufferInfo);
 
+        when(sourceMediaFormat.getInteger(MediaFormat.KEY_SAMPLE_RATE)).thenReturn(SAMPLE_RATE);
+        when(sourceMediaFormat.getInteger(MediaFormat.KEY_CHANNEL_COUNT)).thenReturn(CHANNELS);
+        when(targetAudioFormat.getInteger(MediaFormat.KEY_SAMPLE_RATE)).thenReturn(SAMPLE_RATE);
+        when(targetAudioFormat.getInteger(MediaFormat.KEY_CHANNEL_COUNT)).thenReturn(CHANNELS);
+
         renderer = new PassthroughSoftwareRenderer(encoder, FRAME_WAIT_TIMEOUT);
-        renderer.onMediaFormatChanged(sourceMediaFormat, targetAudioFormat);
+        renderer.init(null, sourceMediaFormat, targetAudioFormat);
     }
 
     @Test
@@ -149,11 +155,6 @@ public class PassthroughSoftwareRendererShould {
         when(encoder.getInputFrame(encoderFrameTag1)).thenReturn(encoderInputFrame1);
         when(encoder.getInputFrame(encoderFrameTag2)).thenReturn(encoderInputFrame2);
         when(encoder.getInputFrame(encoderFrameTag3)).thenReturn(encoderInputFrame3);
-        int sampleRate = 44_100;
-        int channels = 2;
-        when(PassthroughSoftwareRenderer.getSampleRate(sourceMediaFormat)).thenReturn(sampleRate);
-        when(PassthroughSoftwareRenderer.getSampleRate(targetAudioFormat)).thenReturn(sampleRate);
-        when(PassthroughSoftwareRenderer.getChannels(targetAudioFormat)).thenReturn(channels);
 
         renderer.renderFrame(frame, FRAME_PRESENTATION_TIME_NS);
 
@@ -188,16 +189,14 @@ public class PassthroughSoftwareRendererShould {
         when(encoder.getInputFrame(encoderFrameTag2)).thenReturn(encoderInputFrame2);
         when(encoder.getInputFrame(encoderFrameTag3)).thenReturn(encoderInputFrame3);
         when(encoder.getInputFrame(encoderFrameTag4)).thenReturn(encoderInputFrame4);
-        int sampleRate = 44_100;
-        int downSampleRate = sampleRate / 2;
-        int channels = 2;
-        when(PassthroughSoftwareRenderer.getSampleRate(sourceMediaFormat)).thenReturn(sampleRate);
-        when(PassthroughSoftwareRenderer.getSampleRate(targetAudioFormat)).thenReturn(downSampleRate);
-        when(PassthroughSoftwareRenderer.getChannels(targetAudioFormat)).thenReturn(channels);
+
+        int downSampleRate = SAMPLE_RATE / 2;
+        when(targetAudioFormat.getInteger(MediaFormat.KEY_SAMPLE_RATE)).thenReturn(downSampleRate);
+        renderer.onMediaFormatChanged(sourceMediaFormat, targetAudioFormat);
 
         renderer.renderFrame(frame, FRAME_PRESENTATION_TIME_NS);
 
-        float sampleRateRatio = (float) downSampleRate / sampleRate;
+        float sampleRateRatio = (float) downSampleRate / SAMPLE_RATE;
         verifyEncoderWithSpecificFrame(encoderInputFrame1, encoderInputBuffer1, (int) (frameSize1 * sampleRateRatio), 0, true);
         verifyEncoderWithSpecificFrame(encoderInputFrame2, encoderInputBuffer2, (int) (frameSize2 * sampleRateRatio), frameSize1, true);
         verifyEncoderWithSpecificFrame(encoderInputFrame3, encoderInputBuffer3, (int) (frameSize3 * sampleRateRatio), frameSize2, true);

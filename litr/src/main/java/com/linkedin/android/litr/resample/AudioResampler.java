@@ -14,9 +14,12 @@
  * limitations under the License.
  */
 // from: https://github.com/natario1/Transcoder/blob/main/lib/src/main/java/com/otaliastudios/transcoder/resample/AudioResampler.java
-// modified: removed UPSAMPLE field
+// modified: removed all constant fields from this interface
+// modified: changed the signature of resample() method
+// modified: added two other default methods, getSampleRate() and getChannels()
 package com.linkedin.android.litr.resample;
 
+import android.media.MediaFormat;
 import androidx.annotation.NonNull;
 import java.nio.ByteBuffer;
 
@@ -29,14 +32,24 @@ public interface AudioResampler {
      * Resamples input audio from input buffer into the output buffer.
      *
      * @param inputBuffer the input buffer
-     * @param inputSampleRate the input sample rate
      * @param outputBuffer the output buffer
-     * @param outputSampleRate the output sample rate
-     * @param channels the number of channels
+     * @param sourceMediaFormat the source media format
+     * @param targetMediaFormat the target media format
      */
-    void resample(@NonNull final ByteBuffer inputBuffer, int inputSampleRate, @NonNull final ByteBuffer outputBuffer, int outputSampleRate, int channels);
+    void resample(@NonNull final ByteBuffer inputBuffer, @NonNull final ByteBuffer outputBuffer,
+            @NonNull MediaFormat sourceMediaFormat, @NonNull MediaFormat targetMediaFormat);
 
-    AudioResampler DOWNSAMPLE = new DownsampleAudioResampler();
+    /**
+     * Return the sample rate of an audio format
+     */
+    default int getSampleRate(MediaFormat format) {
+        return format.getInteger(MediaFormat.KEY_SAMPLE_RATE);
+    }
 
-    AudioResampler PASSTHROUGH = new PassThroughAudioResampler();
+    /**
+     * Return the width of the content in a video format.
+     */
+    default int getChannels(MediaFormat format) {
+        return format.getInteger(MediaFormat.KEY_CHANNEL_COUNT);
+    }
 }

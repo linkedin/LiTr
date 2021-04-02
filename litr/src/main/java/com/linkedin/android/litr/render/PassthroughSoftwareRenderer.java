@@ -19,8 +19,8 @@ import androidx.annotation.VisibleForTesting;
 import com.linkedin.android.litr.codec.Encoder;
 import com.linkedin.android.litr.codec.Frame;
 import com.linkedin.android.litr.resample.AudioResampler;
-import com.linkedin.android.litr.resample.DefaultAudioResampler;
-
+import com.linkedin.android.litr.resample.DownsampleAudioResampler;
+import com.linkedin.android.litr.resample.PassThroughAudioResampler;
 import java.nio.ByteBuffer;
 import java.util.concurrent.TimeUnit;
 
@@ -39,17 +39,7 @@ public class PassthroughSoftwareRenderer implements Renderer {
     private MediaFormat sourceAudioFormat;
     private MediaFormat targetAudioFormat;
 
-    private final AudioResampler audioResampler = new DefaultAudioResampler();
-
-    @VisibleForTesting
-    static int getSampleRate(MediaFormat format) {
-        return format.getInteger(MediaFormat.KEY_SAMPLE_RATE);
-    }
-
-    @VisibleForTesting
-    static int getChannels(MediaFormat format) {
-        return format.getInteger(MediaFormat.KEY_CHANNEL_COUNT);
-    }
+    private AudioResampler audioResampler = new PassThroughAudioResampler();
 
     public PassthroughSoftwareRenderer(@NonNull Encoder encoder) {
         this(encoder, FRAME_WAIT_TIMEOUT);
@@ -60,16 +50,34 @@ public class PassthroughSoftwareRenderer implements Renderer {
         this.frameWaitTimeoutUs = frameWaitTimeoutUs;
     }
 
+    private int getSampleRate(MediaFormat format) {
+        return format.getInteger(MediaFormat.KEY_SAMPLE_RATE);
+    }
+
     @Override
-    public void init(@Nullable Surface outputSurface, @Nullable MediaFormat sourceMediaFormat, @Nullable MediaFormat targetMediaFormat) {
-        this.sourceAudioFormat = sourceMediaFormat;
-        this.targetAudioFormat = targetMediaFormat;
+    public void init(@Nullable Surface outputSurface, @Nullable MediaFormat sourceMediaFormat,
+            @Nullable MediaFormat targetMediaFormat) {
+        onMediaFormatChanged(sourceMediaFormat, targetMediaFormat);
     }
 
     @Override
     public void onMediaFormatChanged(@Nullable MediaFormat sourceMediaFormat, @Nullable MediaFormat targetMediaFormat) {
         this.sourceAudioFormat = sourceMediaFormat;
         this.targetAudioFormat = targetMediaFormat;
+        initAudioResampler();
+    }
+
+    private void initAudioResampler() {
+        if (sourceAudioFormat == null || targetAudioFormat == null) {
+            return;
+        }
+        int inputSampleRate = getSampleRate(sourceAudioFormat);
+        int outputSampleRate = getSampleRate(targetAudioFormat);
+        if (inputSampleRate > outputSampleRate) {
+            audioResampler = new DownsampleAudioResampler();
+        } else {
+            audioResampler = new PassThroughAudioResampler();
+        }
     }
 
     @Nullable
@@ -115,8 +123,7 @@ public class PassthroughSoftwareRenderer implements Renderer {
                 }
 
                 // Resampling will change the input size based on the sample rate ratio.
-                audioResampler.resample(inputBuffer, getSampleRate(sourceAudioFormat), outputBuffer,
-                        getSampleRate(targetAudioFormat), getChannels(targetAudioFormat));
+                audioResampler.resample(inputBuffer, outputBuffer, sourceAudioFormat, targetAudioFormat);
 
                 inputBuffer.limit(inputBufferLimit);
                 areBytesRemaining = inputBuffer.hasRemaining();
