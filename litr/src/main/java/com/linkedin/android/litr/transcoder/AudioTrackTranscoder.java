@@ -56,6 +56,7 @@ public class AudioTrackTranscoder extends TrackTranscoder {
         sourceAudioFormat = mediaSource.getTrackFormat(sourceTrack);
 
         encoder.init(targetFormat);
+        renderer.init(null, sourceAudioFormat, targetFormat);
         decoder.init(sourceAudioFormat, null);
     }
 
@@ -185,8 +186,9 @@ public class AudioTrackTranscoder extends TrackTranscoder {
                     // Log.d(TAG, "Will try getting decoder output later");
                     break;
                 case MediaCodec.INFO_OUTPUT_FORMAT_CHANGED:
-                    MediaFormat outputFormat = decoder.getOutputFormat();
-                    Log.d(TAG, "Decoder output format changed: " + outputFormat);
+                    sourceAudioFormat = decoder.getOutputFormat();
+                    renderer.onMediaFormatChanged(sourceAudioFormat, targetFormat);
+                    Log.d(TAG, "Decoder output format changed: " + sourceAudioFormat);
                     break;
                 default:
                     Log.e(TAG, "Unhandled value " + tag + " when receiving decoded input frame");
@@ -229,8 +231,10 @@ public class AudioTrackTranscoder extends TrackTranscoder {
                     // TODO for now, we assume that we only get one media format as a first buffer
                     MediaFormat outputMediaFormat = encoder.getOutputFormat();
                     if (!targetTrackAdded) {
+                        targetFormat = outputMediaFormat;
                         targetTrack = mediaMuxer.addTrack(outputMediaFormat, targetTrack);
                         targetTrackAdded = true;
+                        renderer.onMediaFormatChanged(sourceAudioFormat, targetFormat);
                     }
                     encodeFrameResult = RESULT_OUTPUT_MEDIA_FORMAT_CHANGED;
                     Log.d(TAG, "Encoder output format received " + outputMediaFormat);

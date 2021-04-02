@@ -7,6 +7,7 @@
  */
 package com.linkedin.android.litr.render;
 
+import android.media.MediaCodec;
 import android.media.MediaFormat;
 import android.view.Surface;
 import androidx.annotation.Nullable;
@@ -26,6 +27,13 @@ public interface Renderer {
     void init(@Nullable Surface outputSurface, @Nullable MediaFormat sourceMediaFormat, @Nullable MediaFormat targetMediaFormat);
 
     /**
+     * This should be called every time the {@link MediaCodec#INFO_OUTPUT_FORMAT_CHANGED} is returned
+     * @param sourceMediaFormat source {@link MediaFormat}
+     * @param targetMediaFormat target {@link MediaFormat}
+     */
+    void onMediaFormatChanged(@Nullable MediaFormat sourceMediaFormat, @Nullable MediaFormat targetMediaFormat);
+
+    /**
      * Get renderer's input surface. Renderer creates it internally.
      * @return {@link Surface} to get pixels from, null for non OpenGL renderer
      */
@@ -33,11 +41,11 @@ public interface Renderer {
 
     /**
      * Render a frame
-     * @param frame {@link Frame} to operate with. Non-null ror non OpenGL renderer, will contain raw pixels.
+     * @param inputFrame {@link Frame} to operate with. Non-null ror non OpenGL renderer, will contain raw pixels.
      *                           null for GL renderer, which should assume that environment has been set and just invoke Gl calls.
      * @param presentationTimeNs frame presentation time in nanoseconds
      */
-    void renderFrame(@Nullable Frame frame, long presentationTimeNs);
+    void renderFrame(@Nullable Frame inputFrame, long presentationTimeNs);
 
     /**
      * Release the renderer and all it resources.

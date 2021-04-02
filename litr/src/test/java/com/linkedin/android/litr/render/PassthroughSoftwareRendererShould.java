@@ -1,18 +1,18 @@
 package com.linkedin.android.litr.render;
 
 import android.media.MediaCodec;
+import android.media.MediaFormat;
 
 import com.linkedin.android.litr.codec.Encoder;
 import com.linkedin.android.litr.codec.Frame;
 
+import java.nio.ByteBuffer;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-
-import java.nio.ByteBuffer;
 
 import static com.linkedin.android.litr.render.PassthroughSoftwareRenderer.FRAME_WAIT_TIMEOUT;
 import static org.hamcrest.CoreMatchers.is;
@@ -30,8 +30,12 @@ public class PassthroughSoftwareRendererShould {
     private static final int FRAME_TAG = 1;
     private static final int FRAME_SIZE = 128;
     private static final int FRAME_OFFSET = 0;
+    private static final int SAMPLE_RATE = 44100;
+    private static final int CHANNELS = 2;
 
     @Mock private Encoder encoder;
+    @Mock private MediaFormat sourceMediaFormat;
+    @Mock private MediaFormat targetAudioFormat;
 
     private PassthroughSoftwareRenderer renderer;
 
@@ -59,7 +63,13 @@ public class PassthroughSoftwareRendererShould {
                 inputBuffer,
                 bufferInfo);
 
+        when(sourceMediaFormat.getInteger(MediaFormat.KEY_SAMPLE_RATE)).thenReturn(SAMPLE_RATE);
+        when(sourceMediaFormat.getInteger(MediaFormat.KEY_CHANNEL_COUNT)).thenReturn(CHANNELS);
+        when(targetAudioFormat.getInteger(MediaFormat.KEY_SAMPLE_RATE)).thenReturn(SAMPLE_RATE);
+        when(targetAudioFormat.getInteger(MediaFormat.KEY_CHANNEL_COUNT)).thenReturn(CHANNELS);
+
         renderer = new PassthroughSoftwareRenderer(encoder, FRAME_WAIT_TIMEOUT);
+        renderer.init(null, sourceMediaFormat, targetAudioFormat);
     }
 
     @Test
@@ -126,35 +136,90 @@ public class PassthroughSoftwareRendererShould {
     }
 
     @Test
-    public void renderWhenEncoderAcceptsMultiFrames() {
-        int frameSize = FRAME_SIZE / 2;
-        int encoderFrameTag1 = 2;
-        int encoderFrameTag2 = 3;
-        ByteBuffer encoderInputBuffer1 = ByteBuffer.allocate(frameSize);
-        ByteBuffer encoderInputBuffer2 = ByteBuffer.allocate(frameSize);
+    public void renderWhenEncoderAcceptsMultiFramesWithPassThrough() {
+        int inputFrameSize = FRAME_SIZE;
+        int frameSize1 = 50;
+        int frameSize2 = 50;
+        int frameSize3 = inputFrameSize - frameSize1 - frameSize2;
+        int encoderFrameTag1 = 1;
+        int encoderFrameTag2 = 2;
+        int encoderFrameTag3 = 3;
+        ByteBuffer encoderInputBuffer1 = ByteBuffer.allocate(frameSize1);
+        ByteBuffer encoderInputBuffer2 = ByteBuffer.allocate(frameSize2);
+        ByteBuffer encoderInputBuffer3 = ByteBuffer.allocate(frameSize3);
         Frame encoderInputFrame1 = new Frame(encoderFrameTag1, encoderInputBuffer1, new MediaCodec.BufferInfo());
         Frame encoderInputFrame2 = new Frame(encoderFrameTag2, encoderInputBuffer2, new MediaCodec.BufferInfo());
+        Frame encoderInputFrame3 = new Frame(encoderFrameTag3, encoderInputBuffer3, new MediaCodec.BufferInfo());
 
-        when(encoder.dequeueInputFrame(FRAME_WAIT_TIMEOUT)).thenReturn(encoderFrameTag1, encoderFrameTag2);
+        when(encoder.dequeueInputFrame(FRAME_WAIT_TIMEOUT)).thenReturn(encoderFrameTag1, encoderFrameTag2, encoderFrameTag3);
         when(encoder.getInputFrame(encoderFrameTag1)).thenReturn(encoderInputFrame1);
         when(encoder.getInputFrame(encoderFrameTag2)).thenReturn(encoderInputFrame2);
+        when(encoder.getInputFrame(encoderFrameTag3)).thenReturn(encoderInputFrame3);
 
         renderer.renderFrame(frame, FRAME_PRESENTATION_TIME_NS);
 
-        verifyEncoderWithSpecificFrame(encoderInputFrame1, encoderInputBuffer1, frameSize, 0);
-        verifyEncoderWithSpecificFrame(encoderInputFrame2, encoderInputBuffer2, frameSize, frameSize);
+        verifyEncoderWithSpecificFrame(encoderInputFrame1, encoderInputBuffer1, frameSize1, 0);
+        verifyEncoderWithSpecificFrame(encoderInputFrame2, encoderInputBuffer2, frameSize2, frameSize1);
+        verifyEncoderWithSpecificFrame(encoderInputFrame3, encoderInputBuffer3, frameSize3, frameSize2);
+    }
+
+    @Test
+    public void renderWhenEncoderAcceptsMultiFramesWithDownSampling() {
+        int inputFrameSize = FRAME_SIZE;
+        int frameSize1 = 48;
+        int frameSize2 = 48;
+        int frameSize3 = 28;
+        int frameSize4 = 4;
+        int encoderFrameTag1 = 1;
+        int encoderFrameTag2 = 2;
+        int encoderFrameTag3 = 3;
+        int encoderFrameTag4 = 4;
+        ByteBuffer encoderInputBuffer1 = ByteBuffer.allocate(frameSize1);
+        ByteBuffer encoderInputBuffer2 = ByteBuffer.allocate(frameSize2);
+        ByteBuffer encoderInputBuffer3 = ByteBuffer.allocate(frameSize3);
+        ByteBuffer encoderInputBuffer4 = ByteBuffer.allocate(frameSize4);
+        Frame encoderInputFrame1 = new Frame(encoderFrameTag1, encoderInputBuffer1, new MediaCodec.BufferInfo());
+        Frame encoderInputFrame2 = new Frame(encoderFrameTag2, encoderInputBuffer2, new MediaCodec.BufferInfo());
+        Frame encoderInputFrame3 = new Frame(encoderFrameTag3, encoderInputBuffer3, new MediaCodec.BufferInfo());
+        Frame encoderInputFrame4 = new Frame(encoderFrameTag4, encoderInputBuffer4, new MediaCodec.BufferInfo());
+
+        when(encoder.dequeueInputFrame(FRAME_WAIT_TIMEOUT)).thenReturn(encoderFrameTag1, encoderFrameTag2,
+                encoderFrameTag3, encoderFrameTag4);
+        when(encoder.getInputFrame(encoderFrameTag1)).thenReturn(encoderInputFrame1);
+        when(encoder.getInputFrame(encoderFrameTag2)).thenReturn(encoderInputFrame2);
+        when(encoder.getInputFrame(encoderFrameTag3)).thenReturn(encoderInputFrame3);
+        when(encoder.getInputFrame(encoderFrameTag4)).thenReturn(encoderInputFrame4);
+
+        int downSampleRate = SAMPLE_RATE / 2;
+        when(targetAudioFormat.getInteger(MediaFormat.KEY_SAMPLE_RATE)).thenReturn(downSampleRate);
+        renderer.onMediaFormatChanged(sourceMediaFormat, targetAudioFormat);
+
+        renderer.renderFrame(frame, FRAME_PRESENTATION_TIME_NS);
+
+        float sampleRateRatio = (float) downSampleRate / SAMPLE_RATE;
+        verifyEncoderWithSpecificFrame(encoderInputFrame1, encoderInputBuffer1, (int) (frameSize1 * sampleRateRatio), 0, true);
+        verifyEncoderWithSpecificFrame(encoderInputFrame2, encoderInputBuffer2, (int) (frameSize2 * sampleRateRatio), frameSize1, true);
+        verifyEncoderWithSpecificFrame(encoderInputFrame3, encoderInputBuffer3, (int) (frameSize3 * sampleRateRatio), frameSize2, true);
+        verifyEncoderWithSpecificFrame(encoderInputFrame4, encoderInputBuffer4, (int) (frameSize4 * sampleRateRatio), frameSize3, true);
     }
 
     private void verifyEncoderWithSpecificFrame(Frame encoderInputFrame, ByteBuffer encoderInputBuffer, int frameSize,
             int firstIndex) {
+        verifyEncoderWithSpecificFrame(encoderInputFrame, encoderInputBuffer, frameSize, firstIndex, false);
+    }
+
+    private void verifyEncoderWithSpecificFrame(Frame encoderInputFrame, ByteBuffer encoderInputBuffer, int frameSize,
+            int firstIndex, boolean skipByteByByteCheck) {
         verify(encoder).queueInputFrame(encoderInputFrame);
         assertThat(encoderInputFrame.bufferInfo.flags, is(frame.bufferInfo.flags));
         assertThat(encoderInputFrame.bufferInfo.presentationTimeUs, is(frame.bufferInfo.presentationTimeUs));
         assertThat(encoderInputFrame.bufferInfo.offset, is(0));
         assertThat(encoderInputFrame.bufferInfo.size, is(frameSize));
 
-        for (int index = firstIndex; index < frameSize; index++) {
-            assertThat(frame.buffer.get(index), is(encoderInputBuffer.get(index - firstIndex)));
+        if (!skipByteByByteCheck) {
+            for (int index = firstIndex; index < frameSize; index++) {
+                assertThat(frame.buffer.get(index), is(encoderInputBuffer.get(index - firstIndex)));
+            }
         }
     }
 }

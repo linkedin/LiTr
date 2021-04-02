@@ -115,6 +115,9 @@ public class GlVideoRenderer implements Renderer {
     }
 
     @Override
+    public void onMediaFormatChanged(@Nullable MediaFormat sourceMediaFormat, @Nullable MediaFormat targetMediaFormat) {}
+
+    @Override
     @Nullable
     public Surface getInputSurface() {
         if (inputSurface != null) {
@@ -124,7 +127,7 @@ public class GlVideoRenderer implements Renderer {
     }
 
     @Override
-    public void renderFrame(@Nullable Frame frame, long presentationTimeNs) {
+    public void renderFrame(@Nullable Frame inputFrame, long presentationTimeNs) {
         inputSurface.awaitNewImage();
         drawFrame(presentationTimeNs);
         outputSurface.setPresentationTime(presentationTimeNs);
