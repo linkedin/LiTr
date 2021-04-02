@@ -34,12 +34,11 @@ public class PassthroughSoftwareRenderer implements Renderer {
     private static final String TAG = "PassthroughSwRenderer";
 
     @NonNull public final Encoder encoder;
-    public final long frameWaitTimeoutUs;
+    private final long frameWaitTimeoutUs;
 
+    @NonNull private AudioResampler audioResampler = new PassThroughAudioResampler();
     private MediaFormat sourceAudioFormat;
     private MediaFormat targetAudioFormat;
-
-    private AudioResampler audioResampler = new PassThroughAudioResampler();
 
     public PassthroughSoftwareRenderer(@NonNull Encoder encoder) {
         this(encoder, FRAME_WAIT_TIMEOUT);
@@ -48,10 +47,6 @@ public class PassthroughSoftwareRenderer implements Renderer {
     public PassthroughSoftwareRenderer(@NonNull Encoder encoder, long frameWaitTimeoutUs) {
         this.encoder = encoder;
         this.frameWaitTimeoutUs = frameWaitTimeoutUs;
-    }
-
-    private int getSampleRate(MediaFormat format) {
-        return format.getInteger(MediaFormat.KEY_SAMPLE_RATE);
     }
 
     @Override
@@ -71,8 +66,8 @@ public class PassthroughSoftwareRenderer implements Renderer {
         if (sourceAudioFormat == null || targetAudioFormat == null) {
             return;
         }
-        int inputSampleRate = getSampleRate(sourceAudioFormat);
-        int outputSampleRate = getSampleRate(targetAudioFormat);
+        int inputSampleRate = audioResampler.getSampleRate(sourceAudioFormat);
+        int outputSampleRate = audioResampler.getSampleRate(targetAudioFormat);
         if (inputSampleRate > outputSampleRate) {
             audioResampler = new DownsampleAudioResampler();
         } else {

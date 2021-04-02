@@ -28,7 +28,7 @@ import java.nio.ByteBuffer;
  */
 public class DownsampleAudioResampler implements AudioResampler {
 
-    private static float ratio(int remaining, int all) {
+    private float ratio(int remaining, int all) {
         return (float) remaining / all;
     }
 
