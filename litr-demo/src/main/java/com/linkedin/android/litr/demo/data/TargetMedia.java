@@ -21,11 +21,11 @@ import java.util.List;
 
 public class TargetMedia extends BaseObservable {
 
-    private static final int DEFAULT_VIDEO_WIDTH = 1280;
-    private static final int DEFAULT_VIDEO_HEIGHT = 720;
-    private static final int DEFAULT_VIDEO_BITRATE = 5000000;
-    private static final int DEFAULT_KEY_FRAME_INTERVAL = 5;
-    private static final int DEFAULT_AUDIO_BITRATE = 128000;
+    public static final int DEFAULT_VIDEO_WIDTH = 1280;
+    public static final int DEFAULT_VIDEO_HEIGHT = 720;
+    public static final int DEFAULT_VIDEO_BITRATE = 5000000;
+    public static final int DEFAULT_KEY_FRAME_INTERVAL = 5;
+    public static final int DEFAULT_AUDIO_BITRATE = 128000;
 
     public File targetFile;
     public List<TargetTrack> tracks = new ArrayList<>();
