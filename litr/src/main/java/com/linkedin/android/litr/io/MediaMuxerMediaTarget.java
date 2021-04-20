@@ -63,7 +63,7 @@ public class MediaMuxerMediaTarget implements MediaTarget {
                 if (parcelFileDescriptor != null) {
                     mediaMuxer = new MediaMuxer(parcelFileDescriptor.getFileDescriptor(), outputFormat);
                 } else {
-                    throw new IOException();
+                    throw new IOException("Inaccessible URI " + outputFileUri);
                 }
             } else if ("file".equalsIgnoreCase(outputFileUri.getScheme()) && outputFileUri.getPath() != null) {
                 mediaMuxer = new MediaMuxer(outputFileUri.getPath(), outputFormat);
