@@ -7,14 +7,19 @@
  */
 package com.linkedin.android.litr.io;
 
+import android.content.Context;
 import android.media.MediaCodec;
 import android.media.MediaFormat;
 import android.media.MediaMuxer;
+import android.net.Uri;
+import android.os.Build;
+import android.os.ParcelFileDescriptor;
 import android.util.Log;
 import androidx.annotation.IntRange;
 import androidx.annotation.NonNull;
 import androidx.annotation.VisibleForTesting;
 import com.linkedin.android.litr.exception.MediaTargetException;
+import com.linkedin.android.litr.utils.FileUtils;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -40,16 +45,51 @@ public class MediaMuxerMediaTarget implements MediaTarget {
 
     private MediaFormat[] mediaFormatsToAdd;
 
+    private ParcelFileDescriptor parcelFileDescriptor;
     private String outputFilePath;
     private int numberOfTracksToAdd;
     private int trackCount;
 
+    /**
+     * This constructor to support scoped-storage enforcement in Android 10+, by using Uri instead of directly writing to File
+     */
+    public MediaMuxerMediaTarget(@NonNull Context context, @NonNull Uri outputFileUri,
+            @IntRange(from = 1) int trackCount, int orientationHint, int outputFormat) throws MediaTargetException {
+        String outputFilePath = FileUtils.getFilePathFromUri(context, outputFileUri);
+        try {
+            if (outputFilePath == null) {
+                outputFilePath = "null";
+                throw new IOException();
+            }
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                parcelFileDescriptor = FileUtils.getParcelFileDescriptor(context, outputFileUri);
+                if (parcelFileDescriptor != null) {
+                    mediaMuxer = new MediaMuxer(parcelFileDescriptor.getFileDescriptor(), outputFormat);
+                }
+            }
+            init(outputFilePath, trackCount, orientationHint, outputFormat);
+        } catch (IllegalArgumentException illegalArgumentException) {
+            throw new MediaTargetException(INVALID_PARAMS, outputFilePath, outputFormat, illegalArgumentException);
+        } catch (IOException ioException) {
+            releaseFileDescriptor();
+            throw new MediaTargetException(IO_FAILUE, outputFilePath, outputFormat, ioException);
+        }
+    }
+
     public MediaMuxerMediaTarget(@NonNull String outputFilePath, @IntRange(from = 1) int trackCount, int orientationHint, int outputFormat) throws MediaTargetException {
+        init(outputFilePath, trackCount, orientationHint, outputFormat);
+    }
+
+    private void init(@NonNull String outputFilePath, @IntRange(from = 1) int trackCount, int orientationHint,
+            int outputFormat) throws MediaTargetException {
         this.outputFilePath = outputFilePath;
         this.trackCount = trackCount;
 
         try {
-            mediaMuxer = new MediaMuxer(outputFilePath,  outputFormat);
+            if (mediaMuxer == null) {
+                mediaMuxer = new MediaMuxer(outputFilePath,  outputFormat);
+            }
             mediaMuxer.setOrientationHint(orientationHint);
 
             numberOfTracksToAdd = 0;
@@ -106,12 +146,23 @@ public class MediaMuxerMediaTarget implements MediaTarget {
     @Override
     public void release() {
         mediaMuxer.release();
+        releaseFileDescriptor();
     }
 
     @Override
     @NonNull
     public String getOutputFilePath() {
         return outputFilePath;
+    }
+
+    private void releaseFileDescriptor() {
+        try {
+            if (parcelFileDescriptor != null) {
+                parcelFileDescriptor.close();
+                parcelFileDescriptor = null;
+            }
+        } catch (IOException ignored) {
+        }
     }
 
     private class MediaSample {
