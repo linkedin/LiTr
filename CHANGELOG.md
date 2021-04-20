@@ -1,5 +1,9 @@
 # Change Log
 
+## Version 1.4.14 (2021-04-20)
+
+- Support writing to Uri (by @Ma7moudHatem) [#114](https://github.com/linkedin/LiTr/pull/114)
+
 ## Version 1.4.13 (2021-04-02)
 
 - Support for reducing audio sampling rate (by @Ma7moudHatem) [#111](https://github.com/linkedin/LiTr/pull/111)
