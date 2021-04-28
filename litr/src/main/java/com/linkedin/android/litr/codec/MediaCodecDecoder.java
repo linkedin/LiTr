@@ -23,27 +23,11 @@ import java.nio.ByteBuffer;
 
 public final class MediaCodecDecoder implements Decoder {
 
-    private final boolean fallbackToGetCodecByType;
-    private final boolean filterByTypeAndFormat;
-
     private MediaCodec mediaCodec;
 
     private boolean isRunning;
     private boolean isReleased;
     private final MediaCodec.BufferInfo outputBufferInfo = new MediaCodec.BufferInfo();
-
-    public MediaCodecDecoder() {
-        this(true);
-    }
-
-    public MediaCodecDecoder(boolean fallbackToGetCodecByType) {
-        this(fallbackToGetCodecByType, false);
-    }
-
-    public MediaCodecDecoder(boolean fallbackToGetCodecByType, boolean filterByTypeAndFormat) {
-        this.fallbackToGetCodecByType = fallbackToGetCodecByType;
-        this.filterByTypeAndFormat = filterByTypeAndFormat;
-    }
 
     @Override
     public void init(@NonNull MediaFormat mediaFormat, @Nullable Surface surface) throws TrackTranscoderException {
@@ -53,9 +37,7 @@ public final class MediaCodecDecoder implements Decoder {
                 false,
                 TrackTranscoderException.Error.DECODER_NOT_FOUND,
                 TrackTranscoderException.Error.DECODER_FORMAT_NOT_FOUND,
-                TrackTranscoderException.Error.DECODER_CONFIGURATION_ERROR,
-                fallbackToGetCodecByType,
-                filterByTypeAndFormat);
+                TrackTranscoderException.Error.DECODER_CONFIGURATION_ERROR);
         isReleased = mediaCodec == null;
     }
 
