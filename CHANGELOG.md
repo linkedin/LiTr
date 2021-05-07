@@ -1,5 +1,12 @@
 # Change Log
 
+## Version 1.4.15 (2021-05-07)
+
+- Remove fallback codec lookup configuration flags [#114](https://github.com/linkedin/LiTr/pull/115)
+- Bump dependencies
+- Bump build tools and compile/target SDK levels to 30
+- Enable Kotlin
+
 ## Version 1.4.14 (2021-04-20)
 
 - Support writing to Uri (by @Ma7moudHatem) [#114](https://github.com/linkedin/LiTr/pull/114)
