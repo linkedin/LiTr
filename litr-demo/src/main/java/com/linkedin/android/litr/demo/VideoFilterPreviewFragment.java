@@ -65,6 +65,7 @@ public class VideoFilterPreviewFragment extends BaseTransformationFragment imple
         exoPlayer = new SimpleExoPlayer.Builder(context)
                 .setTrackSelector(trackSelector)
                 .build();
+        exoPlayer.setThrowsWhenUsingWrongThread(false);
         renderer = new VideoPreviewRenderer(surfaceTexture -> exoPlayer.setVideoSurface(new Surface(surfaceTexture)));
     }
 
