@@ -10,6 +10,7 @@
     <string name="demo_case_free_transform_video_gl">Free Transform Video (GL Renderer)</string>
     <string name="demo_case_square_center_crop">Square Center Crop</string>
     <string name="demo_case_video_watermark">Video Watermark</string>
+    <string name="demo_case_empty_video">Empty Video</string>
     <string name="demo_case_video_filters">Video Filters</string>
     <string name="demo_case_video_filters_preview">Video Filters Preview</string>
     <string name="demo_case_mock_transcode_video">Mock Transcode Video</string>
