@@ -27,6 +27,7 @@ import com.linkedin.android.litr.TrackTransform;
 import com.linkedin.android.litr.TransformationOptions;
 import com.linkedin.android.litr.codec.MediaCodecDecoder;
 import com.linkedin.android.litr.codec.MediaCodecEncoder;
+import com.linkedin.android.litr.codec.PassthroughDecoder;
 import com.linkedin.android.litr.exception.MediaTransformationException;
 import com.linkedin.android.litr.filter.GlFilter;
 import com.linkedin.android.litr.filter.GlFrameRenderFilter;
@@ -37,8 +38,8 @@ import com.linkedin.android.litr.io.MediaMuxerMediaTarget;
 import com.linkedin.android.litr.io.MediaRange;
 import com.linkedin.android.litr.io.MediaSource;
 import com.linkedin.android.litr.io.MediaTarget;
+import com.linkedin.android.litr.io.MockVideoMediaSource;
 import com.linkedin.android.litr.render.GlVideoRenderer;
-import com.linkedin.android.litr.utils.CodecUtils;
 import com.linkedin.android.litr.utils.TransformationUtil;
 
 import java.io.File;
@@ -373,6 +374,88 @@ public class TransformationPresenter {
                 transformationOptions);
     }
 
+    public void createEmptyVideo(@NonNull SourceMedia sourceMedia,
+                                 @NonNull TargetMedia targetMedia,
+                                 @NonNull TransformationState transformationState) {
+        if (targetMedia.targetFile.exists()) {
+            targetMedia.targetFile.delete();
+        }
+
+        transformationState.requestId = UUID.randomUUID().toString();
+        MediaTransformationListener transformationListener = new MediaTransformationListener(context,
+                transformationState.requestId,
+                transformationState);
+
+        try {
+            int videoRotation = 0;
+            for (MediaTrackFormat trackFormat : sourceMedia.tracks) {
+                if (trackFormat.mimeType.startsWith("video")) {
+                    videoRotation = ((VideoTrackFormat) trackFormat).rotation;
+                    break;
+                }
+            }
+
+            MediaTarget mediaTarget = new MediaMuxerMediaTarget(targetMedia.targetFile.getPath(),
+                    targetMedia.getIncludedTrackCount(),
+                    videoRotation,
+                    MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4);
+
+            List<TrackTransform> trackTransforms = new ArrayList<>(targetMedia.tracks.size());
+
+            if (sourceMedia.tracks.isEmpty()) {
+                throw new IllegalArgumentException("No source tracks!");
+            }
+
+            MediaTrackFormat sourceTrackFormat = sourceMedia.tracks.get(0);
+            MediaSource mediaSource =
+                    new MockVideoMediaSource(createVideoMediaFormat((VideoTrackFormat) sourceTrackFormat));
+
+            for (TargetTrack targetTrack : targetMedia.tracks) {
+                if (!targetTrack.shouldInclude) {
+                    continue;
+                }
+                MediaFormat mediaFormat = createMediaFormat(targetTrack);
+                TrackTransform.Builder trackTransformBuilder = new TrackTransform.Builder(mediaSource,
+                        targetTrack.sourceTrackIndex,
+                        mediaTarget)
+                        .setTargetTrack(trackTransforms.size())
+                        .setTargetFormat(mediaFormat)
+                        .setEncoder(new MediaCodecEncoder())
+                        .setDecoder(new PassthroughDecoder(1));
+                if (targetTrack.format instanceof VideoTrackFormat) {
+                    // adding background bitmap first, to ensure that video renders on top of it
+                    List<GlFilter> filters = new ArrayList<>();
+                    if (targetMedia.backgroundImageUri != null) {
+                        GlFilter backgroundImageFilter = TransformationUtil.createGlFilter(context,
+                                targetMedia.backgroundImageUri,
+                                new PointF(1, 1),
+                                new PointF(0.5f, 0.5f),
+                                0);
+                        filters.add(backgroundImageFilter);
+                    }
+
+                    if (((TargetVideoTrack) targetTrack).overlay != null) {
+                        List<GlFilter> overlayFilters = createGlFilters(sourceMedia, (TargetVideoTrack) targetTrack, 0.3f, new PointF(0.25f, 0.25f), 30f);
+                        if (overlayFilters != null) {
+                            filters.addAll(overlayFilters);
+                        }
+                    }
+
+                    trackTransformBuilder.setRenderer(new GlVideoRenderer(filters));
+                }
+
+                trackTransforms.add(trackTransformBuilder.build());
+            }
+
+            mediaTransformer.transform(transformationState.requestId,
+                    trackTransforms,
+                    transformationListener,
+                    MediaTransformer.GRANULARITY_DEFAULT);
+        } catch (MediaTransformationException ex) {
+            Log.e(TAG, "Exception when trying to perform track operation", ex);
+        }
+    }
+
     public void cancelTransformation(@NonNull String requestId) {
         mediaTransformer.cancel(requestId);
     }
@@ -439,22 +522,38 @@ public class TransformationPresenter {
         if (targetTrack != null && targetTrack.format != null) {
             mediaFormat = new MediaFormat();
             if (targetTrack.format.mimeType.startsWith("video")) {
-                VideoTrackFormat trackFormat = (VideoTrackFormat) targetTrack.format;
-                String mimeType = CodecUtils.MIME_TYPE_VIDEO_AVC;
-                mediaFormat.setString(MediaFormat.KEY_MIME, mimeType);
-                mediaFormat.setInteger(MediaFormat.KEY_WIDTH, trackFormat.width);
-                mediaFormat.setInteger(MediaFormat.KEY_HEIGHT, trackFormat.height);
-                mediaFormat.setInteger(MediaFormat.KEY_BIT_RATE, trackFormat.bitrate);
-                mediaFormat.setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, trackFormat.keyFrameInterval);
-                mediaFormat.setInteger(MediaFormat.KEY_FRAME_RATE, trackFormat.frameRate);
+                mediaFormat = createVideoMediaFormat((VideoTrackFormat) targetTrack.format);
             } else if (targetTrack.format.mimeType.startsWith("audio")) {
-                AudioTrackFormat trackFormat = (AudioTrackFormat) targetTrack.format;
-                mediaFormat.setString(MediaFormat.KEY_MIME, trackFormat.mimeType);
-                mediaFormat.setInteger(MediaFormat.KEY_CHANNEL_COUNT, trackFormat.channelCount);
-                mediaFormat.setInteger(MediaFormat.KEY_SAMPLE_RATE, trackFormat.samplingRate);
-                mediaFormat.setInteger(MediaFormat.KEY_BIT_RATE, trackFormat.bitrate);
+                mediaFormat = createAudioMediaFormat((AudioTrackFormat) targetTrack.format);
             }
         }
+
+        return mediaFormat;
+    }
+
+    @NonNull
+    private MediaFormat createVideoMediaFormat(@NonNull VideoTrackFormat trackFormat) {
+        MediaFormat mediaFormat = new MediaFormat();
+        mediaFormat.setString(MediaFormat.KEY_MIME, trackFormat.mimeType);
+        mediaFormat.setInteger(MediaFormat.KEY_WIDTH, trackFormat.width);
+        mediaFormat.setInteger(MediaFormat.KEY_HEIGHT, trackFormat.height);
+        mediaFormat.setInteger(MediaFormat.KEY_BIT_RATE, trackFormat.bitrate);
+        mediaFormat.setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, trackFormat.keyFrameInterval);
+        mediaFormat.setInteger(MediaFormat.KEY_FRAME_RATE, trackFormat.frameRate);
+        mediaFormat.setLong(MediaFormat.KEY_DURATION, trackFormat.duration);
+        mediaFormat.setInteger(KEY_ROTATION, trackFormat.rotation);
+
+        return mediaFormat;
+    }
+
+    @NonNull
+    private MediaFormat createAudioMediaFormat(@NonNull AudioTrackFormat trackFormat) {
+        MediaFormat mediaFormat = new MediaFormat();
+        mediaFormat.setString(MediaFormat.KEY_MIME, trackFormat.mimeType);
+        mediaFormat.setInteger(MediaFormat.KEY_CHANNEL_COUNT, trackFormat.channelCount);
+        mediaFormat.setInteger(MediaFormat.KEY_SAMPLE_RATE, trackFormat.samplingRate);
+        mediaFormat.setInteger(MediaFormat.KEY_BIT_RATE, trackFormat.bitrate);
+        mediaFormat.setLong(MediaFormat.KEY_DURATION, trackFormat.duration);
 
         return mediaFormat;
     }
