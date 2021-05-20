@@ -1,10 +1,16 @@
+/*
+ * Copyright 2021 LinkedIn Corporation
+ * All Rights Reserved.
+ *
+ * Licensed under the BSD 2-Clause License (the "License").  See License in the project root for
+ * license information.
+ */
 package com.linkedin.android.litr.codec
 
 import android.media.MediaCodec
 import android.media.MediaFormat
 import android.view.Surface
 import org.hamcrest.CoreMatchers.equalTo
-import org.hamcrest.CoreMatchers.sameInstance
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Before
 import org.junit.Test
