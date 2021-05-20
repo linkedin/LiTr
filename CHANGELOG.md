@@ -1,5 +1,9 @@
 # Change Log
 
+## Version 1.4.16 (2021-05-20)
+
+- New MockVideoMediaSource and PassthroughDecoder implementations [#122](https://github.com/linkedin/LiTr/pull/122) which provide capability to create "empty" video
+
 ## Version 1.4.15 (2021-05-07)
 
 - Remove fallback codec lookup configuration flags [#114](https://github.com/linkedin/LiTr/pull/115)
