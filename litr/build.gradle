@@ -1,6 +1,7 @@
 plugins {
     id 'com.android.library'
     id 'kotlin-android'
+    id 'de.mobilej.unmock'
 }
 
 apply from: "$rootDir/gradle/publishing.gradle"
@@ -41,4 +42,5 @@ dependencies {
     testImplementation 'junit:junit:4.13.2'
     testImplementation 'org.mockito:mockito-core:2.28.2'
     testImplementation "org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version"
+    testImplementation 'org.robolectric:android-all:4.3_r2-robolectric-0'
 }
