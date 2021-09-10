@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2019 LinkedIn Corporation -->
+<!-- All Rights Reserved. -->
+<!-- -->
+<!-- Licensed under the BSD 2-Clause License (the "License").  See License in the project root -->
+<!-- for license information. -->
+<layout>
+    <data>
+        <import type="android.view.View"/>
+
+        <variable
+            name="sourceMedia"
+            type="com.linkedin.android.litr.demo.data.SourceMedia" />
+    </data>
+
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="@dimen/section_margin">
+
+        <Button
+            android:id="@+id/button_pick_audio"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/pick_audio"
+            android:padding="@dimen/cell_padding"/>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="@{sourceMedia != null &amp;&amp; sourceMedia.uri != null ? View.VISIBLE : View.GONE}"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text = "@{sourceMedia != null &amp;&amp; sourceMedia.uri != null ? String.format(@string/source_path, sourceMedia.uri.toString()) : null}"
+                android:padding="@dimen/cell_padding"/>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text = "@{sourceMedia != null &amp;&amp; sourceMedia.uri != null ? String.format(@string/size, (float) sourceMedia.size / (1024 * 1024)) : null}"
+                android:padding="@dimen/cell_padding"/>
+        </LinearLayout>
+
+    </LinearLayout>
+
+</layout>

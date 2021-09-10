@@ -47,6 +47,10 @@ public class BaseTransformationFragment extends Fragment {
         pickMedia("video/*", mediaPickerListener);
     }
 
+    public void pickAudio(@Nullable MediaPickerListener mediaPickerListener) {
+        pickMedia("audio/*", mediaPickerListener);
+    }
+
     public void pickOverlay(@Nullable MediaPickerListener mediaPickerListener) {
         pickMedia("image/*", mediaPickerListener);
     }

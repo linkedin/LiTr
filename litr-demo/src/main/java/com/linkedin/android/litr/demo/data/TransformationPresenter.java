@@ -456,6 +456,81 @@ public class TransformationPresenter {
         }
     }
 
+    public void muxVideoAndAudio(@NonNull SourceMedia sourceVideo,
+                                 @NonNull SourceMedia sourceAudio,
+                                 @NonNull TargetMedia targetMedia,
+                                 @NonNull TransformationState transformationState) {
+        if (targetMedia.targetFile.exists()) {
+            targetMedia.targetFile.delete();
+        }
+
+        transformationState.requestId = UUID.randomUUID().toString();
+        MediaTransformationListener transformationListener = new MediaTransformationListener(context,
+                transformationState.requestId,
+                transformationState);
+
+        try {
+            int videoRotation = 0;
+            for (MediaTrackFormat trackFormat : sourceVideo.tracks) {
+                if (trackFormat.mimeType.startsWith("video")) {
+                    videoRotation = ((VideoTrackFormat) trackFormat).rotation;
+                    break;
+                }
+            }
+            MediaTarget mediaTarget = new MediaMuxerMediaTarget(targetMedia.targetFile.getPath(),
+                    2,
+                    videoRotation,
+                    MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4);
+
+            List<TrackTransform> trackTransforms = new ArrayList<>(targetMedia.tracks.size());
+
+            MediaRange audioTrimRange = new MediaRange(0, Long.MAX_VALUE);
+            for (MediaTrackFormat trackFormat : sourceVideo.tracks) {
+                if (trackFormat instanceof VideoTrackFormat) {
+                    TrackTransform.Builder trackTransformBuilder = new TrackTransform.Builder(
+                            new MediaExtractorMediaSource(context, sourceVideo.uri),
+                            trackFormat.index,
+                            mediaTarget)
+                            .setTargetTrack(trackTransforms.size())
+                            .setTargetFormat(null)
+                            .setEncoder(new MediaCodecEncoder())
+                            .setDecoder(new MediaCodecDecoder())
+                            .setRenderer(new GlVideoRenderer(null));
+                    // trim audio track to video track's duration
+                    audioTrimRange = new MediaRange(0, ((VideoTrackFormat) trackFormat).duration);
+                    trackTransforms.add(trackTransformBuilder.build());
+                    break;
+                }
+            }
+
+            for (MediaTrackFormat trackFormat : sourceAudio.tracks) {
+                if (trackFormat instanceof AudioTrackFormat) {
+                    // make sure audio is in AVC compatible encoding
+                    MediaFormat targetAudioFormat = createAudioMediaFormat((AudioTrackFormat) trackFormat);
+                    targetAudioFormat.setString(MediaFormat.KEY_MIME, "audio/mp4a-latm");
+
+                    TrackTransform.Builder trackTransformBuilder = new TrackTransform.Builder(
+                            new MediaExtractorMediaSource(context, sourceAudio.uri, audioTrimRange),
+                            trackFormat.index,
+                            mediaTarget)
+                            .setTargetTrack(trackTransforms.size())
+                            .setTargetFormat(targetAudioFormat)
+                            .setEncoder(new MediaCodecEncoder())
+                            .setDecoder(new MediaCodecDecoder());
+                    trackTransforms.add(trackTransformBuilder.build());
+                    break;
+                }
+            }
+
+            mediaTransformer.transform(transformationState.requestId,
+                    trackTransforms,
+                    transformationListener,
+                    MediaTransformer.GRANULARITY_DEFAULT);
+        } catch (MediaTransformationException ex) {
+            Log.e(TAG, "Exception when trying to perform track operation", ex);
+        }
+    }
+
     public void cancelTransformation(@NonNull String requestId) {
         mediaTransformer.cancel(requestId);
     }

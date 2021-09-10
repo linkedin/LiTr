@@ -11,6 +11,7 @@
     <string name="demo_case_square_center_crop">Square Center Crop</string>
     <string name="demo_case_video_watermark">Video Watermark</string>
     <string name="demo_case_empty_video">Empty Video</string>
+    <string name="demo_case_mux_video_audio">Mux Video And Audio Tracks</string>
     <string name="demo_case_video_filters">Video Filters</string>
     <string name="demo_case_video_filters_preview">Video Filters Preview</string>
     <string name="demo_case_mock_transcode_video">Mock Transcode Video</string>
@@ -23,6 +24,7 @@
     <string name="trim">Trim</string>
 
     <string name="pick_video">Pick Video</string>
+    <string name="pick_audio">Pick Audio</string>
     <string name="pick_video_overlay">Pick Video Overlay</string>
     <string name="source_path" formatted="true">Uri: %s</string>
     <string name="size" formatted="true">Size: %.2f MB</string>
