@@ -280,6 +280,30 @@ public class AudioTrackTranscoderShould {
     }
 
     @Test
+    public void extractAndDecodeFrameWhenNoBytesRead() throws Exception {
+        audioTrackTranscoder.lastExtractFrameResult = TrackTranscoder.RESULT_FRAME_PROCESSED;
+        audioTrackTranscoder.lastDecodeFrameResult = TrackTranscoder.RESULT_EOS_REACHED;
+        audioTrackTranscoder.lastEncodeFrameResult = TrackTranscoder.RESULT_EOS_REACHED;
+
+        doReturn(AUDIO_TRACK).when(mediaSource).getSampleTrackIndex();
+        doReturn(BUFFER_INDEX).when(decoder).dequeueInputFrame(anyLong());
+        doReturn(sampleFrame).when(decoder).getInputFrame(BUFFER_INDEX);
+        doReturn(0).when(mediaSource).readSampleData(any(ByteBuffer.class), anyInt());
+        doReturn(CURRENT_PRESENTATION_TIME).when(mediaSource).getSampleTime();
+        doReturn(0).when(mediaSource).getSampleFlags();
+
+        int result = audioTrackTranscoder.processNextFrame();
+
+        verify(mediaSource).readSampleData(sampleFrame.buffer, 0);
+        verify(decoder).queueInputFrame(sampleFrame);
+        verify(bufferInfo).set(0, 0, CURRENT_PRESENTATION_TIME, 0);
+
+        verify(mediaSource, atLeast(1)).advance();
+
+        assertThat(result, is(TrackTranscoder.RESULT_FRAME_PROCESSED));
+    }
+
+    @Test
     public void signalDecoderWhenEos() throws Exception {
         audioTrackTranscoder.lastExtractFrameResult = TrackTranscoder.RESULT_FRAME_PROCESSED;
         audioTrackTranscoder.lastDecodeFrameResult = TrackTranscoder.RESULT_EOS_REACHED;
