@@ -167,7 +167,7 @@ public class PassthroughTranscoderShould {
         passthroughTranscoder.targetTrackAdded = true;
 
         doReturn(0).when(mediaSource).getSampleTrackIndex();
-        doReturn(0).when(mediaSource).readSampleData(outputBuffer, 0);
+        doReturn(-1).when(mediaSource).readSampleData(outputBuffer, 0);
 
         int result = passthroughTranscoder.processNextFrame();
 

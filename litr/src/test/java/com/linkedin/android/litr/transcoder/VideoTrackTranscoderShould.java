@@ -305,7 +305,7 @@ public class VideoTrackTranscoderShould {
         doReturn(VIDEO_TRACK).when(mediaSource).getSampleTrackIndex();
         doReturn(BUFFER_INDEX).when(decoder).dequeueInputFrame(anyLong());
         doReturn(sampleFrame).when(decoder).getInputFrame(BUFFER_INDEX);
-        doReturn(0).when(mediaSource).readSampleData(any(ByteBuffer.class), anyInt());
+        doReturn(-1).when(mediaSource).readSampleData(any(ByteBuffer.class), anyInt());
 
         int result = videoTrackTranscoder.processNextFrame();
 
