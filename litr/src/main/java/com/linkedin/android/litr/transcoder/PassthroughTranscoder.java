@@ -95,7 +95,7 @@ public class PassthroughTranscoder extends TrackTranscoder {
         long sampleTime = mediaSource.getSampleTime();
         int inputFlags = mediaSource.getSampleFlags();
 
-        if (bytesRead <= 0 || (inputFlags & MediaCodec.BUFFER_FLAG_END_OF_STREAM) != 0) {
+        if (bytesRead < 0 || (inputFlags & MediaCodec.BUFFER_FLAG_END_OF_STREAM) != 0) {
             outputBuffer.clear();
             progress = 1.0f;
             lastResult = RESULT_EOS_REACHED;
