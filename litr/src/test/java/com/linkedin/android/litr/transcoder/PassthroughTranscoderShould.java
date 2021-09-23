@@ -160,6 +160,30 @@ public class PassthroughTranscoderShould {
     }
 
     @Test
+    public void writeFrameWhenNoBytesRead() {
+        passthroughTranscoder.sourceTrack = 0;
+        passthroughTranscoder.targetTrack = 0;
+        passthroughTranscoder.duration = DURATION;
+        passthroughTranscoder.targetTrackAdded = true;
+        int outputFlags = 0;
+
+        doReturn(0).when(mediaSource).getSampleTrackIndex();
+        doReturn(0).when(mediaSource).readSampleData(outputBuffer, 0);
+        doReturn(SAMPLE_TIME).when(mediaSource).getSampleTime();
+        doReturn(outputFlags).when(mediaSource).getSampleFlags();
+
+        int result = passthroughTranscoder.processNextFrame();
+
+        verify(outputBufferInfo).set(0, 0, SAMPLE_TIME, outputFlags);
+        verify(mediaSource).advance();
+        verify(mediaTarget).writeSampleData(0, outputBuffer, outputBufferInfo);
+
+        assertThat(passthroughTranscoder.progress, is((float) SAMPLE_TIME / DURATION));
+        assertThat(result, is(TrackTranscoder.RESULT_FRAME_PROCESSED));
+        assertThat(passthroughTranscoder.lastResult, is(TrackTranscoder.RESULT_FRAME_PROCESSED));
+    }
+
+    @Test
     public void finishWritingWhenInputDataIsNotAvailable() {
         passthroughTranscoder.sourceTrack = 0;
         passthroughTranscoder.targetTrack = 0;
@@ -167,7 +191,7 @@ public class PassthroughTranscoderShould {
         passthroughTranscoder.targetTrackAdded = true;
 
         doReturn(0).when(mediaSource).getSampleTrackIndex();
-        doReturn(0).when(mediaSource).readSampleData(outputBuffer, 0);
+        doReturn(-1).when(mediaSource).readSampleData(outputBuffer, 0);
 
         int result = passthroughTranscoder.processNextFrame();
 
