@@ -47,6 +47,8 @@ public class GlVideoRenderer implements Renderer {
                                                  ? MediaFormat.KEY_ROTATION
                                                  : "rotation-degrees";
 
+    private final boolean hasFilters;
+
     private VideoRenderInputSurface inputSurface;
     private VideoRenderOutputSurface outputSurface;
     private List<GlFilter> filters;
@@ -63,6 +65,8 @@ public class GlVideoRenderer implements Renderer {
      */
     public GlVideoRenderer(@Nullable List<GlFilter> filters) {
         this.filters = new ArrayList<>();
+        hasFilters = filters != null && !filters.isEmpty();
+
         if (filters == null) {
             this.filters.add(new DefaultVideoFrameRenderFilter());
             return;
@@ -146,7 +150,7 @@ public class GlVideoRenderer implements Renderer {
 
     @Override
     public boolean hasFilters() {
-        return filters != null && !filters.isEmpty();
+        return hasFilters;
     }
 
     /**
