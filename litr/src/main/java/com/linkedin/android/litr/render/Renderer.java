@@ -10,7 +10,9 @@ package com.linkedin.android.litr.render;
 import android.media.MediaCodec;
 import android.media.MediaFormat;
 import android.view.Surface;
+
 import androidx.annotation.Nullable;
+
 import com.linkedin.android.litr.codec.Frame;
 
 /**
@@ -53,7 +55,7 @@ public interface Renderer {
     void release();
 
     /**
-     * Check if renderer has filters
+     * Check if renderer has user provided filters
      * @return true if has, false otherwise
      */
     boolean hasFilters();
