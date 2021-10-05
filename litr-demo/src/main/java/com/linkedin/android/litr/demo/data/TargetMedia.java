@@ -28,6 +28,8 @@ public class TargetMedia extends BaseObservable {
     public static final int DEFAULT_AUDIO_BITRATE = 128000;
 
     public File targetFile;
+    @Nullable
+    private Uri contentUri;
     public List<TargetTrack> tracks = new ArrayList<>();
     public Uri backgroundImageUri;
     public GlFilter filter;
@@ -96,6 +98,16 @@ public class TargetMedia extends BaseObservable {
             }
         }
         return null;
+    }
+
+    @Nullable
+    public Uri getContentUri() {
+        return contentUri;
+    }
+
+    public void setContentUri(@Nullable Uri storedContentUri) {
+        this.contentUri = storedContentUri;
+        notifyChange();
     }
 
 }

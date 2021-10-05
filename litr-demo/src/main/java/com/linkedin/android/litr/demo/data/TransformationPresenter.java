@@ -20,10 +20,10 @@ import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.core.content.FileProvider;
 
 import com.linkedin.android.litr.MediaTransformer;
 import com.linkedin.android.litr.TrackTransform;
+import com.linkedin.android.litr.TransformationListener;
 import com.linkedin.android.litr.TransformationOptions;
 import com.linkedin.android.litr.codec.MediaCodecDecoder;
 import com.linkedin.android.litr.codec.MediaCodecEncoder;
@@ -42,7 +42,6 @@ import com.linkedin.android.litr.io.MockVideoMediaSource;
 import com.linkedin.android.litr.render.GlVideoRenderer;
 import com.linkedin.android.litr.utils.TransformationUtil;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -82,7 +81,8 @@ public class TransformationPresenter {
         transformationState.requestId = UUID.randomUUID().toString();
         MediaTransformationListener transformationListener = new MediaTransformationListener(context,
                                                                                              transformationState.requestId,
-                                                                                             transformationState);
+                                                                                             transformationState,
+                                                                                             targetMedia);
 
         try {
             int videoRotation = 0;
@@ -153,7 +153,8 @@ public class TransformationPresenter {
         transformationState.requestId = UUID.randomUUID().toString();
         MediaTransformationListener transformationListener = new MediaTransformationListener(context,
                 transformationState.requestId,
-                transformationState);
+                transformationState,
+                targetMedia);
 
         try {
             MediaTarget mediaTarget = new MediaMuxerMediaTarget(targetMedia.targetFile.getPath(),
@@ -224,7 +225,8 @@ public class TransformationPresenter {
         transformationState.requestId = UUID.randomUUID().toString();
         MediaTransformationListener transformationListener = new MediaTransformationListener(context,
                 transformationState.requestId,
-                transformationState);
+                transformationState,
+                targetMedia);
 
         try {
             int videoRotation = 0;
@@ -311,7 +313,8 @@ public class TransformationPresenter {
         transformationState.requestId = UUID.randomUUID().toString();
         MediaTransformationListener transformationListener = new MediaTransformationListener(context,
                 transformationState.requestId,
-                transformationState);
+                transformationState,
+                targetMedia);
 
         List<GlFilter> watermarkImageFilter = null;
         for (TargetTrack targetTrack : targetMedia.tracks) {
@@ -357,7 +360,8 @@ public class TransformationPresenter {
         transformationState.requestId = UUID.randomUUID().toString();
         MediaTransformationListener transformationListener = new MediaTransformationListener(context,
                 transformationState.requestId,
-                transformationState);
+                transformationState,
+                targetMedia);
 
         TransformationOptions transformationOptions = new TransformationOptions.Builder()
                 .setGranularity(MediaTransformer.GRANULARITY_DEFAULT)
@@ -384,7 +388,8 @@ public class TransformationPresenter {
         transformationState.requestId = UUID.randomUUID().toString();
         MediaTransformationListener transformationListener = new MediaTransformationListener(context,
                 transformationState.requestId,
-                transformationState);
+                transformationState,
+                targetMedia);
 
         try {
             int videoRotation = 0;
@@ -467,7 +472,8 @@ public class TransformationPresenter {
         transformationState.requestId = UUID.randomUUID().toString();
         MediaTransformationListener transformationListener = new MediaTransformationListener(context,
                 transformationState.requestId,
-                transformationState);
+                transformationState,
+                targetMedia);
 
         try {
             int videoRotation = 0;
@@ -535,13 +541,10 @@ public class TransformationPresenter {
         mediaTransformer.cancel(requestId);
     }
 
-    public void play(@Nullable File targetFile) {
-        if (targetFile != null && targetFile.exists()) {
+    public void play(@Nullable Uri contentUri) {
+        if (contentUri != null) {
             Intent playIntent = new Intent(Intent.ACTION_VIEW);
-            Uri videoUri = FileProvider.getUriForFile(context,
-                                                      context.getPackageName() + ".provider",
-                                                      targetFile);
-            playIntent.setDataAndType(videoUri, "video/*");
+            playIntent.setDataAndType(contentUri, "video/*");
             playIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
 
             context.startActivity(playIntent);
