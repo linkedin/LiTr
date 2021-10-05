@@ -65,7 +65,7 @@ class EmptyVideoFragment : BaseTransformationFragment() {
         binding.transformationState = TransformationState()
         binding.transformationPresenter = TransformationPresenter(context!!, mediaTransformer)
 
-        val targetFile = File(TransformationUtil.getTargetFileDirectory(), "empty_video.mp4")
+        val targetFile = File(TransformationUtil.getTargetFileDirectory(requireContext().applicationContext), "empty_video.mp4")
         targetMedia.setTargetFile(targetFile)
         targetMedia.setTracks(sourceMedia.tracks)
 
