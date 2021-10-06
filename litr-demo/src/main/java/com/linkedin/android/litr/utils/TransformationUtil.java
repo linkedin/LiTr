@@ -13,7 +13,7 @@ import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.PointF;
 import android.net.Uri;
-import android.os.Environment;
+import android.os.Build;
 import android.os.SystemClock;
 import android.provider.MediaStore;
 import android.text.TextUtils;
@@ -95,15 +95,12 @@ public class TransformationUtil {
     }
 
     @NonNull
-    public static File getTargetFileDirectory() {
-        File targetDirectory = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MOVIES)
-                                            + File.separator
-                                            + "LiTr");
-        if (!targetDirectory.exists()) {
-            targetDirectory.mkdirs();
+    public static File getTargetFileDirectory(Context context) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            return context.getNoBackupFilesDir();
+        } else {
+            return context.getFilesDir();
         }
-
-        return targetDirectory;
     }
 
     @NonNull

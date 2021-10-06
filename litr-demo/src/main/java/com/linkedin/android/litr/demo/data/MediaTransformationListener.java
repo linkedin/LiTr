@@ -11,6 +11,8 @@ import android.content.Context;
 import android.text.TextUtils;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.VisibleForTesting;
+
 import com.linkedin.android.litr.TransformationListener;
 import com.linkedin.android.litr.analytics.TrackTransformationInfo;
 import com.linkedin.android.litr.utils.TrackMetadataUtil;
@@ -22,13 +24,27 @@ public class MediaTransformationListener implements TransformationListener {
     private final Context context;
     private final String requestId;
     private final TransformationState transformationState;
+    private final SharedMediaStoragePublisher publisher;
+    private final TargetMedia targetMedia;
 
     public MediaTransformationListener(@NonNull Context context,
                                        @NonNull String requestId,
-                                       @NonNull TransformationState transformationState) {
+                                       @NonNull TransformationState transformationState,
+                                       @NonNull TargetMedia targetMedia) {
+        this(context, requestId, transformationState, targetMedia, new SharedMediaStoragePublisher(context));
+    }
+
+    @VisibleForTesting
+    MediaTransformationListener(@NonNull Context context,
+                                       @NonNull String requestId,
+                                       @NonNull TransformationState transformationState,
+                                       @NonNull TargetMedia targetMedia,
+                                       @NonNull SharedMediaStoragePublisher publisher) {
         this.context = context;
         this.requestId = requestId;
         this.transformationState = transformationState;
+        this.targetMedia = targetMedia;
+        this.publisher = publisher;
     }
 
     @Override
@@ -51,6 +67,7 @@ public class MediaTransformationListener implements TransformationListener {
             transformationState.setState(TransformationState.STATE_COMPLETED);
             transformationState.setProgress(TransformationState.MAX_PROGRESS);
             transformationState.setStats(TrackMetadataUtil.printTransformationStats(context, trackTransformationInfos));
+            publisher.publish(targetMedia.targetFile, false, (file, contentUri) -> targetMedia.setContentUri(contentUri));
         }
     }
 

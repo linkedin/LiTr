@@ -84,7 +84,7 @@ public class MockTranscodeFragment extends BaseTransformationFragment {
 
         TargetMedia targetMedia = new TargetMedia();
         targetMedia.setTracks(sourceMedia.tracks);
-        File targetFile = new File(TransformationUtil.getTargetFileDirectory(), "transcoded_mock.mp4");
+        File targetFile = new File(TransformationUtil.getTargetFileDirectory(requireContext().getApplicationContext()), "transcoded_mock.mp4");
         targetMedia.setTargetFile(targetFile);
 
         TranscodingConfigPresenter transcodingConfigPresenter = new TranscodingConfigPresenter(this, targetMedia);
@@ -99,7 +99,8 @@ public class MockTranscodeFragment extends BaseTransformationFragment {
 
         final MediaTransformationListener mediaTransformationListener = new MediaTransformationListener(getContext(),
                                                                                                         transformationState.requestId,
-                                                                                                        transformationState);
+                                                                                                        transformationState,
+                                                                                                        targetMedia);
 
         binding.buttonTranscode.setOnClickListener(new View.OnClickListener() {
             @Override

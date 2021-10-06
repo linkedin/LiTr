@@ -61,7 +61,7 @@ class MuxVideoAndAudioFragment : BaseTransformationFragment() {
                 when {
                     mimeType.startsWith("video") -> {
                         updateSourceMedia(binding.sourceVideo!!, uri)
-                        val targetFile = File(TransformationUtil.getTargetFileDirectory(),
+                        val targetFile = File(TransformationUtil.getTargetFileDirectory(requireContext().applicationContext),
                             "transcoded_" + TransformationUtil.getDisplayName(context!!, uri))
                         binding.targetMedia?.setTargetFile(targetFile)
                     }

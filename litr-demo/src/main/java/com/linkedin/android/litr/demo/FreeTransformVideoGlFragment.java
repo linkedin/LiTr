@@ -90,7 +90,7 @@ public class FreeTransformVideoGlFragment extends BaseTransformationFragment imp
     public void onMediaPicked(@NonNull Uri uri) {
         SourceMedia sourceMedia = binding.getSourceMedia();
         updateSourceMedia(sourceMedia, uri);
-        File targetFile = new File(TransformationUtil.getTargetFileDirectory(),
+        File targetFile = new File(TransformationUtil.getTargetFileDirectory(requireContext().getApplicationContext()),
                               "transcoded_" + TransformationUtil.getDisplayName(getContext(), sourceMedia.uri));
         binding.getTargetMedia().setTargetFile(targetFile);
         binding.getTargetMedia().setTracks(sourceMedia.tracks);

@@ -90,7 +90,7 @@ public class VideoWatermarkFragment extends BaseTransformationFragment implement
         SourceMedia sourceMedia = binding.getSourceMedia();
         updateSourceMedia(sourceMedia, uri);
         updateTrimConfig(binding.getTrimConfig(), sourceMedia);
-        File targetFile = new File(TransformationUtil.getTargetFileDirectory(),
+        File targetFile = new File(TransformationUtil.getTargetFileDirectory(requireContext().getApplicationContext()),
                               "transcoded_" + TransformationUtil.getDisplayName(getContext(), sourceMedia.uri));
         binding.getTargetMedia().setTargetFile(targetFile);
         binding.getTargetMedia().setTracks(sourceMedia.tracks);

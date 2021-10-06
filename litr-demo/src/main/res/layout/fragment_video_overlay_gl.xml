@@ -87,7 +87,7 @@
                 android:text="@string/play"
                 android:enabled="@{transformationState.state == transformationState.STATE_COMPLETED}"
                 android:padding="@dimen/cell_padding"
-                android:onClick="@{() -> transformationPresenter.play(targetMedia.targetFile)}"/>
+                android:onClick="@{() -> transformationPresenter.play(targetMedia.contentUri)}"/>
 
             <TextView
                 android:layout_width="match_parent"
