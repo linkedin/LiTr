@@ -11,6 +11,7 @@ import android.media.MediaCodec
 import android.media.MediaFormat
 import android.os.Build
 import com.linkedin.android.litr.transcoder.TrackTranscoder
+import com.linkedin.android.litr.utils.MediaFormatUtils
 import java.nio.ByteBuffer
 
 /**
@@ -35,7 +36,7 @@ class MockVideoMediaSource(
         trackDuration = trackFormat.getLong(MediaFormat.KEY_DURATION)
 
         assert(trackFormat.containsKey(MediaFormat.KEY_FRAME_RATE))
-        frameDuration = 1_000_000L / trackFormat.getInteger(MediaFormat.KEY_FRAME_RATE)
+        frameDuration = 1_000_000L / MediaFormatUtils.getFrameRate(trackFormat, -1).toInt()
 
         val keyRotation =
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) MediaFormat.KEY_ROTATION else "rotation-degrees"

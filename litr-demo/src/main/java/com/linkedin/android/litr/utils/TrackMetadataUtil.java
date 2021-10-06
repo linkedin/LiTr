@@ -93,10 +93,10 @@ public class TrackMetadataUtil {
             stringBuilder.append(context.getString(R.string.stats_duration, mediaFormat.getLong(MediaFormat.KEY_DURATION)));
         }
         if (mediaFormat.containsKey(MediaFormat.KEY_FRAME_RATE)) {
-            stringBuilder.append(context.getString(R.string.stats_frame_rate, mediaFormat.getInteger(MediaFormat.KEY_FRAME_RATE)));
+            stringBuilder.append(context.getString(R.string.stats_frame_rate, MediaFormatUtils.getFrameRate(mediaFormat, 0).intValue()));
         }
         if (mediaFormat.containsKey(MediaFormat.KEY_I_FRAME_INTERVAL)) {
-            stringBuilder.append(context.getString(R.string.stats_key_frame_interval, mediaFormat.getInteger(MediaFormat.KEY_I_FRAME_INTERVAL)));
+            stringBuilder.append(context.getString(R.string.stats_key_frame_interval, MediaFormatUtils.getIFrameInterval(mediaFormat, 0).intValue()));
         }
         if (mediaFormat.containsKey(KEY_ROTATION)) {
             stringBuilder.append(context.getString(R.string.stats_rotation, mediaFormat.getInteger(KEY_ROTATION)));
