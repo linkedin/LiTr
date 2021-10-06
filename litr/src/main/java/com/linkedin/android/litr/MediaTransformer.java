@@ -386,21 +386,6 @@ public class MediaTransformer {
                     targetKeyFrameInterval = sourceMediaFormat.getInteger(MediaFormat.KEY_I_FRAME_INTERVAL);
                 }
                 targetMediaFormat.setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, targetKeyFrameInterval);
-
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP
-                        && sourceMediaFormat.containsKey(MediaFormat.KEY_PROFILE)
-                        && sourceMediaFormat.containsKey(MediaFormat.KEY_MIME)) {
-                    int sourceCodecProfile = sourceMediaFormat.getInteger(MediaFormat.KEY_PROFILE);
-
-                    int targetCodecProfile = CodecUtils.getHighestSupportedProfile(
-                            targetMediaFormat.getString(MediaFormat.KEY_MIME),
-                            true,
-                            sourceCodecProfile);
-
-                    if (targetCodecProfile != CodecUtils.UNDEFINED_VALUE) {
-                        targetMediaFormat.setInteger(MediaFormat.KEY_PROFILE, targetCodecProfile);
-                    }
-                }
             } else if (mimeType.startsWith("audio")) {
                 targetMediaFormat = MediaFormat.createAudioFormat(mimeType,
                                                                   sourceMediaFormat.getInteger(MediaFormat.KEY_SAMPLE_RATE),
