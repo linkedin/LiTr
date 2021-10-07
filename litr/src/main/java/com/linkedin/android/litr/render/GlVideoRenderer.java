@@ -26,6 +26,7 @@ import android.opengl.Matrix;
 import android.os.Build;
 import android.view.Surface;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.linkedin.android.litr.codec.Frame;
@@ -64,6 +65,19 @@ public class GlVideoRenderer implements Renderer {
      * @param filters optional list of OpenGL filters to applied to output video frames
      */
     public GlVideoRenderer(@Nullable List<GlFilter> filters) {
+        this(filters, null);
+    }
+
+    /**
+     * Create an instance of GlVideoRenderer. If filter list has a {@link GlFrameRenderFilter}, that filter
+     * will be used to render video frames. Otherwise, default {@link DefaultVideoFrameRenderFilter}
+     * will be used at lowest Z level to render video frames.
+     * @param filters optional list of OpenGL filters to applied to output video frames
+     * @param inputSurface optional input surface from which to obtain decoded frames. If not set, a new one will be created.
+     */
+    GlVideoRenderer(@Nullable List<GlFilter> filters, @Nullable VideoRenderInputSurface inputSurface) {
+        this.inputSurface = inputSurface;
+
         this.filters = new ArrayList<>();
         hasFilters = filters != null && !filters.isEmpty();
 
@@ -109,7 +123,10 @@ public class GlVideoRenderer implements Renderer {
 
         this.outputSurface = new VideoRenderOutputSurface(outputSurface);
 
-        inputSurface = new VideoRenderInputSurface();
+        if (inputSurface == null) {
+            inputSurface = new VideoRenderInputSurface();
+        }
+
         initMvpMatrix(rotation, aspectRatio);
 
         for (GlFilter filter : filters) {
@@ -128,6 +145,12 @@ public class GlVideoRenderer implements Renderer {
             return inputSurface.getSurface();
         }
         return null;
+    }
+
+    public void prepareInputSurface(int width, int height) {
+        if (inputSurface != null) {
+            inputSurface.prepare(width, height);
+        }
     }
 
     @Override
@@ -219,6 +242,32 @@ public class GlVideoRenderer implements Renderer {
                 }
             }
             inputSurfaceTextureInitialized = true;
+        }
+    }
+
+    public static class Builder {
+
+        @Nullable
+        private List<GlFilter> filters = null;
+
+        @Nullable
+        private VideoRenderInputSurface inputSurface = null;
+
+        @NonNull
+        public GlVideoRenderer.Builder setFilters(@Nullable List<GlFilter> filters) {
+            this.filters = filters;
+            return this;
+        }
+
+        @NonNull
+        public GlVideoRenderer.Builder setInputSurface(@Nullable VideoRenderInputSurface inputSurface) {
+            this.inputSurface = inputSurface;
+            return this;
+        }
+
+        @NonNull
+        public GlVideoRenderer build() {
+            return new GlVideoRenderer(filters, inputSurface);
         }
     }
 }

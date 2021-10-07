@@ -36,6 +36,8 @@ public class TrackTranscoderException extends MediaTransformationException {
     private static final String DECODER_NOT_PROVIDED_TEXT = "Decoder is not provided";
     private static final String ENCODER_NOT_PROVIDED_TEXT = "Encoder is not provided";
     private static final String RENDERER_NOT_PROVIDED_TEXT = "Renderer is not provided";
+    private static final String RENDERER_NOT_COMPATIBLE_TEXT = "Renderer provided is not compatible with source track format";
+    private static final String READER_NOT_COMPATIBLE_TEXT = "Reader provided is not compatible with source track format";
 
     @NonNull private final Error error;
     @Nullable private final MediaFormat mediaFormat;
@@ -58,7 +60,9 @@ public class TrackTranscoderException extends MediaTransformationException {
         NO_FRAME_AVAILABLE(NO_FRAME_AVAILABLE_ERROR_TEXT),
         DECODER_NOT_PROVIDED(DECODER_NOT_PROVIDED_TEXT),
         ENCODER_NOT_PROVIDED(ENCODER_NOT_PROVIDED_TEXT),
-        RENDERER_NOT_PROVIDED(RENDERER_NOT_PROVIDED_TEXT);
+        RENDERER_NOT_PROVIDED(RENDERER_NOT_PROVIDED_TEXT),
+        READER_NOT_COMPATIBLE(READER_NOT_COMPATIBLE_TEXT),
+        RENDERER_NOT_COMPATIBLE(RENDERER_NOT_COMPATIBLE_TEXT);
 
         private final String message;
 

@@ -10,6 +10,7 @@ package com.linkedin.android.litr.utils;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.res.AssetFileDescriptor;
+import android.graphics.Point;
 import android.media.MediaFormat;
 import android.net.Uri;
 import android.util.Log;
@@ -196,6 +197,14 @@ public final class TranscoderUtils {
         } else {
             return -1;
         }
+    }
+
+    @Nullable
+    public static Point getDimensions(MediaFormat format) {
+        if (format.containsKey(MediaFormat.KEY_WIDTH) && format.containsKey(MediaFormat.KEY_HEIGHT)) {
+            return new Point(format.getInteger(MediaFormat.KEY_WIDTH), format.getInteger(MediaFormat.KEY_HEIGHT));
+        }
+        return null;
     }
 
     @Nullable

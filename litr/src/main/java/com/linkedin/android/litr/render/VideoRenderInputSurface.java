@@ -22,8 +22,11 @@ package com.linkedin.android.litr.render;
 import android.graphics.SurfaceTexture;
 import android.opengl.GLES11Ext;
 import android.opengl.GLES20;
+import android.util.Log;
 import android.view.Surface;
+
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 /**
  * Holds state associated with a Surface used for MediaCodec decoder output, and is used as a renderer input.
@@ -40,13 +43,13 @@ import androidx.annotation.NonNull;
  * By default, the Surface will be using a BufferQueue in asynchronous mode, so we
  * can potentially drop frames.
  */
-class VideoRenderInputSurface implements SurfaceTexture.OnFrameAvailableListener {
-
+public class VideoRenderInputSurface implements SurfaceTexture.OnFrameAvailableListener {
+    private static final String TAG = VideoRenderInputSurface.class.getSimpleName();
     private static final int FRAME_WAIT_TIMEOUT_MS = 10000;
 
-    private SurfaceTexture surfaceTexture;
+    private final SurfaceTexture surfaceTexture;
+    private final int textureId;
     private Surface surface;
-    private int textureId;
 
     private final Object frameSyncObject = new Object();
     private boolean frameAvailable;
@@ -56,10 +59,14 @@ class VideoRenderInputSurface implements SurfaceTexture.OnFrameAvailableListener
      * new one).  Creates a Surface that can be passed to MediaCodec.configure().
      */
     VideoRenderInputSurface() {
-        textureId = createTexture();
-        surfaceTexture = new SurfaceTexture(textureId);
-        surface = new Surface(surfaceTexture);
-        surfaceTexture.setOnFrameAvailableListener(this);
+        this(createTexture());
+    }
+
+    VideoRenderInputSurface(int texName) {
+        textureId = texName;
+        this.surfaceTexture = new SurfaceTexture(textureId);
+        this.surfaceTexture.setOnFrameAvailableListener(this);
+        surface = new Surface(this.surfaceTexture);
     }
 
     @Override
@@ -78,8 +85,13 @@ class VideoRenderInputSurface implements SurfaceTexture.OnFrameAvailableListener
      * @return surface
      */
     @NonNull
-    Surface getSurface() {
+    public Surface getSurface() {
         return surface;
+    }
+
+    @NonNull
+    public SurfaceTexture getSurfaceTexture() {
+        return surfaceTexture;
     }
 
     /**
@@ -129,17 +141,19 @@ class VideoRenderInputSurface implements SurfaceTexture.OnFrameAvailableListener
     /**
      * Discard all resources held by this class.
      */
-    void release() {
+    public void release() {
+        try {
+            surfaceTexture.detachFromGLContext();
+        } catch (RuntimeException e) {
+            Log.w(TAG, "Could not detach GL context from SurfaceTexture", e);
+        }
         if (surface != null) {
             surface.release();
             surface = null;
         }
     }
 
-    /**
-     * Prepares EGL.  We want a GLES 2.0 context and a surface that supports pbuffer.
-     */
-    private int createTexture() {
+    private static int createTexture() {
         int[] textures = new int[1];
         GLES20.glGenTextures(1, textures, 0);
         int textureID = textures[0];
@@ -154,4 +168,43 @@ class VideoRenderInputSurface implements SurfaceTexture.OnFrameAvailableListener
         return textureID;
     }
 
+    public void prepare(int width, int height) {
+        try {
+            surfaceTexture.attachToGLContext(textureId);
+        } catch (RuntimeException e) {
+            Log.w(TAG, "Could not attach SurfaceTexture to current GL context", e);
+        }
+        surfaceTexture.setDefaultBufferSize(width, height);
+    }
+
+    public static class Builder {
+
+        @Nullable
+        private Integer textureId = null;
+
+        private boolean createNewGlTexture = false;
+
+        @NonNull
+        public VideoRenderInputSurface.Builder setTextureId(int textureId) {
+            this.textureId = textureId;
+            return this;
+        }
+
+        @NonNull
+        public VideoRenderInputSurface.Builder setCreateNewGlTexture(boolean createNewGlTexture) {
+            this.createNewGlTexture = createNewGlTexture;
+            return this;
+        }
+
+        @NonNull
+        public VideoRenderInputSurface build() {
+            int texName;
+            if (createNewGlTexture || this.textureId == null) {
+                texName = createTexture();
+            } else {
+                texName = this.textureId;
+            }
+            return new VideoRenderInputSurface(texName);
+        }
+    }
 }

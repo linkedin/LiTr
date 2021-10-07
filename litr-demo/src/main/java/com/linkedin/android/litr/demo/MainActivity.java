@@ -51,6 +51,8 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        // super call ensures fragments too get notified of permission results
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (!hasWriteExternalStoragePermission()) {
             finish();
         }
