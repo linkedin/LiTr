@@ -24,6 +24,7 @@ import com.linkedin.android.litr.demo.data.GenericTrackFormat;
 import com.linkedin.android.litr.demo.data.SourceMedia;
 import com.linkedin.android.litr.demo.data.TrimConfig;
 import com.linkedin.android.litr.demo.data.VideoTrackFormat;
+import com.linkedin.android.litr.utils.MediaFormatUtils;
 import com.linkedin.android.litr.utils.TranscoderUtils;
 
 import java.io.IOException;
@@ -91,8 +92,8 @@ public class BaseTransformationFragment extends Fragment {
                     videoTrack.width = getInt(mediaFormat, MediaFormat.KEY_WIDTH);
                     videoTrack.height = getInt(mediaFormat, MediaFormat.KEY_HEIGHT);
                     videoTrack.duration = getLong(mediaFormat, MediaFormat.KEY_DURATION);
-                    videoTrack.frameRate = getInt(mediaFormat, MediaFormat.KEY_FRAME_RATE);
-                    videoTrack.keyFrameInterval = getInt(mediaFormat, MediaFormat.KEY_I_FRAME_INTERVAL);
+                    videoTrack.frameRate = MediaFormatUtils.getFrameRate(mediaFormat, -1).intValue();
+                    videoTrack.keyFrameInterval = MediaFormatUtils.getIFrameInterval(mediaFormat, -1).intValue();
                     videoTrack.rotation = getInt(mediaFormat, KEY_ROTATION, 0);
                     videoTrack.bitrate = getInt(mediaFormat, MediaFormat.KEY_BIT_RATE);
                     sourceMedia.tracks.add(videoTrack);

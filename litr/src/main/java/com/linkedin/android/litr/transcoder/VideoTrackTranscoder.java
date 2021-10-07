@@ -21,6 +21,7 @@ import com.linkedin.android.litr.io.MediaSource;
 import com.linkedin.android.litr.io.MediaTarget;
 import com.linkedin.android.litr.render.GlVideoRenderer;
 import com.linkedin.android.litr.render.Renderer;
+import com.linkedin.android.litr.utils.MediaFormatUtils;
 
 import java.util.concurrent.TimeUnit;
 
@@ -66,9 +67,9 @@ public class VideoTrackTranscoder extends TrackTranscoder {
 
     private void initCodecs() throws TrackTranscoderException {
         sourceVideoFormat = mediaSource.getTrackFormat(sourceTrack);
-        if (sourceVideoFormat.containsKey(MediaFormat.KEY_FRAME_RATE)) {
-            int sourceFrameRate = sourceVideoFormat.getInteger(MediaFormat.KEY_FRAME_RATE);
-            targetVideoFormat.setInteger(MediaFormat.KEY_FRAME_RATE, sourceFrameRate);
+        Number sourceFrameRate = MediaFormatUtils.getNumber(sourceVideoFormat, MediaFormat.KEY_FRAME_RATE);
+        if (sourceFrameRate != null) {
+            targetVideoFormat.setInteger(MediaFormat.KEY_FRAME_RATE, sourceFrameRate.intValue());
         }
 
         encoder.init(targetFormat);
