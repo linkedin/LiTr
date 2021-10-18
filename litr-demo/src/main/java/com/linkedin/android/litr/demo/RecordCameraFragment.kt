@@ -193,7 +193,7 @@ class RecordCameraFragment : BaseTransformationFragment() {
             val thread = MultiTargetCameraThread(
                 cameraManager,
                 cameraListener,
-                previewSurface,
+                listOf(previewSurface),
                 inputSurfaceTexture.surfaceTexture
             )
             thread.start()

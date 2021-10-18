@@ -21,7 +21,7 @@ import kotlin.concurrent.withLock
 class MultiTargetCameraThread @JvmOverloads constructor(
     private val cameraManager: CameraManager,
     private val listener: CameraThreadListener?,
-    private val previewSurface: Surface,
+    private val previewSurfaces: List<Surface>,
     private val recordSurfaceTexture: SurfaceTexture? = null
 ) : Thread() {
     private val threadLock = ReentrantLock()
@@ -117,16 +117,18 @@ class MultiTargetCameraThread @JvmOverloads constructor(
             cameraDevice = device
 
             val recordSurface = Surface(recordSurfaceTexture)
-
+            val targets = mutableListOf<Surface>().apply {
+                add(recordSurface)
+                addAll(previewSurfaces)
+            }
             // Create capture request for recording
             // TODO: Can throw CameraAccessException
-            cameraDevice?.createCaptureRequest(CameraDevice.TEMPLATE_RECORD)?.let {
-                it.addTarget(recordSurface)
-                it.addTarget(previewSurface)
-                captureRequestBuilder = it
+            cameraDevice?.createCaptureRequest(CameraDevice.TEMPLATE_RECORD)?.let { requestBuilder ->
+                targets.forEach {
+                    requestBuilder.addTarget(it)
+                }
+                captureRequestBuilder = requestBuilder
             }
-
-            val targets = listOf(recordSurface, previewSurface)
 
             device.createCaptureSession(targets, cameraCaptureStateCallback, cameraHandler)
 
