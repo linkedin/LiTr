@@ -18,7 +18,6 @@ class MediaRecorderFactory {
         )
 
         val isVideo = trackMimeType.startsWith("video")
-        val isAudio = trackMimeType.startsWith("audio")
 
         return when {
             isVideo -> {
