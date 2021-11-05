@@ -97,6 +97,10 @@ class VideoRenderInputSurface implements SurfaceTexture.OnFrameAvailableListener
         return transformMatrix;
     }
 
+    void getTransformMatrix(float[] result) {
+        surfaceTexture.getTransformMatrix(result);
+    }
+
     /**
      * Latches the next buffer into the texture.  Must be called from the thread that created
      * the OutputSurface object, after the onFrameAvailable callback has signaled that new
