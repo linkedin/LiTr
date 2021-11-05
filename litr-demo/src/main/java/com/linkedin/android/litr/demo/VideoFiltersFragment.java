@@ -8,6 +8,7 @@
 package com.linkedin.android.litr.demo;
 
 import android.graphics.Bitmap;
+import android.graphics.Point;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Looper;
@@ -35,6 +36,7 @@ import com.linkedin.android.litr.thumbnails.ExtractFrameProvider;
 import com.linkedin.android.litr.thumbnails.ThumbnailExtractListener;
 import com.linkedin.android.litr.thumbnails.ThumbnailExtractParameters;
 import com.linkedin.android.litr.thumbnails.VideoThumbnailExtractor;
+import com.linkedin.android.litr.utils.TranscoderUtils;
 
 import java.util.UUID;
 import java.util.concurrent.Executors;
@@ -68,7 +70,7 @@ public class VideoFiltersFragment extends BaseTransformationFragment implements 
             }
 
             @Override
-            public void onExtracted(@NonNull String id, int index, int remaining) {
+            public void onExtracted(@NonNull String id, long frameTimeUs) {
 
             }
 
@@ -152,7 +154,7 @@ public class VideoFiltersFragment extends BaseTransformationFragment implements 
             ExtractFrameProvider frameProvider = new ExtractFrameProvider() {
                 @NonNull
                 @Override
-                public MediaRange getRange() {
+                public MediaRange getMediaRange() {
                     return new MediaRange(0, Long.MAX_VALUE);
                 }
 
@@ -169,11 +171,17 @@ public class VideoFiltersFragment extends BaseTransformationFragment implements 
                 }
             };
 
+            Point sourceSize = TranscoderUtils.getVideoDimensions(requireContext().getApplicationContext(), sourceMedia.uri);
+
+            if (sourceSize == null) {
+                return;
+            }
+
             thumbnailExtractor.extract(UUID.randomUUID().toString(), new ThumbnailExtractParameters(
                     frameProvider,
                     new MediaCodecDecoder(),
+                    sourceSize,
                     new MediaExtractorMediaSource(requireContext(), sourceMedia.uri, new MediaRange(0, Long.MAX_VALUE)),
-                    0,
                     new GlThumbnailRenderer(null, listener)
             ));
         } catch (MediaSourceException e) {

@@ -45,7 +45,7 @@ import java.util.List;
  * A renderer that uses OpenGL to draw (and transform) decoder's output frame onto encoder's input frame. Both decoder
  * and encoder are expected to be using {@link Surface}.
  */
-public class GlThumbnailRenderer implements Renderer {
+public class GlThumbnailRenderer {
 
     protected static final String KEY_ROTATION = Build.VERSION.SDK_INT >= Build.VERSION_CODES.M
             ? MediaFormat.KEY_ROTATION
@@ -129,34 +129,13 @@ public class GlThumbnailRenderer implements Renderer {
 //        this.filters.addAll(filters);
     }
 
-    @Override
-    public void init(@Nullable Surface outputSurface, @Nullable MediaFormat sourceMediaFormat, @Nullable MediaFormat targetMediaFormat) {
-        if (sourceMediaFormat == null) {
-            throw new IllegalArgumentException("GlThumbnailRenderer requires a valid source media format");
-        }
-        if (!sourceMediaFormat.containsKey(MediaFormat.KEY_WIDTH) || !sourceMediaFormat.containsKey(MediaFormat.KEY_HEIGHT)) {
-            throw new IllegalArgumentException("GlThumbnailRenderer requires a valid source media format");
-        }
+    public void init(int sourceWidth, int sourceHeight, int sourceRotation) {
 
-        int mediaRotation = 0;
-        if (sourceMediaFormat.containsKey(KEY_ROTATION)) {
-            mediaRotation = sourceMediaFormat.getInteger(KEY_ROTATION);
-        }
+        float aspectRatio = (float) sourceWidth / sourceHeight;
 
-        int width;
-        int height;
-        if (sourceMediaFormat.containsKey(MediaFormat.KEY_WIDTH) && sourceMediaFormat.containsKey(MediaFormat.KEY_HEIGHT)) {
-            width = sourceMediaFormat.getInteger(MediaFormat.KEY_WIDTH);
-            height = sourceMediaFormat.getInteger(MediaFormat.KEY_HEIGHT);
-        } else {
-            throw new IllegalArgumentException("GlThumbnailRenderer requires width and height to be defined in the source or target media format");
-        }
-
-        float aspectRatio = (float) width / height;
-
-        outputSize = (mediaRotation == 90 || mediaRotation == 270) ?
-                new Point(height / 4, width / 4) :
-                new Point(width / 4, height / 4);
+        outputSize = (sourceRotation == 90 || sourceRotation == 270) ?
+                new Point(sourceHeight / 4, sourceWidth / 4) :
+                new Point(sourceWidth / 4, sourceHeight / 4);
 
         inputSurface = new VideoRenderInputSurface();
 
@@ -167,16 +146,9 @@ public class GlThumbnailRenderer implements Renderer {
         this.outputSurface = new VideoRenderOutputSurface(surface);
         surfaceTexture.release();
 
-        initMvpMatrix(aspectRatio);
-
-//        Matrix.rotateM(
-//                mvpMatrix,
-//                0,
-//                mediaRotation,
-//                0f,
-//                0f,
-//                1f
-//        );
+        Matrix.setIdentityM(mvpMatrix, 0);
+        // Flips the geometry on the Y axis, to produce correct orientation in the bitmap
+        Matrix.scaleM(mvpMatrix, 0, 1f, -1f, 1f);
 
         for (GlFilter filter : filters) {
             filter.init();
@@ -192,29 +164,6 @@ public class GlThumbnailRenderer implements Renderer {
         offscreenTexture.unbind();
     }
 
-
-    private void initMvpMatrix(float videoAspectRatio) {
-        float[] projectionMatrix = new float[16];
-        Matrix.setIdentityM(projectionMatrix, 0);
-        Matrix.orthoM(projectionMatrix, 0, -videoAspectRatio, videoAspectRatio, -1, 1, -1, 1);
-
-        // rotate the camera to match video frame rotation
-        float[] viewMatrix = new float[16];
-        Matrix.setIdentityM(viewMatrix, 0);
-        Matrix.setLookAtM(viewMatrix, 0,
-                0, 0, 1,
-                0, 0, 0,
-                0, -1, 0);
-
-        Matrix.setIdentityM(mvpMatrix, 0);
-        Matrix.multiplyMM(mvpMatrix, 0, projectionMatrix, 0, viewMatrix, 0);
-    }
-
-    @Override
-    public void onMediaFormatChanged(@Nullable MediaFormat sourceMediaFormat, @Nullable MediaFormat targetMediaFormat) {
-    }
-
-    @Override
     @Nullable
     public Surface getInputSurface() {
         if (inputSurface != null) {
@@ -223,8 +172,7 @@ public class GlThumbnailRenderer implements Renderer {
         return null;
     }
 
-    @Override
-    public void renderFrame(@Nullable Frame inputFrame, long presentationTimeNs) {
+    public void renderFrame(long presentationTimeNs) {
         inputSurface.awaitNewImage();
         captureFBO.bind();
 
@@ -239,7 +187,6 @@ public class GlThumbnailRenderer implements Renderer {
 
     private List<Bitmap> extracted = new ArrayList<>();
 
-    @Override
     public void release() {
         for (GlFilter filter : filters) {
             filter.release();
@@ -250,7 +197,6 @@ public class GlThumbnailRenderer implements Renderer {
         captureFBO.delete();
     }
 
-    @Override
     public boolean hasFilters() {
         return hasFilters;
     }
@@ -267,7 +213,7 @@ public class GlThumbnailRenderer implements Renderer {
             }
         }
 
-        GLES20.glClearColor(0.0f, 1.0f, 0.0f, 1.0f);
+        GLES20.glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         GLES20.glClear(GLES20.GL_DEPTH_BUFFER_BIT | GLES20.GL_COLOR_BUFFER_BIT);
 
         for (GlFilter filter : filters) {
