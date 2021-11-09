@@ -31,16 +31,20 @@ import com.linkedin.android.litr.demo.databinding.FragmentVideoFiltersBinding;
 import com.linkedin.android.litr.exception.MediaSourceException;
 import com.linkedin.android.litr.io.MediaExtractorMediaSource;
 import com.linkedin.android.litr.io.MediaRange;
+import com.linkedin.android.litr.io.MediaSource;
+import com.linkedin.android.litr.io.MediaSourceFactory;
 import com.linkedin.android.litr.render.GlThumbnailRenderer;
-import com.linkedin.android.litr.thumbnails.ExtractFrameProvider;
 import com.linkedin.android.litr.thumbnails.ThumbnailExtractListener;
 import com.linkedin.android.litr.thumbnails.ThumbnailExtractParameters;
 import com.linkedin.android.litr.thumbnails.VideoThumbnailExtractor;
 import com.linkedin.android.litr.utils.TranscoderUtils;
 
+import org.jetbrains.annotations.NotNull;
+
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 
 public class VideoFiltersFragment extends BaseTransformationFragment implements MediaPickerListener {
 
@@ -56,39 +60,6 @@ public class VideoFiltersFragment extends BaseTransformationFragment implements 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        mediaTransformer = new MediaTransformer(getContext().getApplicationContext());
-        targetMedia = new TargetMedia();
-
-        adapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_spinner_item, DemoFilter.values());
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-
-        thumbnailExtractor = new VideoThumbnailExtractor(requireContext(), Executors.newSingleThreadExecutor(), new ThumbnailExtractListener() {
-            @Override
-            public void onStarted(@NonNull String id) {
-
-            }
-
-            @Override
-            public void onExtracted(@NonNull String id, long frameTimeUs) {
-
-            }
-
-            @Override
-            public void onCompleted(@NonNull String id) {
-
-            }
-
-            @Override
-            public void onCancelled(@NonNull String id) {
-
-            }
-
-            @Override
-            public void onError(@NonNull String id, @Nullable Throwable cause) {
-
-            }
-        }, Looper.getMainLooper());
     }
 
     @Override
@@ -138,55 +109,25 @@ public class VideoFiltersFragment extends BaseTransformationFragment implements 
         SourceMedia sourceMedia = binding.getSourceMedia();
         updateSourceMedia(sourceMedia, uri);
 
-        try {
-            GlThumbnailRenderer.ThumbnailReadyListener listener = new GlThumbnailRenderer.ThumbnailReadyListener() {
-                @Override
-                public void onThumbnailReady(String filePath) {
-                    // TODO: Do something with this
-                }
+        Point sourceSize = TranscoderUtils.getVideoDimensions(requireContext().getApplicationContext(), sourceMedia.uri);
 
-                @Override
-                public void onThumbnailBitmapReady(Bitmap bitmap) {
-                    // TODO: Do something with this
-                }
-            };
-
-            ExtractFrameProvider frameProvider = new ExtractFrameProvider() {
-                @NonNull
-                @Override
-                public MediaRange getMediaRange() {
-                    return new MediaRange(0, Long.MAX_VALUE);
-                }
-
-                long nextExtractTime = 0;
-
-                @Override
-                public boolean shouldExtract(long presentationTimeUs) {
-                    return presentationTimeUs > nextExtractTime;
-
-                }
-                @Override
-                public void didExtract(long presentationTimeUs) {
-                    nextExtractTime = presentationTimeUs + TimeUnit.SECONDS.toMicros(1);
-                }
-            };
-
-            Point sourceSize = TranscoderUtils.getVideoDimensions(requireContext().getApplicationContext(), sourceMedia.uri);
-
-            if (sourceSize == null) {
-                return;
-            }
-
-            thumbnailExtractor.extract(UUID.randomUUID().toString(), new ThumbnailExtractParameters(
-                    frameProvider,
-                    new MediaCodecDecoder(),
-                    sourceSize,
-                    new MediaExtractorMediaSource(requireContext(), sourceMedia.uri, new MediaRange(0, Long.MAX_VALUE)),
-                    new GlThumbnailRenderer(null, listener)
-            ));
-        } catch (MediaSourceException e) {
-            e.printStackTrace();
+        if (sourceSize == null) {
+            return;
         }
+
+        List<Long> timestamps = new ArrayList<>();
+        for (long i = 0; i <= 10000000L; i += 100000L) {
+            timestamps.add(i);
+        }
+
+//        thumbnailExtractor.extract(UUID.randomUUID().toString(), new ThumbnailExtractParameters(
+//                mediaSourceFactory,
+//                timestamps,
+//                new MediaRange(0, Long.MAX_VALUE),
+//                new MediaCodecDecoder(),
+//                sourceSize,
+//                new GlThumbnailRenderer(null)
+//        ));
 
 //        File targetFile = new File(TransformationUtil.getTargetFileDirectory(requireContext().getApplicationContext()),
 //                              "transcoded_" + TransformationUtil.getDisplayName(getContext(), sourceMedia.uri));

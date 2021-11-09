@@ -1,6 +1,7 @@
 package com.linkedin.android.litr.thumbnails
 
 import android.content.Context
+import android.graphics.Bitmap
 import android.os.Handler
 import android.os.Looper
 import java.util.concurrent.ExecutorService
@@ -49,12 +50,12 @@ class VideoThumbnailExtractor @JvmOverloads constructor(
             }
         }
 
-        override fun onStarted(id: String) {
-            runWithListener { it.onStarted(id) }
+        override fun onStarted(id: String, timestampsUs: List<Long>) {
+            runWithListener { it.onStarted(id, timestampsUs) }
         }
 
-        override fun onExtracted(id: String, frameTimeUs: Long) {
-            runWithListener { it.onExtracted(id, frameTimeUs) }
+        override fun onExtracted(id: String, index: Int, bitmap: Bitmap?) {
+            runWithListener { it.onExtracted(id, index, bitmap) }
         }
 
         override fun onCompleted(id: String) {

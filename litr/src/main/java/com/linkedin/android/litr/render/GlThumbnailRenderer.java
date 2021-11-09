@@ -24,15 +24,14 @@ import android.graphics.Bitmap;
 import android.graphics.Point;
 import android.graphics.SurfaceTexture;
 import android.media.MediaFormat;
+import android.media.ThumbnailUtils;
 import android.opengl.GLES20;
 import android.opengl.Matrix;
 import android.os.Build;
 import android.view.Surface;
 
-import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import com.linkedin.android.litr.codec.Frame;
 import com.linkedin.android.litr.filter.GlFilter;
 import com.linkedin.android.litr.filter.GlFrameRenderFilter;
 import com.linkedin.android.litr.filter.video.gl.DefaultVideoFrameRenderFilter;
@@ -47,12 +46,7 @@ import java.util.List;
  */
 public class GlThumbnailRenderer {
 
-    protected static final String KEY_ROTATION = Build.VERSION.SDK_INT >= Build.VERSION_CODES.M
-            ? MediaFormat.KEY_ROTATION
-            : "rotation-degrees";
-
     private final boolean hasFilters;
-    private GlFrameRenderFilter frameRenderFilter;
 
     private VideoRenderInputSurface inputSurface;
     private VideoRenderOutputSurface outputSurface;
@@ -64,16 +58,10 @@ public class GlThumbnailRenderer {
     private boolean inputSurfaceTextureInitialized;
     private GlFramebuffer captureFBO;
     private GlTexture offscreenTexture;
+    private Point targetSurfaceSize;
     private Point outputSize;
-    private ThumbnailReadyListener listener;
     private ByteBuffer pixelBuffer;
-
-    // TODO: Come up with some method for returning finished images from here
-    public interface ThumbnailReadyListener {
-        void onThumbnailReady(String filePath);
-        // Do we need this? IDK
-        void onThumbnailBitmapReady(Bitmap bitmap);
-    }
+    private Bitmap targetSurfaceBitmap;
 
     public Bitmap saveTexture(int width, int height) {
         int capacity = width * height * 4;
@@ -83,11 +71,9 @@ public class GlThumbnailRenderer {
         } else {
             pixelBuffer.rewind();
         }
-
         GLES20.glReadPixels(0, 0, width, height, GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, pixelBuffer);
-        Bitmap bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
-        bitmap.copyPixelsFromBuffer(pixelBuffer);
-        return bitmap;
+        targetSurfaceBitmap.copyPixelsFromBuffer(pixelBuffer);
+        return targetSurfaceBitmap;
     }
 
     /**
@@ -97,52 +83,50 @@ public class GlThumbnailRenderer {
      *
      * @param filters optional list of OpenGL filters to applied to output video frames
      */
-    public GlThumbnailRenderer(@Nullable List<GlFilter> filters, @NonNull ThumbnailReadyListener listener) {
-        this.listener = listener;
+    public GlThumbnailRenderer(@Nullable List<GlFilter> filters) {
         this.filters = new ArrayList<>();
 
         Matrix.setIdentityM(stMatrix, 0);
 
         hasFilters = filters != null && !filters.isEmpty();
 
-        frameRenderFilter = new DefaultVideoFrameRenderFilter();
-        this.filters.add(frameRenderFilter);
-
         // TODO: Actually support other filters (for later)
-//        if (filters == null) {
-//            this.filters.add(new DefaultVideoFrameRenderFilter());
-//            // new Transform(new PointF(1f, 1f), new PointF(0.5f, 0.5f), 90)
-//            return;
-//        }
-//
-//        boolean hasFrameRenderFilter = false;
-//        for (GlFilter filter : filters) {
-//            if (filter instanceof GlFrameRenderFilter) {
-//                hasFrameRenderFilter = true;
-//                break;
-//            }
-//        }
-//        if (!hasFrameRenderFilter) {
-//            // if client provided filters don't have a frame render filter, insert default frame filter
-//            this.filters.add(new DefaultVideoFrameRenderFilter());
-//        }
-//        this.filters.addAll(filters);
+        if (filters == null) {
+            this.filters.add(new DefaultVideoFrameRenderFilter());
+            // new Transform(new PointF(1f, 1f), new PointF(0.5f, 0.5f), 90)
+            return;
+        }
+
+        boolean hasFrameRenderFilter = false;
+        for (GlFilter filter : filters) {
+            if (filter instanceof GlFrameRenderFilter) {
+                hasFrameRenderFilter = true;
+                break;
+            }
+        }
+        if (!hasFrameRenderFilter) {
+            // if client provided filters don't have a frame render filter, insert default frame filter
+            this.filters.add(new DefaultVideoFrameRenderFilter());
+        }
+        this.filters.addAll(filters);
     }
 
-    public void init(int sourceWidth, int sourceHeight, int sourceRotation) {
+    public void init(int sourceWidth, int sourceHeight, int destWidth, int destHeight, int sourceRotation) {
+        outputSize = new Point(destWidth, destHeight);
+        targetSurfaceBitmap = Bitmap.createBitmap(sourceWidth, sourceHeight, Bitmap.Config.ARGB_8888);
 
-        float aspectRatio = (float) sourceWidth / sourceHeight;
-
-        outputSize = (sourceRotation == 90 || sourceRotation == 270) ?
-                new Point(sourceHeight / 4, sourceWidth / 4) :
-                new Point(sourceWidth / 4, sourceHeight / 4);
+        targetSurfaceSize = (sourceRotation == 90 || sourceRotation == 270) ?
+                new Point(sourceHeight, sourceWidth) :
+                new Point(sourceWidth, sourceHeight);
 
         inputSurface = new VideoRenderInputSurface();
 
         GlTexture newTexture = new GlTexture();
         SurfaceTexture surfaceTexture = new SurfaceTexture(newTexture.getTexName());
-        surfaceTexture.setDefaultBufferSize(outputSize.x, outputSize.y);
+        surfaceTexture.setDefaultBufferSize(targetSurfaceSize.x, targetSurfaceSize.y);
         Surface surface = new Surface(surfaceTexture);
+
+        // Needed to set up EGL
         this.outputSurface = new VideoRenderOutputSurface(surface);
         surfaceTexture.release();
 
@@ -155,7 +139,7 @@ public class GlThumbnailRenderer {
             filter.setVpMatrix(mvpMatrix, 0);
         }
 
-        offscreenTexture = new GlTexture(GLES20.GL_TEXTURE0, GLES20.GL_TEXTURE_2D, null, outputSize.x, outputSize.y);
+        offscreenTexture = new GlTexture(GLES20.GL_TEXTURE0, GLES20.GL_TEXTURE_2D, null, targetSurfaceSize.x, targetSurfaceSize.y);
         offscreenTexture.bind();
         captureFBO = new GlFramebuffer();
         captureFBO.bind();
@@ -172,25 +156,27 @@ public class GlThumbnailRenderer {
         return null;
     }
 
-    public void renderFrame(long presentationTimeNs) {
+    @Nullable
+    public Bitmap renderFrame(long presentationTimeNs) {
         inputSurface.awaitNewImage();
         captureFBO.bind();
 
         drawFrame(presentationTimeNs);
-        Bitmap bitmap = saveTexture(outputSize.x, outputSize.y);
-        listener.onThumbnailBitmapReady(bitmap);
+        Bitmap fullSizeBitmap = saveTexture(targetSurfaceSize.x, targetSurfaceSize.y);
+        Bitmap bitmap = ThumbnailUtils.extractThumbnail(fullSizeBitmap, outputSize.x, outputSize.y);
+
         captureFBO.unbind();
-        extracted.add(bitmap);
-        outputSurface.setPresentationTime(presentationTimeNs);
-        outputSurface.swapBuffers();
+
+        return bitmap;
     }
 
-    private List<Bitmap> extracted = new ArrayList<>();
 
     public void release() {
         for (GlFilter filter : filters) {
             filter.release();
         }
+
+        targetSurfaceBitmap.recycle();
 
         inputSurface.release();
         outputSurface.release();

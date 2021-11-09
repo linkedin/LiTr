@@ -20,7 +20,8 @@ public enum DemoCase {
     MUX_VIDEO_AUDIO(R.string.demo_case_mux_video_audio, "MuxVideoAudio", new MuxVideoAndAudioFragment()),
     VIDEO_FILTERS(R.string.demo_case_video_filters, "VideoFilters", new VideoFiltersFragment()),
     VIDEO_FILTERS_PREVIEW(R.string.demo_case_video_filters_preview, "VideoFiltersPreview", new VideoFilterPreviewFragment()),
-    TRANSCODE_VIDEO_MOCK(R.string.demo_case_mock_transcode_video, "TranscodeVideoMock", new MockTranscodeFragment());
+    TRANSCODE_VIDEO_MOCK(R.string.demo_case_mock_transcode_video, "TranscodeVideoMock", new MockTranscodeFragment()),
+    EXTRACT_FRAMES(R.string.demo_case_extract_frames, "ExtractFramesFragment", new ExtractFramesFragment());
 
     @StringRes int displayName;
     String fragmentTag;

@@ -155,4 +155,17 @@ public final class MediaCodecDecoder implements Decoder {
         mediaCodec.start();
         isRunning = true;
     }
+
+    @Override
+    public void reset() throws TrackTranscoderException {
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                mediaCodec.reset();
+            } else {
+                // TODO: Somehow reset mediaCodec
+            }
+        } catch (IllegalStateException e) {
+            throw new TrackTranscoderException(TrackTranscoderException.Error.CODEC_IN_RELEASED_STATE, e);
+        }
+    }
 }

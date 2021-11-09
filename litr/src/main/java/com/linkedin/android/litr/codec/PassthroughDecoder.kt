@@ -107,4 +107,8 @@ class PassthroughDecoder(
     override fun getName(): String {
         return "PassthroughDecoder"
     }
+
+    override fun reset() {
+        // Do nothing
+    }
 }
