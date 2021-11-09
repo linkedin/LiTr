@@ -11,13 +11,13 @@ import com.linkedin.android.litr.filter.GlFilter
 import com.linkedin.android.litr.filter.GlFrameRenderFilter
 import com.linkedin.android.litr.filter.video.gl.DefaultVideoFrameRenderFilter
 import java.nio.ByteBuffer
-import java.util.ArrayList
+import java.util.*
 
 
 /**
  * A renderer that applies OpenGL filters to a bitmap, and returns a new bitmap.
  */
-class GlThumbnailRenderer(filters: List<GlFilter>?) {
+class GlThumbnailRenderer(filters: List<GlFilter>?) : ThumbnailRenderer {
     private val hasFilters: Boolean = filters != null && filters.isNotEmpty()
 
     private val filters: MutableList<GlFilter>
@@ -59,7 +59,7 @@ class GlThumbnailRenderer(filters: List<GlFilter>?) {
         return destBitmap
     }
 
-    fun init(width: Int, height: Int) {
+    override fun init(width: Int, height: Int) {
         inputSize = Point(width, height)
         bitmapPaint = Paint()
 
@@ -96,7 +96,7 @@ class GlThumbnailRenderer(filters: List<GlFilter>?) {
         destTexture.unbind()
     }
 
-    fun renderFrame(input: Bitmap?, presentationTimeNs: Long): Bitmap? {
+    override fun renderFrame(input: Bitmap?, presentationTimeNs: Long): Bitmap? {
         if (!hasFilters || input == null) {
             return input
         }
