@@ -15,7 +15,12 @@ interface ThumbnailExtractListener {
      * Occurs when a frame is extracted. May be called multiple times for the same frame (for example, when [ExtractionMode.TwoPass] is used).
      * This method is NOT GUARANTEED TO BE CALLED for every frame, or for any frames.
      */
-    fun onExtracted(id: String, index: Int, bitmap: Bitmap?)
+    fun onExtracted(id: String, index: Int, bitmap: Bitmap)
+
+    /**
+     * Occurs when a frame was requested, but could not be extracted. Consumer may want to display an error over the specified frame, or ignore it.
+     */
+    fun onExtractFrameFailed(id: String, index: Int)
 
     /**
      * Occurs when extraction completed and terminated normally.

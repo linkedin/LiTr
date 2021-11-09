@@ -65,8 +65,12 @@ class VideoThumbnailExtractor @JvmOverloads constructor(
             runWithListener { it.onStarted(id, timestampsUs) }
         }
 
-        override fun onExtracted(id: String, index: Int, bitmap: Bitmap?) {
+        override fun onExtracted(id: String, index: Int, bitmap: Bitmap) {
             runWithListener { it.onExtracted(id, index, bitmap) }
+        }
+
+        override fun onExtractFrameFailed(id: String, index: Int) {
+            runWithListener { it.onExtractFrameFailed(id, index) }
         }
 
         override fun onCompleted(id: String) {

@@ -2,6 +2,8 @@ package com.linkedin.android.litr.thumbnails
 
 import android.graphics.Bitmap
 import android.util.Log
+import com.linkedin.android.litr.thumbnails.behaviors.ExtractionBehavior
+import com.linkedin.android.litr.thumbnails.behaviors.ExtractBehaviorFrameListener
 
 /**
  * Provides the request lifecycle for extracting video thumbnails. The specifics of extraction work are delegated to [ExtractionBehavior]s.
@@ -11,7 +13,15 @@ class ThumbnailExtractJob constructor(
     private val params: ThumbnailExtractParameters,
     private val listener: ThumbnailExtractListener?
 ) : Runnable {
-    private var isRendererInitialized = false
+    private val behaviorFrameListener = object: ExtractBehaviorFrameListener {
+        override fun onFrameExtracted(index: Int, bitmap: Bitmap) {
+            listener?.onExtracted(jobId, index, bitmap)
+        }
+
+        override fun onFrameFailed(index: Int) {
+            listener?.onExtractFrameFailed(jobId, index)
+        }
+    }
 
     override fun run() {
         try {
@@ -36,10 +46,10 @@ class ThumbnailExtractJob constructor(
             return
         }
 
+        params.behavior.init(params)
+
         try {
-            val completed = params.behavior.extract(params) { index, bitmap ->
-                handleExtractedFrame(index, bitmap)
-            }
+            val completed = params.behavior.extract(params, behaviorFrameListener)
 
             if (completed) {
                 listener?.onCompleted(jobId)
@@ -51,21 +61,6 @@ class ThumbnailExtractJob constructor(
         }
 
         release()
-    }
-
-    private fun handleExtractedFrame(index: Int, bitmap: Bitmap) {
-
-        val renderer = params.renderer
-        if (!isRendererInitialized) {
-            isRendererInitialized = true
-            renderer.init(bitmap.width, bitmap.height)
-        }
-
-        val transformedBitmap = params.timestampsUs.getOrNull(index)?.let { presentationTime ->
-            renderer.renderFrame(bitmap, presentationTime)
-        } ?: bitmap
-
-        listener?.onExtracted(jobId, index, transformedBitmap)
     }
 
     private fun error(cause: Throwable?) {

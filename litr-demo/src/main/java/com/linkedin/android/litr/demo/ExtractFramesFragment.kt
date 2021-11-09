@@ -53,8 +53,11 @@ class ExtractFramesFragment : BaseTransformationFragment(), MediaPickerListener 
                     binding.filmStripTimeline.setFrameList(bitmaps)
                 }
 
-                override fun onExtracted(id: String, index: Int, bitmap: Bitmap?) {
+                override fun onExtracted(id: String, index: Int, bitmap: Bitmap) {
                     binding.filmStripTimeline.setFrameAt(index, bitmap)
+                }
+
+                override fun onExtractFrameFailed(id: String, index: Int) {
                 }
 
                 override fun onCompleted(id: String) {}
