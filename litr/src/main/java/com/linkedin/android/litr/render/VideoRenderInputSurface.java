@@ -82,6 +82,10 @@ class VideoRenderInputSurface implements SurfaceTexture.OnFrameAvailableListener
         return surface;
     }
 
+    SurfaceTexture getSurfaceTexture() {
+        return surfaceTexture;
+    }
+
     /**
      * Returns texture id for input surace
      * @return texture id

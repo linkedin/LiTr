@@ -7,11 +7,9 @@
  */
 package com.linkedin.android.litr.demo;
 
-import android.graphics.Bitmap;
 import android.graphics.Point;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Looper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -22,29 +20,16 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.linkedin.android.litr.MediaTransformer;
-import com.linkedin.android.litr.codec.MediaCodecDecoder;
 import com.linkedin.android.litr.demo.data.SourceMedia;
 import com.linkedin.android.litr.demo.data.TargetMedia;
 import com.linkedin.android.litr.demo.data.TransformationPresenter;
 import com.linkedin.android.litr.demo.data.TransformationState;
 import com.linkedin.android.litr.demo.databinding.FragmentVideoFiltersBinding;
-import com.linkedin.android.litr.exception.MediaSourceException;
-import com.linkedin.android.litr.io.MediaExtractorMediaSource;
-import com.linkedin.android.litr.io.MediaRange;
-import com.linkedin.android.litr.io.MediaSource;
-import com.linkedin.android.litr.io.MediaSourceFactory;
-import com.linkedin.android.litr.render.GlThumbnailRenderer;
-import com.linkedin.android.litr.thumbnails.ThumbnailExtractListener;
-import com.linkedin.android.litr.thumbnails.ThumbnailExtractParameters;
 import com.linkedin.android.litr.thumbnails.VideoThumbnailExtractor;
 import com.linkedin.android.litr.utils.TranscoderUtils;
 
-import org.jetbrains.annotations.NotNull;
-
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
-import java.util.concurrent.Executors;
 
 public class VideoFiltersFragment extends BaseTransformationFragment implements MediaPickerListener {
 

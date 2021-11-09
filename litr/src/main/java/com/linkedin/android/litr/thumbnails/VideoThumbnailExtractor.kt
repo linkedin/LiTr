@@ -1,6 +1,5 @@
 package com.linkedin.android.litr.thumbnails
 
-import android.content.Context
 import android.graphics.Bitmap
 import android.os.Handler
 import android.os.Looper
@@ -9,7 +8,6 @@ import java.util.concurrent.Executors
 import java.util.concurrent.Future
 
 class VideoThumbnailExtractor @JvmOverloads constructor(
-    private val context: Context,
     private val executorService: ExecutorService = Executors.newSingleThreadExecutor(),
     private val listener: ThumbnailExtractListener? = null,
     private val listenerLooper: Looper = Looper.getMainLooper()
@@ -46,7 +44,7 @@ class VideoThumbnailExtractor @JvmOverloads constructor(
         private fun runWithListener(func: (ThumbnailExtractListener) -> Unit) {
             listener?.let { listener ->
                 // Post the listener invocation to the handler, if it's set -- otherwise just run on current thread
-                listenerHandler?.post { func(listener) } ?: run { func(listener) }
+                listenerHandler.post { func(listener) } ?: run { func(listener) }
             }
         }
 
