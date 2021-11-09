@@ -3,7 +3,9 @@ package com.linkedin.android.litr.thumbnails
 import android.graphics.Bitmap
 import android.util.Log
 
-
+/**
+ * Provides the request lifecycle for extracting video thumbnails. The specifics of extraction work are delegated to [ExtractionBehavior]s.
+ */
 class ThumbnailExtractJob constructor(
     private val jobId: String,
     private val params: ThumbnailExtractParameters,
@@ -34,10 +36,8 @@ class ThumbnailExtractJob constructor(
             return
         }
 
-        var completed = false
-
         try {
-            completed = params.behavior.extract(params) { index, bitmap ->
+            val completed = params.behavior.extract(params) { index, bitmap ->
                 handleExtractedFrame(index, bitmap)
             }
 
@@ -67,7 +67,7 @@ class ThumbnailExtractJob constructor(
 
         listener?.onExtracted(jobId, index, transformedBitmap)
     }
-    
+
     private fun error(cause: Throwable?) {
         Log.e(TAG, "Error encountered while extracting thumbnails", cause)
         listener?.onError(jobId, cause)

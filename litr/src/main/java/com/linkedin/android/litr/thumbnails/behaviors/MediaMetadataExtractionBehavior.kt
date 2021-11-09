@@ -1,7 +1,9 @@
-package com.linkedin.android.litr.thumbnails
+package com.linkedin.android.litr.thumbnails.behaviors
 
 import android.media.MediaMetadataRetriever
 import android.media.ThumbnailUtils
+import com.linkedin.android.litr.thumbnails.ExtractionMode
+import com.linkedin.android.litr.thumbnails.ThumbnailExtractParameters
 
 class MediaMetadataExtractionBehavior(private val retriever: MediaMetadataRetriever, private val mode: ExtractionMode) : ExtractionBehavior {
 

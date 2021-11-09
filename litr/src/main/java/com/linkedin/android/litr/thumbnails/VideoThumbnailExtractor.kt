@@ -7,6 +7,9 @@ import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.Future
 
+/**
+ * Provides the entry point for, and management of, thumbnail extraction work.
+ */
 class VideoThumbnailExtractor @JvmOverloads constructor(
     private val executorService: ExecutorService = Executors.newSingleThreadExecutor(),
     private val listener: ThumbnailExtractListener? = null,
@@ -17,6 +20,9 @@ class VideoThumbnailExtractor @JvmOverloads constructor(
         Handler(listenerLooper)
     }
 
+    /**
+     * Starts a new extract job with the specified parameters.
+     */
     fun extract(requestId: String, params: ThumbnailExtractParameters) {
         if (futureMap.containsKey(requestId)) {
             throw IllegalArgumentException("Request with ID $requestId already exists")
@@ -28,6 +34,10 @@ class VideoThumbnailExtractor @JvmOverloads constructor(
         futureMap[requestId] = future
     }
 
+    /**
+     * Terminates the specified extract job. If the job was in progress, [ThumbnailExtractListener.onCancelled] will be called for the job.
+     * Does not terminate immediately: [ThumbnailExtractListener.onExtracted] may still be called after this method is called.
+     */
     fun stop(requestId: String) {
         futureMap[requestId]?.let {
             if (!it.isCancelled && !it.isDone)
@@ -35,6 +45,9 @@ class VideoThumbnailExtractor @JvmOverloads constructor(
         }
     }
 
+    /**
+     * Terminates all extract jobs immediately.
+     */
     fun release() {
         executorService.shutdownNow()
     }
@@ -68,9 +81,5 @@ class VideoThumbnailExtractor @JvmOverloads constructor(
             runWithListener { it.onError(id, cause) }
         }
 
-    }
-
-    companion object {
-        private val TAG: String = VideoThumbnailExtractor::class.java.simpleName
     }
 }

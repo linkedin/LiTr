@@ -25,6 +25,7 @@ import com.linkedin.android.litr.demo.databinding.FragmentExtractFramesBinding
 import com.linkedin.android.litr.filter.GlFilter
 import com.linkedin.android.litr.render.GlThumbnailRenderer
 import com.linkedin.android.litr.thumbnails.*
+import com.linkedin.android.litr.thumbnails.behaviors.MediaMetadataExtractionBehavior
 import java.util.*
 import java.util.concurrent.Executors
 

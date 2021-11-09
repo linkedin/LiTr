@@ -1,6 +1,7 @@
-package com.linkedin.android.litr.thumbnails
+package com.linkedin.android.litr.thumbnails.behaviors
 
 import android.graphics.Bitmap
+import com.linkedin.android.litr.thumbnails.ThumbnailExtractParameters
 
 typealias FrameExtractedListener = (index: Int, bitmap: Bitmap) -> Unit
 
