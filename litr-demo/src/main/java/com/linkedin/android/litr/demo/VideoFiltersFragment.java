@@ -7,7 +7,6 @@
  */
 package com.linkedin.android.litr.demo;
 
-import android.graphics.Point;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -25,11 +24,9 @@ import com.linkedin.android.litr.demo.data.TargetMedia;
 import com.linkedin.android.litr.demo.data.TransformationPresenter;
 import com.linkedin.android.litr.demo.data.TransformationState;
 import com.linkedin.android.litr.demo.databinding.FragmentVideoFiltersBinding;
-import com.linkedin.android.litr.thumbnails.VideoThumbnailExtractor;
-import com.linkedin.android.litr.utils.TranscoderUtils;
+import com.linkedin.android.litr.utils.TransformationUtil;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.io.File;
 
 public class VideoFiltersFragment extends BaseTransformationFragment implements MediaPickerListener {
 
@@ -40,11 +37,15 @@ public class VideoFiltersFragment extends BaseTransformationFragment implements 
 
     private ArrayAdapter<DemoFilter> adapter;
 
-    private VideoThumbnailExtractor thumbnailExtractor;
-
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        mediaTransformer = new MediaTransformer(getContext().getApplicationContext());
+        targetMedia = new TargetMedia();
+
+        adapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_spinner_item, DemoFilter.values());
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
     }
 
     @Override
@@ -93,34 +94,13 @@ public class VideoFiltersFragment extends BaseTransformationFragment implements 
     public void onMediaPicked(@NonNull Uri uri) {
         SourceMedia sourceMedia = binding.getSourceMedia();
         updateSourceMedia(sourceMedia, uri);
+        File targetFile = new File(TransformationUtil.getTargetFileDirectory(requireContext().getApplicationContext()),
+                              "transcoded_" + TransformationUtil.getDisplayName(getContext(), sourceMedia.uri));
+        binding.getTargetMedia().setTargetFile(targetFile);
+        binding.getTargetMedia().setTracks(sourceMedia.tracks);
 
-        Point sourceSize = TranscoderUtils.getVideoDimensions(requireContext().getApplicationContext(), sourceMedia.uri);
-
-        if (sourceSize == null) {
-            return;
-        }
-
-        List<Long> timestamps = new ArrayList<>();
-        for (long i = 0; i <= 10000000L; i += 100000L) {
-            timestamps.add(i);
-        }
-
-//        thumbnailExtractor.extract(UUID.randomUUID().toString(), new ThumbnailExtractParameters(
-//                mediaSourceFactory,
-//                timestamps,
-//                new MediaRange(0, Long.MAX_VALUE),
-//                new MediaCodecDecoder(),
-//                sourceSize,
-//                new GlThumbnailRenderer(null)
-//        ));
-
-//        File targetFile = new File(TransformationUtil.getTargetFileDirectory(requireContext().getApplicationContext()),
-//                              "transcoded_" + TransformationUtil.getDisplayName(getContext(), sourceMedia.uri));
-//        binding.getTargetMedia().setTargetFile(targetFile);
-//        binding.getTargetMedia().setTracks(sourceMedia.tracks);
-//
-//        binding.getTransformationState().setState(TransformationState.STATE_IDLE);
-//        binding.getTransformationState().setStats(null);
+        binding.getTransformationState().setState(TransformationState.STATE_IDLE);
+        binding.getTransformationState().setStats(null);
     }
 
 }

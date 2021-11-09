@@ -19,18 +19,18 @@ import java.util.ArrayList
  */
 class GlThumbnailRenderer(filters: List<GlFilter>?) {
     private val hasFilters: Boolean = filters != null && filters.isNotEmpty()
-    
+
     private val filters: MutableList<GlFilter>
     private val stMatrix = FloatArray(16)
     private val mvpMatrix = FloatArray(16)
-    
+
     private lateinit var destFramebuffer: GlFramebuffer
     private lateinit var inputSize: Point
     private lateinit var inputSurface: VideoRenderInputSurface
     private lateinit var outputSurface: VideoRenderOutputSurface
     private lateinit var bitmapPaint: Paint
     private var pixelBuffer: ByteBuffer? = null
-    
+
     init {
 
         this.filters = ArrayList()
@@ -45,7 +45,7 @@ class GlThumbnailRenderer(filters: List<GlFilter>?) {
             this.filters.addAll(filters)
         }
     }
-    
+
     fun saveTexture(width: Int, height: Int): Bitmap {
         val capacity = width * height * 4
         if (pixelBuffer == null || pixelBuffer!!.capacity() != capacity) {
@@ -62,7 +62,7 @@ class GlThumbnailRenderer(filters: List<GlFilter>?) {
     fun init(width: Int, height: Int) {
         inputSize = Point(width, height)
         bitmapPaint = Paint()
-        
+
         Matrix.setIdentityM(stMatrix, 0)
         Matrix.setIdentityM(mvpMatrix, 0)
 
@@ -81,12 +81,12 @@ class GlThumbnailRenderer(filters: List<GlFilter>?) {
 
         // Flips the geometry on the Y axis, to produce correct orientation in the bitmap
         Matrix.scaleM(mvpMatrix, 0, 1f, -1f, 1f)
-        
-        filters.forEach { 
+
+        filters.forEach {
             it.init()
             it.setVpMatrix(mvpMatrix, 0)
         }
-        
+
         val destTexture = GlTexture(GLES20.GL_TEXTURE0, GLES20.GL_TEXTURE_2D, null, inputSize.x, inputSize.y)
         destTexture.bind()
         destFramebuffer = GlFramebuffer()
@@ -100,7 +100,7 @@ class GlThumbnailRenderer(filters: List<GlFilter>?) {
         if (!hasFilters || input == null) {
             return input
         }
-        
+
         // Produce frame on input surface
         val srcCanvas = inputSurface.surface.lockCanvas(null)
         srcCanvas.drawBitmap(input, 0f, 0f, bitmapPaint)

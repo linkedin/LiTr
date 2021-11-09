@@ -107,6 +107,4 @@ public interface Decoder {
      */
     @NonNull
     String getName() throws TrackTranscoderException;
-
-    void reset() throws TrackTranscoderException;
 }

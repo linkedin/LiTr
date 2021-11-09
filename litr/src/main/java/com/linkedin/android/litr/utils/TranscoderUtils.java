@@ -10,10 +10,7 @@ package com.linkedin.android.litr.utils;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.res.AssetFileDescriptor;
-import android.graphics.Bitmap;
-import android.graphics.Point;
 import android.media.MediaFormat;
-import android.media.MediaMetadataRetriever;
 import android.net.Uri;
 import android.util.Log;
 
@@ -234,42 +231,5 @@ public final class TranscoderUtils {
 
         // Trimmed duration could be Long.MAX_VALUE, return the track duration in that case
         return Math.min(trimmedDuration, trackDuration);
-    }
-
-    @Nullable
-    public static Point getVideoDimensions(@NonNull Context context, @NonNull Uri uri) {
-        MediaMetadataRetriever retriever = new MediaMetadataRetriever();
-        try {
-            retriever.setDataSource(context, uri);
-            try {
-                // First, try to obtain dimensions from metadata
-                int width = Integer.parseInt(retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH));
-                int height = Integer.parseInt(retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT));
-                return new Point(width, height);
-            } catch (NumberFormatException nfe) {
-                // Next, try to extract a frame into a bitmap, and obtain dimensions from the bitmap
-                Bitmap bitmap = retriever.getFrameAtTime();
-                return new Point(bitmap.getWidth(), bitmap.getHeight());
-            }
-        } catch (IllegalArgumentException iae) {
-            Log.e(TAG, "Could not set data source when extracting video dimensions. Check the input URI.", iae);
-        } catch (SecurityException se) {
-            Log.e(TAG, "Could not set data source when extracting video dimensions. Check that you have read access to the video at URI.", se);
-        } catch (RuntimeException re) {
-            Log.e(TAG, "Could not set data source when extracting video dimensions. Unknown error.", re);
-        } finally {
-            retriever.release();
-        }
-        return null;
-    }
-
-    public static int getFirstVideoTrackIndex(@NonNull MediaSource mediaSource) {
-        for (int track = 0; track < mediaSource.getTrackCount(); track++) {
-            String mimeType = getMimeType(mediaSource.getTrackFormat(track));
-            if (mimeType != null && mimeType.startsWith("video")) {
-                return track;
-            }
-        }
-        return -1;
     }
 }

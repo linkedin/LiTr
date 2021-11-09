@@ -3,7 +3,7 @@ package com.linkedin.android.litr.thumbnails
 import android.media.MediaMetadataRetriever
 import android.media.ThumbnailUtils
 
-class MediaMetadataExtractionBehavior(private val retriever: MediaMetadataRetriever, private val mode: ExtractionMode): ExtractionBehavior {
+class MediaMetadataExtractionBehavior(private val retriever: MediaMetadataRetriever, private val mode: ExtractionMode) : ExtractionBehavior {
 
     override fun extract(params: ThumbnailExtractParameters, listener: FrameExtractedListener): Boolean {
         var completed = false

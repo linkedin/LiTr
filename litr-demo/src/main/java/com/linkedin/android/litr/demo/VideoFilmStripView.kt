@@ -19,25 +19,15 @@ class VideoFilmStripView @JvmOverloads constructor(context: Context, attrs: Attr
 
     override fun onDraw(@NonNull canvas: Canvas) {
         super.onDraw(canvas)
-        bitmapList?.let {
-            val saveCount = canvas.saveCount
-            canvas.save()
-            var x = 0f
-
-            it.filterNotNull().forEach { bitmap ->
-                canvas.drawBitmap(bitmap, x, 0f, null)
-                x += bitmap.width
-            }
-            canvas.restoreToCount(saveCount)
+        var x = 0f
+        bitmapList?.filterNotNull()?.forEach { bitmap ->
+            canvas.drawBitmap(bitmap, x, 0f, null)
+            x += bitmap.width
         }
     }
 
     fun setFrameAt(index: Int, bitmap: Bitmap?) {
-        bitmapList?.let { list ->
-            if (index in 0..list.size) {
-                list[index] = bitmap
-            }
-        }
+        bitmapList?.set(index, bitmap)
         invalidate()
     }
 }

@@ -14,7 +14,6 @@ class GlFramebuffer {
 
     @JvmOverloads
     fun attachTexture(textureId: Int, texTarget: Int = GLES20.GL_TEXTURE_2D, attachment: Int = GLES20.GL_COLOR_ATTACHMENT0, level: Int = 0) {
-//        bind()
         GLES20.glFramebufferTexture2D(
             GLES20.GL_FRAMEBUFFER,
             attachment,
@@ -23,10 +22,9 @@ class GlFramebuffer {
             level
         )
         GlRenderUtils.checkGlError("glFramebufferTexture2D GlFramebuffer")
-//        unbind()
         val status = GLES20.glCheckFramebufferStatus(GLES20.GL_FRAMEBUFFER)
         if (status != GLES20.GL_FRAMEBUFFER_COMPLETE) {
-            throw RuntimeException("Invalid framebuffer generation. Error:$status")
+            throw RuntimeException("Bad status glCheckFramebufferStatus: $status")
         }
     }
 

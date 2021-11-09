@@ -17,7 +17,10 @@ class ThumbnailExtractJob constructor(
         } catch (e: RuntimeException) {
             Log.e(TAG, "ThumbnailExtractJob error", e)
             when (e.cause) {
-                is InterruptedException -> stop()
+                is InterruptedException -> {
+                    listener?.onCancelled(jobId)
+                    release()
+                }
                 else -> error(e)
             }
         }
@@ -47,7 +50,7 @@ class ThumbnailExtractJob constructor(
             error(ex)
         }
 
-        release(completed)
+        release()
     }
 
     private fun handleExtractedFrame(index: Int, bitmap: Bitmap) {
@@ -64,22 +67,15 @@ class ThumbnailExtractJob constructor(
 
         listener?.onExtracted(jobId, index, transformedBitmap)
     }
-
-    private fun stop() {
-        release(true)
-    }
-
+    
     private fun error(cause: Throwable?) {
         Log.e(TAG, "Error encountered while extracting thumbnails", cause)
-        release(false)
         listener?.onError(jobId, cause)
+        release()
     }
 
-    private fun release(success: Boolean) {
+    private fun release() {
         params.behavior.release()
-        if (success) {
-            listener?.onCompleted(jobId)
-        }
     }
 
     companion object {
