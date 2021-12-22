@@ -31,6 +31,13 @@ android {
         checkTestSources true
         checkReleaseBuilds false
     }
+
+    externalNativeBuild {
+        cmake {
+            path file('src/main/cpp/CMakeLists.txt')
+            version '3.10.2'
+        }
+    }
 }
 
 dependencies {
