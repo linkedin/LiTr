@@ -7,6 +7,12 @@
  */
 package com.linkedin.android.litr.utils;
 
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import android.media.MediaFormat;
 
 import com.linkedin.android.litr.io.MediaRange;
@@ -16,12 +22,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 public class TranscoderUtilsShould {
     private static final long DURATION_S = 30;
@@ -252,7 +252,7 @@ public class TranscoderUtilsShould {
 
 
     @Test
-    public void useMediaRangeToEstimateSizeWhenAvailable() {
+    public void estimateWhenTrimmedFromBeginningToMiddle() {
         when(mediaSource.getTrackCount()).thenReturn(2);
         when(videoMediaFormat.containsKey(MediaFormat.KEY_BIT_RATE)).thenReturn(false);
         when(audioMediaFormat.containsKey(MediaFormat.KEY_BIT_RATE)).thenReturn(true);
@@ -268,5 +268,43 @@ public class TranscoderUtilsShould {
 
         // Since we trim half of the video, the estimated size should be half of the untrimmed one
         assertThat(trimmedSize, is(defaultSize / 2));
+    }
+
+    @Test
+    public void estimateWhenTrimmedFromMiddleToEnd() {
+        when(mediaSource.getTrackCount()).thenReturn(2);
+        when(videoMediaFormat.containsKey(MediaFormat.KEY_BIT_RATE)).thenReturn(false);
+        when(audioMediaFormat.containsKey(MediaFormat.KEY_BIT_RATE)).thenReturn(true);
+        when(audioMediaFormat.getInteger(MediaFormat.KEY_BIT_RATE)).thenReturn(AUDIO_BIT_RATE);
+
+        // Trimmer has not been set (use the default MediaRange object)
+        when(mediaSource.getSelection()).thenReturn(new MediaRange(0, Long.MAX_VALUE));
+        long defaultSize = TranscoderUtils.getEstimatedTargetVideoFileSize(mediaSource, targetVideoFormat, null);
+
+        // Trimmer has been set, trim duration here is half of our track length
+        when(mediaSource.getSelection()).thenReturn(new MediaRange(TRIM_DURATION_US, Long.MAX_VALUE));
+        long trimmedSize = TranscoderUtils.getEstimatedTargetVideoFileSize(mediaSource, targetVideoFormat, null);
+
+        // Since we trim half of the video, the estimated size should be half of the untrimmed one
+        assertThat(trimmedSize, is(defaultSize / 2));
+    }
+
+    @Test
+    public void estimateWhenTrimmedBetweenMiddlePoints() {
+        when(mediaSource.getTrackCount()).thenReturn(2);
+        when(videoMediaFormat.containsKey(MediaFormat.KEY_BIT_RATE)).thenReturn(false);
+        when(audioMediaFormat.containsKey(MediaFormat.KEY_BIT_RATE)).thenReturn(true);
+        when(audioMediaFormat.getInteger(MediaFormat.KEY_BIT_RATE)).thenReturn(AUDIO_BIT_RATE);
+
+        // Trimmer has not been set (use the default MediaRange object)
+        when(mediaSource.getSelection()).thenReturn(new MediaRange(0, Long.MAX_VALUE));
+        long defaultSize = TranscoderUtils.getEstimatedTargetVideoFileSize(mediaSource, targetVideoFormat, null);
+
+        // Trimmer has been set, trim duration here is half of our track length
+        when(mediaSource.getSelection()).thenReturn(new MediaRange(TRIM_DURATION_US / 2, TRIM_DURATION_US));
+        long trimmedSize = TranscoderUtils.getEstimatedTargetVideoFileSize(mediaSource, targetVideoFormat, null);
+
+        // Since we trim half of the video, the estimated size should be half of the untrimmed one
+        assertThat(trimmedSize, is(defaultSize / 4));
     }
 }

@@ -216,10 +216,6 @@ public final class TranscoderUtils {
     }
 
     private static long getDuration(final @NonNull TrackTransform trackTransform) {
-        // Get the user specified MediaRange's duration
-        final MediaRange mediaRange = trackTransform.getMediaSource().getSelection();
-        final long trimmedDuration = mediaRange.getEnd() - mediaRange.getStart();
-
         final MediaFormat trackFormat = trackTransform.getMediaSource()
                 .getTrackFormat(trackTransform.getSourceTrack());
 
@@ -227,9 +223,12 @@ public final class TranscoderUtils {
         long trackDuration = -1;
         if (trackFormat.containsKey(MediaFormat.KEY_DURATION)) {
             trackDuration = trackFormat.getLong(MediaFormat.KEY_DURATION);
+
+            // Get the user specified MediaRange's duration
+            final MediaRange mediaRange = trackTransform.getMediaSource().getSelection();
+            trackDuration = Math.min(trackDuration, mediaRange.getEnd()) - Math.max(0, mediaRange.getStart());
         }
 
-        // Trimmed duration could be Long.MAX_VALUE, return the track duration in that case
-        return Math.min(trimmedDuration, trackDuration);
+        return trackDuration;
     }
 }
