@@ -593,7 +593,7 @@ public class TransformationPresenter {
     public void play(@Nullable Uri contentUri) {
         if (contentUri != null) {
             Intent playIntent = new Intent(Intent.ACTION_VIEW);
-            playIntent.setDataAndType(contentUri, "video/*");
+            playIntent.setDataAndType(contentUri, context.getContentResolver().getType(contentUri));
             playIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
 
             context.startActivity(playIntent);
