@@ -53,13 +53,8 @@ class GlThumbnailRenderer(filters: List<GlFilter>?) : ThumbnailRenderer {
         }
     }
 
-    fun saveTexture(width: Int, height: Int): Bitmap {
-        val capacity = width * height * 4
-        if (pixelBuffer == null || pixelBuffer!!.capacity() != capacity) {
-            pixelBuffer = ByteBuffer.allocate(capacity)
-        } else {
-            pixelBuffer?.rewind()
-        }
+    private fun saveTexture(width: Int, height: Int): Bitmap {
+        pixelBuffer?.rewind()
         GLES20.glReadPixels(0, 0, width, height, GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, pixelBuffer)
         val destBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
         destBitmap.copyPixelsFromBuffer(pixelBuffer)
@@ -69,6 +64,9 @@ class GlThumbnailRenderer(filters: List<GlFilter>?) : ThumbnailRenderer {
     override fun init(width: Int, height: Int) {
         inputSize = Point(width, height)
         bitmapPaint = Paint()
+
+        val capacity = width * height * 4
+        pixelBuffer = ByteBuffer.allocate(capacity)
 
         Matrix.setIdentityM(stMatrix, 0)
         Matrix.setIdentityM(mvpMatrix, 0)
