@@ -17,17 +17,11 @@ class MediaMetadataExtractionBehavior(private val retriever: MediaMetadataRetrie
     override fun extract(params: ThumbnailExtractParameters, listener: ExtractBehaviorFrameListener): Boolean {
         var completed = false
         when (mode) {
-            ExtractionMode.SyncFrameOnly -> {
+            ExtractionMode.SyncFrame -> {
                 completed = retrieveThumbnails(params, MediaMetadataRetriever.OPTION_CLOSEST_SYNC, listener)
             }
-            ExtractionMode.ExactFrameOnly -> {
+            ExtractionMode.ExactFrame -> {
                 completed = retrieveThumbnails(params, MediaMetadataRetriever.OPTION_CLOSEST, listener)
-            }
-            ExtractionMode.TwoPass -> {
-                completed = retrieveThumbnails(params, MediaMetadataRetriever.OPTION_CLOSEST_SYNC, listener)
-                if (completed) {
-                    completed = retrieveThumbnails(params, MediaMetadataRetriever.OPTION_CLOSEST, listener)
-                }
             }
         }
         return completed

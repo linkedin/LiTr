@@ -19,8 +19,7 @@ interface ThumbnailExtractListener {
     fun onStarted(id: String, timestampsUs: List<Long>)
 
     /**
-     * Occurs when a frame is extracted. May be called multiple times for the same frame (for example, when [ExtractionMode.TwoPass] is used).
-     * This method is NOT GUARANTEED TO BE CALLED for every frame, or for any frames.
+     * Occurs when a frame is extracted. This method is NOT GUARANTEED TO BE CALLED for every frame, or for any frames.
      */
     fun onExtracted(id: String, index: Int, bitmap: Bitmap)
 

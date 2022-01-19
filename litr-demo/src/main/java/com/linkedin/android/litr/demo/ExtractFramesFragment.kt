@@ -117,7 +117,7 @@ class ExtractFramesFragment : BaseTransformationFragment(), MediaPickerListener 
         }
 
         val params = ThumbnailExtractParameters(
-            MediaMetadataExtractionBehavior(retriever, ExtractionMode.TwoPass),
+            MediaMetadataExtractionBehavior(retriever, ExtractionMode.ExactFrame),
             timestamps,
             Point(thumbWidth, thumbHeight),
             GlThumbnailRenderer(filter?.let { listOf(it) })
