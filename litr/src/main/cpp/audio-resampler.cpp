@@ -30,8 +30,8 @@ Java_com_linkedin_android_litr_render_AudioRenderer_resample(
         jshortArray jtargetBuffer,
         jint targetBufferSize) {
     if (audio_resampler != nullptr && channel_count > 0) {
-        jshort* sourceBuffer = env->GetShortArrayElements(jsourceBuffer, nullptr);
-        jshort* targetBuffer = env->GetShortArrayElements(jtargetBuffer, nullptr);
+        jshort* sourceBuffer = env->GetShortArrayElements(jsourceBuffer, JNI_FALSE);
+        jshort* targetBuffer = env->GetShortArrayElements(jtargetBuffer, JNI_FALSE);
 
         auto inputBuffer = new float[sourceBufferSize];
         auto outputBuffer = new float[targetBufferSize];
