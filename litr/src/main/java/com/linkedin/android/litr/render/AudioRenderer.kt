@@ -16,6 +16,7 @@ import com.linkedin.android.litr.codec.Frame
 import java.nio.ByteBuffer
 import java.util.concurrent.LinkedBlockingDeque
 import java.util.concurrent.atomic.AtomicBoolean
+import kotlin.math.ceil
 
 private const val BYTES_PER_SAMPLE = 2
 private const val FRAME_WAIT_TIMEOUT: Long = 0L
@@ -28,7 +29,7 @@ class AudioRenderer(private val encoder: Encoder) : Renderer {
     private var targetMediaFormat: MediaFormat? = null
     private var sampleDurationUs: Float = 0f
     private var channelCount = 2
-    private var shouldResample = false
+    private var samplingRatio: Double = 1.0
 
     private var presentationTimeNs: Long = 0
 
@@ -44,15 +45,15 @@ class AudioRenderer(private val encoder: Encoder) : Renderer {
         renderThread.start()
         presentationTimeNs = 0
 
-        shouldResample = false
+        samplingRatio = 1.0
         if (sourceMediaFormat?.containsKey(MediaFormat.KEY_SAMPLE_RATE) == true &&
             targetMediaFormat?.containsKey(MediaFormat.KEY_SAMPLE_RATE) == true &&
             sourceMediaFormat.containsKey(MediaFormat.KEY_CHANNEL_COUNT)) {
             val sourceSampleRate = sourceMediaFormat.getInteger(MediaFormat.KEY_SAMPLE_RATE)
             val targetSampleRate = targetMediaFormat.getInteger(MediaFormat.KEY_SAMPLE_RATE)
-            shouldResample = sourceSampleRate != targetSampleRate
-            if (shouldResample) {
+            if (sourceSampleRate != targetSampleRate) {
                 initAudioResampler(channelCount, sourceSampleRate, targetSampleRate)
+                samplingRatio = targetSampleRate.toDouble() / sourceSampleRate
             }
         }
     }
@@ -78,9 +79,10 @@ class AudioRenderer(private val encoder: Encoder) : Renderer {
         if (!released.get() && inputFrame?.buffer != null) {
             val bufferInfo = MediaCodec.BufferInfo()
 
-            if (shouldResample) {
+            if (samplingRatio != 1.0) {
                 val sourceSampleCount = inputFrame.bufferInfo.size / (BYTES_PER_SAMPLE * channelCount)
-                val targetBuffer = ShortArray(sourceSampleCount * channelCount)
+                val estimatedTargetSampleCount = ceil(sourceSampleCount * samplingRatio).toInt()
+                val targetBuffer = ShortArray(estimatedTargetSampleCount * channelCount)
 
                 val targetSampleCount = resample(inputFrame.buffer, sourceSampleCount, targetBuffer)
 
@@ -115,7 +117,7 @@ class AudioRenderer(private val encoder: Encoder) : Renderer {
 
     override fun release() {
         released.set(true)
-        if (shouldResample) {
+        if (samplingRatio != 1.0) {
             releaseAudioResampler()
         }
     }
