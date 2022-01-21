@@ -80,21 +80,13 @@ class AudioRenderer(private val encoder: Encoder) : Renderer {
 
     override fun renderFrame(inputFrame: Frame?, presentationTimeNs: Long) {
         if (!released.get() && inputFrame?.buffer != null) {
-            val buffer = ByteBuffer.allocate(inputFrame.buffer.limit())
-            buffer.put(inputFrame.buffer)
-            buffer.flip()
             val bufferInfo = MediaCodec.BufferInfo()
 
             if (shouldResample) {
-                val inputBuffer = buffer.asShortBuffer()
                 val numSamples = inputFrame.bufferInfo.size / (BYTES_PER_SAMPLE * channelCount)
-                val sourceBuffer = ShortArray(numSamples * channelCount)
-                repeat(numSamples * channelCount) { index ->
-                    sourceBuffer[index] = inputBuffer.get(index)
-                }
                 val targetBuffer = ShortArray(numSamples * channelCount)
 
-                val resampledNumSamples = resample(sourceBuffer, numSamples, targetBuffer)
+                val resampledNumSamples = resample(inputFrame.buffer, numSamples, targetBuffer)
 
                 val newSize = resampledNumSamples * BYTES_PER_SAMPLE * channelCount
 
@@ -110,6 +102,10 @@ class AudioRenderer(private val encoder: Encoder) : Renderer {
 
                 renderQueue.add(Frame(inputFrame.tag, outByteBuffer, bufferInfo))
             } else {
+                val buffer = ByteBuffer.allocate(inputFrame.buffer.limit())
+                buffer.put(inputFrame.buffer)
+                buffer.flip()
+
                 bufferInfo.set(
                     0,
                     inputFrame.bufferInfo.size,
@@ -183,7 +179,7 @@ class AudioRenderer(private val encoder: Encoder) : Renderer {
 
     private external fun initAudioResampler(channelCount: Int, sourceSampleRate: Int, targetSampleRate: Int)
 
-    private external fun resample(sourceBuffer: ShortArray, sampleCount: Int, targetBuffer: ShortArray): Int
+    private external fun resample(sourceBuffer: ByteBuffer, sampleCount: Int, targetBuffer: ShortArray): Int
 
     private external fun releaseAudioResampler()
 

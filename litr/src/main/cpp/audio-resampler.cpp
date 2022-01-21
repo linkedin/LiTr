@@ -25,18 +25,19 @@ extern "C" JNIEXPORT int JNICALL
 Java_com_linkedin_android_litr_render_AudioRenderer_resample(
         JNIEnv* env,
         jobject,
-        jshortArray jsourceBuffer,
+        jobject jsourceBuffer,
         jint sampleCount,
         jshortArray jtargetBuffer) {
     if (audio_resampler != nullptr && channel_count > 0) {
-        jshort* sourceBuffer = env->GetShortArrayElements(jsourceBuffer, JNI_FALSE);
+        auto sourceBuffer = (jbyte *) env->GetDirectBufferAddress(jsourceBuffer);
         jshort* targetBuffer = env->GetShortArrayElements(jtargetBuffer, JNI_FALSE);
 
         auto inputBuffer = new float[sampleCount * channel_count];
         auto outputBuffer = new float[channel_count];
 
         for (int index = 0; index < sampleCount * channel_count; index++) {
-            inputBuffer[index] = ((float) sourceBuffer[index]);
+            short value = (sourceBuffer[index * 2] << 8) | sourceBuffer[index * 2 + 1];
+            inputBuffer[index] = ((float) value);
         }
 
         int framesProcessed = 0;
@@ -56,7 +57,6 @@ Java_com_linkedin_android_litr_render_AudioRenderer_resample(
             }
         }
 
-        env->ReleaseShortArrayElements(jsourceBuffer, sourceBuffer, 0);
         env->ReleaseShortArrayElements(jtargetBuffer, targetBuffer, 0);
 
         return framesProcessed;
