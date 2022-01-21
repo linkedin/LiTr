@@ -26,21 +26,21 @@ Java_com_linkedin_android_litr_render_AudioRenderer_resample(
         JNIEnv* env,
         jobject,
         jshortArray jsourceBuffer,
-        jint sourceBufferSize,
+        jint sampleCount,
         jshortArray jtargetBuffer) {
     if (audio_resampler != nullptr && channel_count > 0) {
         jshort* sourceBuffer = env->GetShortArrayElements(jsourceBuffer, JNI_FALSE);
         jshort* targetBuffer = env->GetShortArrayElements(jtargetBuffer, JNI_FALSE);
 
-        auto inputBuffer = new float[sourceBufferSize];
+        auto inputBuffer = new float[sampleCount * channel_count];
         auto outputBuffer = new float[channel_count];
 
-        for (int index = 0; index < sourceBufferSize; index++) {
+        for (int index = 0; index < sampleCount * channel_count; index++) {
             inputBuffer[index] = ((float) sourceBuffer[index]);
         }
 
         int framesProcessed = 0;
-        int inputFramesLeft = sourceBufferSize / channel_count;
+        int inputFramesLeft = sampleCount;
 
         while (inputFramesLeft > 0) {
             if (audio_resampler->isWriteNeeded()) {
