@@ -34,7 +34,7 @@ Java_com_linkedin_android_litr_render_AudioRenderer_resample(
         jshort* targetBuffer = env->GetShortArrayElements(jtargetBuffer, JNI_FALSE);
 
         auto inputBuffer = new float[sourceBufferSize];
-        auto outputBuffer = new float[targetBufferSize];
+        auto outputBuffer = new float[channel_count];
 
         for (int index = 0; index < sourceBufferSize; index++) {
             inputBuffer[index] = ((float) sourceBuffer[index]);
@@ -50,12 +50,9 @@ Java_com_linkedin_android_litr_render_AudioRenderer_resample(
                 inputFramesLeft--;
             } else {
                 audio_resampler->readNextFrame(outputBuffer);
-
                 for (int channel = 0; channel < channel_count; channel++) {
                     targetBuffer[framesProcessed * channel_count + channel] = (short) *(outputBuffer + channel);
                 }
-
-                outputBuffer += channel_count;
                 framesProcessed++;
             }
         }
