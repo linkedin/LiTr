@@ -9,7 +9,6 @@ package com.linkedin.android.litr.demo
 
 import android.R
 import android.graphics.Bitmap
-import android.graphics.Point
 import android.net.Uri
 import android.os.Bundle
 import android.util.LruCache
@@ -29,6 +28,7 @@ import com.linkedin.android.litr.thumbnails.ExtractionMode
 import com.linkedin.android.litr.thumbnails.ThumbnailExtractListener
 import com.linkedin.android.litr.thumbnails.ThumbnailExtractParameters
 import com.linkedin.android.litr.thumbnails.VideoThumbnailExtractor
+import java.io.ByteArrayOutputStream
 import java.util.*
 
 class ExtractFramesFragment : BaseTransformationFragment(), MediaPickerListener {
@@ -36,14 +36,14 @@ class ExtractFramesFragment : BaseTransformationFragment(), MediaPickerListener 
     private lateinit var filtersAdapter: ArrayAdapter<DemoFilter>
     private lateinit var thumbnailExtractor: VideoThumbnailExtractor
     private lateinit var framesAdapter: ExtractedFramesAdapter
-    private lateinit var bitmapInMemoryCache: LruCache<Long, Bitmap>
+    private lateinit var bitmapInMemoryCache: LruCache<Long, ByteArray>
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val cacheSize = (Runtime.getRuntime().maxMemory() / 1024L) / 8L
-        bitmapInMemoryCache = object : LruCache<Long, Bitmap>(cacheSize.toInt()) {
-            override fun sizeOf(key: Long, bitmap: Bitmap): Int {
-                return bitmap.byteCount / 1024
+        bitmapInMemoryCache = object : LruCache<Long, ByteArray>(cacheSize.toInt()) {
+            override fun sizeOf(key: Long, byteArray: ByteArray): Int {
+                return byteArray.size / 1024
             }
         }
 
@@ -135,7 +135,12 @@ class ExtractFramesFragment : BaseTransformationFragment(), MediaPickerListener 
         params.forEach {
             thumbnailExtractor.extract(UUID.randomUUID().toString(), it.copy(priority = 100L), object: ThumbnailExtractListener {
                 override fun onExtracted(id: String, timestampUs: Long, bitmap: Bitmap) {
-                    bitmapInMemoryCache.put(timestampUs, bitmap)
+                    // Compress bitmap
+                    val baos = ByteArrayOutputStream()
+                    bitmap.compress(Bitmap.CompressFormat.JPEG, 90, baos)
+                    val byteArray = baos.toByteArray()
+                    // Add compressed bytes to in-memory cache
+                    bitmapInMemoryCache.put(timestampUs, byteArray)
                 }
             })
         }

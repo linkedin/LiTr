@@ -8,6 +8,7 @@
 package com.linkedin.android.litr.demo
 
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.Color
 import android.util.LruCache
 import android.view.LayoutInflater
@@ -20,7 +21,7 @@ import com.linkedin.android.litr.thumbnails.ThumbnailExtractParameters
 import com.linkedin.android.litr.thumbnails.VideoThumbnailExtractor
 import java.util.*
 
-class ExtractedFramesAdapter(private val extractor: VideoThumbnailExtractor, private val cache: LruCache<Long, Bitmap>) :
+class ExtractedFramesAdapter(private val extractor: VideoThumbnailExtractor, private val cache: LruCache<Long, ByteArray>) :
         RecyclerView.Adapter<ExtractedFramesAdapter.FrameViewHolder>() {
 
     private val frames = mutableListOf<ThumbnailExtractParameters>()
@@ -48,9 +49,10 @@ class ExtractedFramesAdapter(private val extractor: VideoThumbnailExtractor, pri
         holder.imageView.visibility = View.GONE
         holder.indicator.setBackgroundColor(Color.GRAY)
 
-        val cachedBitmap = cache.get(frameParams.timestampUs)
-        if (cachedBitmap != null) {
+        val cachedByteArray = cache.get(frameParams.timestampUs)
+        if (cachedByteArray != null) {
             // Cache hit: just use the cached bitmap.
+            val cachedBitmap = BitmapFactory.decodeByteArray(cachedByteArray, 0, cachedByteArray.size)
             holder.imageView.setImageBitmap(cachedBitmap)
             holder.imageView.visibility = View.VISIBLE
             holder.indicator.setBackgroundColor(Color.BLACK)
