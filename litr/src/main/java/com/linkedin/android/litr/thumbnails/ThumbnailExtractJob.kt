@@ -16,7 +16,7 @@ import com.linkedin.android.litr.thumbnails.behaviors.ExtractBehaviorFrameListen
 /**
  * Provides the request lifecycle for extracting video thumbnails. The specifics of extraction work are delegated to [ExtractionBehavior]s.
  */
-open class ThumbnailExtractJob constructor(
+class ThumbnailExtractJob constructor(
     private val jobId: String,
     private val params: ThumbnailExtractParameters,
     private val behavior: ExtractionBehavior,

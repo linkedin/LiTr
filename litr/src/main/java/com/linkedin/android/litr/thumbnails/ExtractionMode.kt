@@ -7,6 +7,9 @@
  */
 package com.linkedin.android.litr.thumbnails
 
+import com.linkedin.android.litr.ExperimentalThumbnailsApi
+
+@ExperimentalThumbnailsApi
 enum class ExtractionMode {
     /**
      * Extract just the sync frames (fastest)

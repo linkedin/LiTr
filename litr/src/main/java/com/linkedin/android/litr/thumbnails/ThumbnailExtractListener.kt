@@ -8,10 +8,12 @@
 package com.linkedin.android.litr.thumbnails
 
 import android.graphics.Bitmap
+import com.linkedin.android.litr.ExperimentalThumbnailsApi
 
 /**
  * Listener for thumbnail extraction events.
  */
+@ExperimentalThumbnailsApi
 interface ThumbnailExtractListener {
     /**
      * Occurs when the specified job has started.

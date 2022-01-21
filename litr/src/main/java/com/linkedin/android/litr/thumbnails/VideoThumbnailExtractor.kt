@@ -12,6 +12,7 @@ import android.graphics.Bitmap
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
+import com.linkedin.android.litr.ExperimentalThumbnailsApi
 import com.linkedin.android.litr.filter.GlFilter
 import com.linkedin.android.litr.render.GlThumbnailRenderer
 import com.linkedin.android.litr.render.ThumbnailRenderer
@@ -24,6 +25,7 @@ import java.util.concurrent.*
 /**
  * Provides the entry point for, and management of, thumbnail extraction work.
  */
+@ExperimentalThumbnailsApi
 class VideoThumbnailExtractor @JvmOverloads constructor(
     private val context: Context,
     private val listenerLooper: Looper = Looper.getMainLooper(),

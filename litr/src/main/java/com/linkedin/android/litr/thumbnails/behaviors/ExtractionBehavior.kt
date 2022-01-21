@@ -9,6 +9,7 @@ package com.linkedin.android.litr.thumbnails.behaviors
 
 import android.graphics.Bitmap
 import android.net.Uri
+import com.linkedin.android.litr.ExperimentalThumbnailsApi
 import com.linkedin.android.litr.thumbnails.ThumbnailExtractParameters
 
 /**
@@ -24,6 +25,7 @@ interface ExtractBehaviorFrameListener {
  *
  * All methods are guaranteed to be called on the same thread, but the thread will not be the main thread.
  */
+@ExperimentalThumbnailsApi
 interface ExtractionBehavior {
     /**
      * Perform frame extraction work here, and notify [listener] for each frame extracted. This method is called only once.

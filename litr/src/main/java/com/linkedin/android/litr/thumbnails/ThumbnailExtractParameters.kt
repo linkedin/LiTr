@@ -9,11 +9,13 @@ package com.linkedin.android.litr.thumbnails
 
 import android.graphics.Point
 import android.net.Uri
+import com.linkedin.android.litr.ExperimentalThumbnailsApi
 import com.linkedin.android.litr.render.ThumbnailRenderer
 
 /**
  * Request parameters for thumbnail extraction.
  */
+@ExperimentalThumbnailsApi
 data class ThumbnailExtractParameters @JvmOverloads constructor(
     val mediaUri: Uri,
     /**

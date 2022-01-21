@@ -31,6 +31,10 @@ android {
         checkTestSources true
         checkReleaseBuilds false
     }
+
+    kotlinOptions {
+        freeCompilerArgs += "-Xopt-in=kotlin.RequiresOptIn"
+    }
 }
 
 dependencies {

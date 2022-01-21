@@ -11,9 +11,11 @@ import android.content.Context
 import android.media.MediaMetadataRetriever
 import android.media.ThumbnailUtils
 import android.net.Uri
+import com.linkedin.android.litr.ExperimentalThumbnailsApi
 import com.linkedin.android.litr.thumbnails.ExtractionMode
 import com.linkedin.android.litr.thumbnails.ThumbnailExtractParameters
 
+@ExperimentalThumbnailsApi
 class MediaMetadataExtractionBehavior(private val context: Context) : ExtractionBehavior {
     private var retrieverToMediaUri: RetrieverToMediaUri? = null
 
