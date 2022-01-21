@@ -14,32 +14,22 @@ import android.graphics.Bitmap
  */
 interface ThumbnailExtractListener {
     /**
-     * Occurs when extraction started, and no frames were processed yet.
+     * Occurs when the specified job has started.
      */
-    fun onStarted(id: String, timestampsUs: List<Long>)
+    fun onStarted(id: String, timestampUs: Long) {}
 
     /**
-     * Occurs when a frame is extracted. This method is NOT GUARANTEED TO BE CALLED for every frame, or for any frames.
+     * Occurs when a frame is extracted. This method is not guaranteed to be called if there is an error.
      */
-    fun onExtracted(id: String, index: Int, bitmap: Bitmap)
-
-    /**
-     * Occurs when a frame was requested, but could not be extracted. Consumer may want to display an error over the specified frame, or ignore it.
-     */
-    fun onExtractFrameFailed(id: String, index: Int)
-
-    /**
-     * Occurs when extraction completed and terminated normally.
-     */
-    fun onCompleted(id: String)
+    fun onExtracted(id: String, timestampUs: Long, bitmap: Bitmap) {}
 
     /**
      * Extraction was aborted at some point.
      */
-    fun onCancelled(id: String)
+    fun onCancelled(id: String, timestampUs: Long) {}
 
     /**
      * An error occurred during extraction.
      */
-    fun onError(id: String, cause: Throwable?)
+    fun onError(id: String, timestampUs: Long, cause: Throwable?) {}
 }

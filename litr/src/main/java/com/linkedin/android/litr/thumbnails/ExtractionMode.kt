@@ -11,10 +11,10 @@ enum class ExtractionMode {
     /**
      * Extract just the sync frames (fastest)
      */
-    SyncFrame,
+    Fast,
 
     /**
      * Extract just the closest frames (attempts to find exact video frame, closest to specified timestamp)
      */
-    ExactFrame
+    Exact
 }

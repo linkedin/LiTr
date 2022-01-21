@@ -37,6 +37,7 @@ class GlThumbnailRenderer(filters: List<GlFilter>?) : ThumbnailRenderer {
     private lateinit var outputSurface: VideoRenderOutputSurface
     private lateinit var bitmapPaint: Paint
     private var pixelBuffer: ByteBuffer? = null
+    private var isInitialized = false
 
     init {
 
@@ -61,7 +62,7 @@ class GlThumbnailRenderer(filters: List<GlFilter>?) : ThumbnailRenderer {
         return destBitmap
     }
 
-    override fun init(width: Int, height: Int) {
+    private fun init(width: Int, height: Int) {
         inputSize = Point(width, height)
         bitmapPaint = Paint()
 
@@ -104,6 +105,11 @@ class GlThumbnailRenderer(filters: List<GlFilter>?) : ThumbnailRenderer {
     override fun renderFrame(input: Bitmap?, presentationTimeNs: Long): Bitmap? {
         if (!hasFilters || input == null) {
             return input
+        }
+
+        if (!isInitialized) {
+            init(input.width, input.height)
+            isInitialized = true
         }
 
         // Produce frame on input surface

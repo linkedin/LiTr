@@ -7,56 +7,63 @@
  */
 package com.linkedin.android.litr.thumbnails.behaviors
 
+import android.content.Context
 import android.media.MediaMetadataRetriever
 import android.media.ThumbnailUtils
+import android.net.Uri
 import com.linkedin.android.litr.thumbnails.ExtractionMode
 import com.linkedin.android.litr.thumbnails.ThumbnailExtractParameters
 
-class MediaMetadataExtractionBehavior(private val retriever: MediaMetadataRetriever, private val mode: ExtractionMode) : ExtractionBehavior {
+class MediaMetadataExtractionBehavior(private val context: Context) : ExtractionBehavior {
+    private var retrieverToMediaUri: RetrieverToMediaUri? = null
+
+    @Synchronized
+    private fun setupRetriever(mediaUri: Uri): MediaMetadataRetriever {
+        val currentRetrieverToMediaUri = retrieverToMediaUri
+
+        return if (currentRetrieverToMediaUri == null || currentRetrieverToMediaUri.mediaUri != mediaUri) {
+            currentRetrieverToMediaUri?.retriever?.release()
+
+            val newRetriever = MediaMetadataRetriever().apply {
+                setDataSource(context, mediaUri)
+            }
+
+            retrieverToMediaUri = RetrieverToMediaUri(newRetriever, mediaUri)
+
+            newRetriever
+        } else {
+            currentRetrieverToMediaUri.retriever
+        }
+    }
 
     override fun extract(params: ThumbnailExtractParameters, listener: ExtractBehaviorFrameListener): Boolean {
-        var completed = false
-        when (mode) {
-            ExtractionMode.SyncFrame -> {
-                completed = retrieveThumbnails(params, MediaMetadataRetriever.OPTION_CLOSEST_SYNC, listener)
+
+        val completed = when (params.mode) {
+            ExtractionMode.Fast -> {
+                retrieveThumbnail(params, MediaMetadataRetriever.OPTION_CLOSEST_SYNC, listener)
             }
-            ExtractionMode.ExactFrame -> {
-                completed = retrieveThumbnails(params, MediaMetadataRetriever.OPTION_CLOSEST, listener)
+            ExtractionMode.Exact -> {
+                retrieveThumbnail(params, MediaMetadataRetriever.OPTION_CLOSEST, listener)
             }
         }
         return completed
     }
 
-    override fun init(params: ThumbnailExtractParameters) {
-        params.renderer.init(params.destSize.x, params.destSize.y)
-    }
-
     override fun release() {
-        retriever.release()
+        retrieverToMediaUri?.retriever?.release()
     }
 
-    private fun retrieveThumbnails(params: ThumbnailExtractParameters, retrieverOptions: Int, listener: ExtractBehaviorFrameListener): Boolean {
-        params.timestampsUs.forEachIndexed { index, frameTimeUs ->
-            if (Thread.interrupted()) {
-                return false
-            }
+    private fun retrieveThumbnail(params: ThumbnailExtractParameters, retrieverOptions: Int, listener: ExtractBehaviorFrameListener): Boolean {
+        val retriever = setupRetriever(params.mediaUri)
+        val extractedBitmap = retriever.getFrameAtTime(params.timestampUs, retrieverOptions)
 
-            val scaledBitmap = retriever.getFrameAtTime(frameTimeUs, retrieverOptions)?.let { fullBitmap ->
-                ThumbnailUtils.extractThumbnail(fullBitmap, params.destSize.x, params.destSize.y)
-            }
-
-            val renderer = params.renderer
-
-            val transformedBitmap = params.timestampsUs.getOrNull(index)?.let { presentationTime ->
-                renderer.renderFrame(scaledBitmap, presentationTime)
-            } ?: scaledBitmap
-
-            if (transformedBitmap != null) {
-                listener.onFrameExtracted(index, transformedBitmap)
-            } else {
-                listener.onFrameFailed(index)
-            }
+        if (extractedBitmap != null) {
+            listener.onFrameExtracted(extractedBitmap)
+        } else {
+            listener.onFrameFailed()
         }
         return true
     }
+
+    data class RetrieverToMediaUri(val retriever: MediaMetadataRetriever, val mediaUri: Uri)
 }
