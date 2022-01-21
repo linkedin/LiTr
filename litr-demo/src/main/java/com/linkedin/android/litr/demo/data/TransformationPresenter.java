@@ -23,7 +23,6 @@ import androidx.annotation.Nullable;
 
 import com.linkedin.android.litr.MediaTransformer;
 import com.linkedin.android.litr.TrackTransform;
-import com.linkedin.android.litr.TransformationListener;
 import com.linkedin.android.litr.TransformationOptions;
 import com.linkedin.android.litr.codec.MediaCodecDecoder;
 import com.linkedin.android.litr.codec.MediaCodecEncoder;
@@ -568,7 +567,7 @@ public class TransformationPresenter {
                 AudioTrackFormat trackFormat = (AudioTrackFormat) targetTrack.format;
                 mediaFormat = MediaFormat.createAudioFormat(
                         "audio/mp4a-latm",
-                        trackFormat.samplingRate,
+                        trackFormat.samplingRate / 2,
                         trackFormat.channelCount);
                 mediaFormat.setInteger(MediaFormat.KEY_BIT_RATE, trackFormat.bitrate / 2);
                 mediaFormat.setLong(MediaFormat.KEY_DURATION, trackFormat.duration);

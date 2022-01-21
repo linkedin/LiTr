@@ -14,8 +14,12 @@ import android.view.Surface
 import com.linkedin.android.litr.codec.Encoder
 import com.linkedin.android.litr.codec.Frame
 import java.nio.ByteBuffer
+import java.nio.FloatBuffer
+import java.nio.ShortBuffer
 import java.util.concurrent.LinkedBlockingDeque
+import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
+import kotlin.random.Random
 
 private const val BYTES_PER_SAMPLE = 2
 private const val FRAME_WAIT_TIMEOUT: Long = 0L
@@ -28,6 +32,9 @@ class AudioRenderer(private val encoder: Encoder) : Renderer {
     private var targetMediaFormat: MediaFormat? = null
     private var sampleDurationUs: Float = 0f
     private var channelCount = 2
+    private var shouldResample = false
+
+    private var presentationTimeNs: Long = 0
 
     private var released: AtomicBoolean = AtomicBoolean(false)
 
@@ -39,6 +46,19 @@ class AudioRenderer(private val encoder: Encoder) : Renderer {
         onMediaFormatChanged(sourceMediaFormat, targetMediaFormat)
         released.set(false)
         renderThread.start()
+        presentationTimeNs = 0
+
+        shouldResample = false
+        if (sourceMediaFormat?.containsKey(MediaFormat.KEY_SAMPLE_RATE) == true &&
+            targetMediaFormat?.containsKey(MediaFormat.KEY_SAMPLE_RATE) == true &&
+            sourceMediaFormat.containsKey(MediaFormat.KEY_CHANNEL_COUNT)) {
+            val sourceSampleRate = sourceMediaFormat.getInteger(MediaFormat.KEY_SAMPLE_RATE)
+            val targetSampleRate = targetMediaFormat.getInteger(MediaFormat.KEY_SAMPLE_RATE)
+            shouldResample = sourceSampleRate != targetSampleRate
+            if (shouldResample) {
+                initAudioResampler(channelCount, sourceSampleRate, targetSampleRate)
+            }
+        }
     }
 
     override fun onMediaFormatChanged(sourceMediaFormat: MediaFormat?, targetMediaFormat: MediaFormat?) {
@@ -63,21 +83,72 @@ class AudioRenderer(private val encoder: Encoder) : Renderer {
             val buffer = ByteBuffer.allocate(inputFrame.buffer.limit())
             buffer.put(inputFrame.buffer)
             buffer.flip()
-
             val bufferInfo = MediaCodec.BufferInfo()
-            bufferInfo.set(
-                0,
-                inputFrame.bufferInfo.size,
-                inputFrame.bufferInfo.presentationTimeUs,
-                inputFrame.bufferInfo.flags
-            )
 
-            renderQueue.add(Frame(inputFrame.tag, buffer, bufferInfo))
+            if (shouldResample) {
+                val inputBuffer = buffer.asShortBuffer()
+                val numSamples = inputFrame.bufferInfo.size / (BYTES_PER_SAMPLE * channelCount)
+                val sourceBuffer = ShortArray(numSamples * channelCount)
+                repeat(numSamples * channelCount) { index ->
+                    sourceBuffer[index] = inputBuffer.get(index)
+                }
+
+                val targetBuffer = ShortArray(numSamples * channelCount)
+
+                // resample in Java
+//                val factor = 2
+//                val resampledNumSamples = numSamples / factor
+//
+//
+//                for (index in 0 until resampledNumSamples) {
+//                    for (channel in 0 until channelCount) {
+//                        targetBuffer[index * channelCount + channel] = sourceBuffer[index * factor * channelCount + channel]
+//                    }
+//                }
+
+                // resample in JNI
+                val resampledNumSamples = resample(sourceBuffer, sourceBuffer.size, targetBuffer, targetBuffer.size)
+
+//                val newBuffer = ShortArray(resampledNumSamples * channelCount)
+//                for (index in 0 until resampledNumSamples * channelCount) {
+//                    newBuffer[index] = targetBuffer[index].toInt().toShort()
+//                }
+
+                //Log.d(TAG, "Max source ${sourceBuffer.maxOrNull()} target ${targetBuffer.maxOrNull()}")
+
+                val newSize = resampledNumSamples * BYTES_PER_SAMPLE * channelCount
+
+                val outByteBuffer = ByteBuffer.allocate(newSize)
+                outByteBuffer.asShortBuffer().put(targetBuffer, 0, resampledNumSamples * channelCount)
+
+                bufferInfo.size = newSize
+                bufferInfo.offset = 0
+                bufferInfo.presentationTimeUs = this.presentationTimeNs
+                bufferInfo.flags = inputFrame.bufferInfo.flags
+
+                this.presentationTimeNs += (resampledNumSamples * sampleDurationUs).toLong()
+
+                //Log.d(TAG, "Resampled $numSamples to $resampledNumSamples")
+
+                renderQueue.add(Frame(inputFrame.tag, outByteBuffer, bufferInfo))
+            } else {
+                bufferInfo.set(
+                    0,
+                    inputFrame.bufferInfo.size,
+                    inputFrame.bufferInfo.presentationTimeUs,
+                    inputFrame.bufferInfo.flags
+                )
+
+                renderQueue.add(Frame(inputFrame.tag, buffer, bufferInfo))
+            }
         }
     }
 
     override fun release() {
         released.set(true)
+        if (shouldResample) {
+            releaseAudioResampler()
+        }
     }
 
     override fun hasFilters(): Boolean {
@@ -129,6 +200,18 @@ class AudioRenderer(private val encoder: Encoder) : Renderer {
                     encoder.queueInputFrame(outputFrame)
                 }
             }
+        }
+    }
+
+    private external fun initAudioResampler(channelCount: Int, sourceSampleRate: Int, targetSampleRate: Int)
+
+    private external fun resample(sourceBuffer: ShortArray, sourceBufferSize: Int, targetBuffer: ShortArray, targetBufferSize: Int): Int
+
+    private external fun releaseAudioResampler()
+
+    companion object {
+        init {
+            System.loadLibrary("litr-jni")
         }
     }
 }
