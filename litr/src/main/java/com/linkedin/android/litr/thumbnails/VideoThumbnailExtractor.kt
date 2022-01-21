@@ -23,11 +23,17 @@ import com.linkedin.android.litr.thumbnails.queue.PriorityExecutorUtil
 import java.util.concurrent.*
 
 /**
- * Provides the entry point for, and management of, thumbnail extraction work.
+ * Provides the entry point for thumbnail extraction.
+ *
+ * This class uses a single, dedicated thread to schedule jobs. The priority of each job can be specified within [ThumbnailExtractParameters].
+ *
+ * @param context The application context.
+ * @param listenerLooper The looper on which [extract] listener events will be processed.
+ * @param extractionBehavior The behavior to use for extracting frames from media.
  */
 @ExperimentalThumbnailsApi
 class VideoThumbnailExtractor @JvmOverloads constructor(
-    private val context: Context,
+    context: Context,
     private val listenerLooper: Looper = Looper.getMainLooper(),
     private var extractionBehavior: ExtractionBehavior = MediaMetadataExtractionBehavior(context)
 ) {
@@ -40,16 +46,12 @@ class VideoThumbnailExtractor @JvmOverloads constructor(
 
     private val executorService = PriorityExecutorUtil.newSingleThreadPoolPriorityExecutor()
 
-    fun renderPreview(filters: List<GlFilter>, bitmap: Bitmap, presentationTimeNs: Long = 0): Bitmap? {
-        return renderPreview(GlThumbnailRenderer(filters), bitmap)
-    }
-
-    fun renderPreview(renderer: ThumbnailRenderer, bitmap: Bitmap, presentationTimeNs: Long = 0): Bitmap? {
-        return renderer.renderFrame(bitmap, presentationTimeNs)
-    }
-
     /**
-     * Starts a new extract job with the specified parameters.
+     * Starts a new thumbnail extract job with the specified parameters. The [listener] will be updated with the job status.
+     *
+     * @param requestId The ID of this request. Only one request per ID can be active. This ID is used to then refer to the request when calling [stop].
+     * @param params Specifies extraction options and other parameters.
+     * @param listener The listener to notify about the job status, such as success/error.
      */
     fun extract(requestId: String, params: ThumbnailExtractParameters, listener: ThumbnailExtractListener?) {
         if (activeJobMap.containsKey(requestId)) {
@@ -63,7 +65,7 @@ class VideoThumbnailExtractor @JvmOverloads constructor(
     }
 
     /**
-     * Terminates the specified extract job. If the job was in progress, [ThumbnailExtractListener.onCancelled] will be called for the job.
+     * Cancels the specified extract job. If the job was in progress, [ThumbnailExtractListener.onCancelled] will be called for the job.
      * Does not terminate immediately: [ThumbnailExtractListener.onExtracted] may still be called after this method is called.
      */
     fun stop(requestId: String) {
@@ -74,6 +76,9 @@ class VideoThumbnailExtractor @JvmOverloads constructor(
         }
     }
 
+    /**
+     * Cancels all started extract jobs. [ThumbnailExtractListener.onCancelled] will be called for jobs that have been started.
+     */
     fun stopAll() {
         activeJobMap.values.forEach {
             if (!it.future.isCancelled && !it.future.isDone) {
@@ -83,7 +88,7 @@ class VideoThumbnailExtractor @JvmOverloads constructor(
     }
 
     /**
-     * Terminates all extract jobs immediately.
+     * Stops all extract jobs immediately and frees resources.
      */
     fun release() {
         executorService.shutdownNow()

@@ -12,12 +12,12 @@ import com.linkedin.android.litr.ExperimentalThumbnailsApi
 @ExperimentalThumbnailsApi
 enum class ExtractionMode {
     /**
-     * Extract just the sync frames (fastest)
+     * Extract just the sync frames (typically this is fastest).
      */
     Fast,
 
     /**
-     * Extract just the closest frames (attempts to find exact video frame, closest to specified timestamp)
+     * Extract just the closest frames (attempts to find exact video frame, closest to specified timestamp).
      */
     Exact
 }
