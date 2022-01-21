@@ -35,9 +35,10 @@ Java_com_linkedin_android_litr_render_AudioRenderer_resample(
         auto inputBuffer = new float[sampleCount * channel_count];
         auto outputBuffer = new float[channel_count];
 
+        // bytes contained in audio buffer produced by MediaCodec contains make up big endian shorts
+        // first we recreate short values, then simply cast them to floats, expected by Oboe resampler
         for (int index = 0; index < sampleCount * channel_count; index++) {
-            short value = (sourceBuffer[index * 2] << 8) | sourceBuffer[index * 2 + 1];
-            inputBuffer[index] = ((float) value);
+            inputBuffer[index] = (float) ((short) ((sourceBuffer[index * 2] << 8) | sourceBuffer[index * 2 + 1]));
         }
 
         int framesProcessed = 0;
