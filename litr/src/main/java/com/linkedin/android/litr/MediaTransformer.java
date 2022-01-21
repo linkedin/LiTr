@@ -350,16 +350,47 @@ public class MediaTransformer {
      * @param targetVideoFormat video format for a transformation target
      * @param targetAudioFormat audio format for a transformation target
      * @return estimated size of a transcoding target video file in bytes, -1 otherwise
+     * @deprecated use getEstimatedTargetVideoSize that takes List<TrackTransform> or TransformationOptions
      */
+    @Deprecated
     public long getEstimatedTargetVideoSize(@NonNull Uri inputUri,
                                             @NonNull MediaFormat targetVideoFormat,
                                             @Nullable MediaFormat targetAudioFormat) {
+        return getEstimatedTargetVideoSize(inputUri, targetVideoFormat, targetAudioFormat, null);
+    }
+
+    /**
+     * Estimates target size of a target video based on provided target formats. If no target audio format is specified,
+     * uses 320 Kbps bitrate to estimate audio track size, if cannot extract audio bitrate. If track duration is not available,
+     * maximum track duration will be used. If track bitrate cannot be extracted, track will not be used to estimate size.
+     * @param inputUri {@link Uri} of a source video
+     * @param targetVideoFormat video format for a transformation target
+     * @param targetAudioFormat audio format for a transformation target
+     * @param transformationOptions optional transformation options (such as source range)
+     * @return estimated size of a transcoding target video file in bytes, -1 otherwise
+     */
+    public long getEstimatedTargetVideoSize(@NonNull Uri inputUri,
+                                            @NonNull MediaFormat targetVideoFormat,
+                                            @Nullable MediaFormat targetAudioFormat,
+                                            @Nullable TransformationOptions transformationOptions) {
         try {
-            MediaSource mediaSource = new MediaExtractorMediaSource(context, inputUri);
+            MediaSource mediaSource = transformationOptions == null
+            ? new MediaExtractorMediaSource(context, inputUri)
+            : new MediaExtractorMediaSource(context, inputUri, transformationOptions.sourceMediaRange);
             return TranscoderUtils.getEstimatedTargetVideoFileSize(mediaSource, targetVideoFormat, targetAudioFormat);
         } catch (MediaSourceException ex) {
             return -1;
         }
+    }
+
+    /**
+     * Estimates target size of a target video based on track transformations. If no target audio format is specified,
+     * uses 320 Kbps bitrate to estimate audio track size, if cannot extract audio bitrate. If track duration is not available,
+     * maximum track duration will be used. If track bitrate cannot be extracted, track will not be used to estimate size.
+     * @param trackTransforms track transforms
+     */
+    public long getEstimatedTargetVideoSize(@NonNull List<TrackTransform> trackTransforms) {
+        return TranscoderUtils.getEstimatedTargetFileSize(trackTransforms);
     }
 
     @Nullable

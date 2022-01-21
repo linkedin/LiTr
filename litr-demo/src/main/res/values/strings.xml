@@ -15,6 +15,7 @@
     <string name="demo_case_video_filters">Video Filters</string>
     <string name="demo_case_video_filters_preview">Video Filters Preview</string>
     <string name="demo_case_mock_transcode_video">Mock Transcode Video</string>
+    <string name="demo_case_transcode_audio">Transcode Audio</string>
     <string name="demo_case_extract_frames">Extract Video Thumbnails</string>
 
     <string name="include">Include</string>

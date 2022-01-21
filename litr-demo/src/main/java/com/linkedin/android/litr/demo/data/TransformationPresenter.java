@@ -537,6 +537,55 @@ public class TransformationPresenter {
         }
     }
 
+    public void transcodeAudio(@NonNull SourceMedia sourceMedia,
+                               @NonNull TargetMedia targetMedia,
+                               @NonNull TrimConfig trimConfig,
+                               @NonNull TransformationState transformationState) {
+        if (targetMedia.targetFile.exists()) {
+            targetMedia.targetFile.delete();
+        }
+
+        transformationState.requestId = UUID.randomUUID().toString();
+        MediaTransformationListener transformationListener = new MediaTransformationListener(context,
+                transformationState.requestId,
+                transformationState,
+                targetMedia);
+
+        MediaRange mediaRange = trimConfig.enabled
+                ? new MediaRange(
+                TimeUnit.MILLISECONDS.toMicros((long) (trimConfig.range.get(0) * 1000)),
+                TimeUnit.MILLISECONDS.toMicros((long) (trimConfig.range.get(1) * 1000)))
+                : new MediaRange(0, Long.MAX_VALUE);
+
+        TransformationOptions transformationOptions = new TransformationOptions.Builder()
+                .setGranularity(MediaTransformer.GRANULARITY_DEFAULT)
+                .setSourceMediaRange(mediaRange)
+                .build();
+
+        MediaFormat mediaFormat = null;
+        for (TargetTrack targetTrack : targetMedia.tracks) {
+            if (targetTrack.format instanceof AudioTrackFormat) {
+                AudioTrackFormat trackFormat = (AudioTrackFormat) targetTrack.format;
+                mediaFormat = MediaFormat.createAudioFormat(
+                        "audio/mp4a-latm",
+                        trackFormat.samplingRate,
+                        trackFormat.channelCount);
+                mediaFormat.setInteger(MediaFormat.KEY_BIT_RATE, trackFormat.bitrate / 2);
+                mediaFormat.setLong(MediaFormat.KEY_DURATION, trackFormat.duration);
+                break;
+            }
+        }
+
+        mediaTransformer.transform(
+                transformationState.requestId,
+                sourceMedia.uri,
+                targetMedia.targetFile.getPath(),
+                null,
+                mediaFormat,
+                transformationListener,
+                transformationOptions);
+    }
+
     public void cancelTransformation(@NonNull String requestId) {
         mediaTransformer.cancel(requestId);
     }
@@ -544,7 +593,7 @@ public class TransformationPresenter {
     public void play(@Nullable Uri contentUri) {
         if (contentUri != null) {
             Intent playIntent = new Intent(Intent.ACTION_VIEW);
-            playIntent.setDataAndType(contentUri, "video/*");
+            playIntent.setDataAndType(contentUri, context.getContentResolver().getType(contentUri));
             playIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
 
             context.startActivity(playIntent);

@@ -106,6 +106,8 @@ public class AudioTrackTranscoder extends TrackTranscoder {
 
     @Override
     public void stop() {
+        renderer.release();
+
         encoder.stop();
         encoder.release();
 
