@@ -103,13 +103,17 @@ class ExtractFramesFragment : BaseTransformationFragment(), MediaPickerListener 
             return
         }
 
+        // Based on the video duration and number of thumbnails, obtain the list of timestamps (in microseconds),
+        // of each frame we should extract.
         val secPerThumbnail = videoDurationSec / thumbCount
         val timestamps = (0 until thumbCount).map {
             (secPerThumbnail * 1000000.0).toLong() * it
         }
 
+        // Because we want to apply the same filter to each frame, the renderer may be shared between all thumbnail requests.
         val renderer = GlThumbnailRenderer(filter?.let { listOf(it) })
 
+        // From each timestamp, construct the parameters to send to the thumbnail extractor.
         val params = timestamps.map {
             ThumbnailExtractParameters(
                 sourceMedia.uri,
@@ -121,10 +125,13 @@ class ExtractFramesFragment : BaseTransformationFragment(), MediaPickerListener 
             )
         }
 
+        // Set the list of extraction params to the adapter. Note that frame extraction will only start when the adapter binds an item to a view.
         framesAdapter.loadData(params)
 
-        // Request every frame, but with a lower priority, in order to cache the resulting frame.
-        // Note that, because of the lower priority, these frames will only load if the RecyclerView items are not loading frames.
+        // What follows is an optimization.
+        // We request all the thumbnails with a low priority, and cache the resulting bitmaps in an in-memory cache.
+        // Because of the lower priority, these frames will only load when the RecyclerView adapter is not requesting frames at a higher priority.
+        // In a production application, an on-disk bitmap cache may be preferred.
         params.forEach {
             thumbnailExtractor.extract(UUID.randomUUID().toString(), it.copy(priority = 100L), object: ThumbnailExtractListener {
                 override fun onExtracted(id: String, timestampUs: Long, bitmap: Bitmap) {

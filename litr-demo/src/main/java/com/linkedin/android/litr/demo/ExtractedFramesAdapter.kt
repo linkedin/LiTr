@@ -21,7 +21,7 @@ import com.linkedin.android.litr.thumbnails.VideoThumbnailExtractor
 import java.util.*
 
 class ExtractedFramesAdapter(private val extractor: VideoThumbnailExtractor, private val cache: LruCache<Long, Bitmap>) :
-    RecyclerView.Adapter<ExtractedFramesAdapter.FrameViewHolder>() {
+        RecyclerView.Adapter<ExtractedFramesAdapter.FrameViewHolder>() {
 
     private val frames = mutableListOf<ThumbnailExtractParameters>()
 
@@ -33,7 +33,7 @@ class ExtractedFramesAdapter(private val extractor: VideoThumbnailExtractor, pri
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): FrameViewHolder {
         val view = LayoutInflater.from(parent.context)
-            .inflate(R.layout.item_frame, parent, false)
+                .inflate(R.layout.item_frame, parent, false)
 
         return FrameViewHolder(view, null)
     }
@@ -50,33 +50,35 @@ class ExtractedFramesAdapter(private val extractor: VideoThumbnailExtractor, pri
 
         val cachedBitmap = cache.get(frameParams.timestampUs)
         if (cachedBitmap != null) {
+            // Cache hit: just use the cached bitmap.
             holder.imageView.setImageBitmap(cachedBitmap)
             holder.imageView.visibility = View.VISIBLE
             holder.indicator.setBackgroundColor(Color.BLACK)
         } else {
+            // Cache miss: start the thumbnail extraction job.
             extractor.extract(
-                requestId,
-                frameParams,
-                object : ThumbnailExtractListener {
-                    override fun onStarted(id: String, timestampUs: Long) {
-                        holder.indicator.setBackgroundColor(Color.BLUE)
-                    }
+                    requestId,
+                    frameParams,
+                    object : ThumbnailExtractListener {
+                        override fun onStarted(id: String, timestampUs: Long) {
+                            holder.indicator.setBackgroundColor(Color.BLUE)
+                        }
 
-                    override fun onExtracted(id: String, timestampUs: Long, bitmap: Bitmap) {
-                        holder.imageView.setImageBitmap(bitmap)
-                        holder.imageView.visibility = View.VISIBLE
-                        holder.indicator.setBackgroundColor(Color.GREEN)
-                    }
+                        override fun onExtracted(id: String, timestampUs: Long, bitmap: Bitmap) {
+                            holder.imageView.setImageBitmap(bitmap)
+                            holder.imageView.visibility = View.VISIBLE
+                            holder.indicator.setBackgroundColor(Color.GREEN)
+                        }
 
-                    override fun onCancelled(id: String, timestampUs: Long) {
-                        holder.indicator.setBackgroundColor(Color.YELLOW)
-                    }
+                        override fun onCancelled(id: String, timestampUs: Long) {
+                            holder.indicator.setBackgroundColor(Color.YELLOW)
+                        }
 
-                    override fun onError(id: String, timestampUs: Long, cause: Throwable?) {
-                        holder.indicator.setBackgroundColor(Color.RED)
+                        override fun onError(id: String, timestampUs: Long, cause: Throwable?) {
+                            holder.indicator.setBackgroundColor(Color.RED)
 
-                    }
-                })
+                        }
+                    })
         }
     }
 
