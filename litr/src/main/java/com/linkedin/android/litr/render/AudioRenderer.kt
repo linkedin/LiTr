@@ -107,7 +107,7 @@ class AudioRenderer(private val encoder: Encoder) : Renderer {
 //                }
 
                 // resample in JNI
-                val resampledNumSamples = resample(sourceBuffer, sourceBuffer.size, targetBuffer, targetBuffer.size)
+                val resampledNumSamples = resample(sourceBuffer, sourceBuffer.size, targetBuffer)
 
 //                val newBuffer = ShortArray(resampledNumSamples * channelCount)
 //                for (index in 0 until resampledNumSamples * channelCount) {
@@ -205,7 +205,7 @@ class AudioRenderer(private val encoder: Encoder) : Renderer {
 
     private external fun initAudioResampler(channelCount: Int, sourceSampleRate: Int, targetSampleRate: Int)
 
-    private external fun resample(sourceBuffer: ShortArray, sourceBufferSize: Int, targetBuffer: ShortArray, targetBufferSize: Int): Int
+    private external fun resample(sourceBuffer: ShortArray, sourceBufferSize: Int, targetBuffer: ShortArray): Int
 
     private external fun releaseAudioResampler()
 
