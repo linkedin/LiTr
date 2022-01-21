@@ -92,29 +92,9 @@ class AudioRenderer(private val encoder: Encoder) : Renderer {
                 repeat(numSamples * channelCount) { index ->
                     sourceBuffer[index] = inputBuffer.get(index)
                 }
-
                 val targetBuffer = ShortArray(numSamples * channelCount)
 
-                // resample in Java
-//                val factor = 2
-//                val resampledNumSamples = numSamples / factor
-//
-//
-//                for (index in 0 until resampledNumSamples) {
-//                    for (channel in 0 until channelCount) {
-//                        targetBuffer[index * channelCount + channel] = sourceBuffer[index * factor * channelCount + channel]
-//                    }
-//                }
-
-                // resample in JNI
                 val resampledNumSamples = resample(sourceBuffer, sourceBuffer.size, targetBuffer)
-
-//                val newBuffer = ShortArray(resampledNumSamples * channelCount)
-//                for (index in 0 until resampledNumSamples * channelCount) {
-//                    newBuffer[index] = targetBuffer[index].toInt().toShort()
-//                }
-
-                //Log.d(TAG, "Max source ${sourceBuffer.maxOrNull()} target ${targetBuffer.maxOrNull()}")
 
                 val newSize = resampledNumSamples * BYTES_PER_SAMPLE * channelCount
 
@@ -127,8 +107,6 @@ class AudioRenderer(private val encoder: Encoder) : Renderer {
                 bufferInfo.flags = inputFrame.bufferInfo.flags
 
                 this.presentationTimeNs += (resampledNumSamples * sampleDurationUs).toLong()
-
-                //Log.d(TAG, "Resampled $numSamples to $resampledNumSamples")
 
                 renderQueue.add(Frame(inputFrame.tag, outByteBuffer, bufferInfo))
             } else {
