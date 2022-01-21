@@ -14,12 +14,8 @@ import android.view.Surface
 import com.linkedin.android.litr.codec.Encoder
 import com.linkedin.android.litr.codec.Frame
 import java.nio.ByteBuffer
-import java.nio.FloatBuffer
-import java.nio.ShortBuffer
 import java.util.concurrent.LinkedBlockingDeque
-import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
-import kotlin.random.Random
 
 private const val BYTES_PER_SAMPLE = 2
 private const val FRAME_WAIT_TIMEOUT: Long = 0L
@@ -83,22 +79,21 @@ class AudioRenderer(private val encoder: Encoder) : Renderer {
             val bufferInfo = MediaCodec.BufferInfo()
 
             if (shouldResample) {
-                val numSamples = inputFrame.bufferInfo.size / (BYTES_PER_SAMPLE * channelCount)
-                val targetBuffer = ShortArray(numSamples * channelCount)
+                val sourceSampleCount = inputFrame.bufferInfo.size / (BYTES_PER_SAMPLE * channelCount)
+                val targetBuffer = ShortArray(sourceSampleCount * channelCount)
 
-                val resampledNumSamples = resample(inputFrame.buffer, numSamples, targetBuffer)
+                val targetSampleCount = resample(inputFrame.buffer, sourceSampleCount, targetBuffer)
 
-                val newSize = resampledNumSamples * BYTES_PER_SAMPLE * channelCount
+                val targetBufferSize = targetSampleCount * BYTES_PER_SAMPLE * channelCount
+                val outByteBuffer = ByteBuffer.allocate(targetBufferSize)
+                outByteBuffer.asShortBuffer().put(targetBuffer, 0, targetSampleCount * channelCount)
 
-                val outByteBuffer = ByteBuffer.allocate(newSize)
-                outByteBuffer.asShortBuffer().put(targetBuffer, 0, resampledNumSamples * channelCount)
-
-                bufferInfo.size = newSize
+                bufferInfo.size = targetBufferSize
                 bufferInfo.offset = 0
                 bufferInfo.presentationTimeUs = this.presentationTimeNs
                 bufferInfo.flags = inputFrame.bufferInfo.flags
 
-                this.presentationTimeNs += (resampledNumSamples * sampleDurationUs).toLong()
+                this.presentationTimeNs += (targetSampleCount * sampleDurationUs).toLong()
 
                 renderQueue.add(Frame(inputFrame.tag, outByteBuffer, bufferInfo))
             } else {
