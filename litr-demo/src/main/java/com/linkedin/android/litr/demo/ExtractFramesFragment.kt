@@ -9,6 +9,7 @@ package com.linkedin.android.litr.demo
 
 import android.R
 import android.graphics.Bitmap
+import android.graphics.Point
 import android.net.Uri
 import android.os.Bundle
 import android.util.LruCache
