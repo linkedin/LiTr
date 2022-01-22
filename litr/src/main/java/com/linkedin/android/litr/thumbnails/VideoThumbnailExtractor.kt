@@ -139,6 +139,6 @@ class VideoThumbnailExtractor @JvmOverloads constructor(
     private data class ActiveExtractJob(val future: Future<*>, val listener: ThumbnailExtractListener?)
 
     companion object {
-        private val TAG = VideoThumbnailExtractor::class.qualifiedName
+        private const val TAG = "VideoThumbnailExtractor"
     }
 }

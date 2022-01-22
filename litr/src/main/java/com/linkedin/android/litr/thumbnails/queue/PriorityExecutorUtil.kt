@@ -14,7 +14,10 @@ import java.util.concurrent.*
  */
 object PriorityExecutorUtil {
     fun newSingleThreadPoolPriorityExecutor() = ThreadPoolExecutor(
-        1, 1, 0L,
-        TimeUnit.MILLISECONDS, PriorityBlockingQueue()
+        1,
+        1,
+        0L,
+        TimeUnit.MILLISECONDS,
+        PriorityBlockingQueue()
     )
 }
