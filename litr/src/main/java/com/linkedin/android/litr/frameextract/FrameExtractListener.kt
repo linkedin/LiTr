@@ -5,16 +5,16 @@
  * Licensed under the BSD 2-Clause License (the "License").  See License in the project root for
  * license information.
  */
-package com.linkedin.android.litr.thumbnails
+package com.linkedin.android.litr.frameextract
 
 import android.graphics.Bitmap
-import com.linkedin.android.litr.ExperimentalThumbnailsApi
+import com.linkedin.android.litr.ExperimentalFrameExtractorApi
 
 /**
- * Listener for thumbnail extraction events.
+ * Listener for frame extraction events.
  */
-@ExperimentalThumbnailsApi
-interface ThumbnailExtractListener {
+@ExperimentalFrameExtractorApi
+interface FrameExtractListener {
     /**
      * Occurs when the specified job has started.
      */

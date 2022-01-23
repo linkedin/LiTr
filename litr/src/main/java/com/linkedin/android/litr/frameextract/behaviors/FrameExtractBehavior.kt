@@ -5,28 +5,27 @@
  * Licensed under the BSD 2-Clause License (the "License").  See License in the project root for
  * license information.
  */
-package com.linkedin.android.litr.thumbnails.behaviors
+package com.linkedin.android.litr.frameextract.behaviors
 
 import android.graphics.Bitmap
-import android.net.Uri
-import com.linkedin.android.litr.ExperimentalThumbnailsApi
-import com.linkedin.android.litr.thumbnails.ThumbnailExtractParameters
+import com.linkedin.android.litr.ExperimentalFrameExtractorApi
+import com.linkedin.android.litr.frameextract.FrameExtractParameters
 
 /**
- * An interface used by [ExtractionBehavior] to notify the job of the status of individual frame extraction.
+ * An interface used by [FrameExtractBehavior] to notify the job of the status of individual frame extraction.
  */
-interface ExtractBehaviorFrameListener {
+interface FrameExtractBehaviorFrameListener {
     fun onFrameExtracted(bitmap: Bitmap)
     fun onFrameFailed()
 }
 
 /**
- * Provides a way to customize thumbnail extraction behavior.
+ * Provides a way to customize frame extraction behavior.
  *
  * All methods are guaranteed to be called on the same thread, but the thread will not be the main thread.
  */
-@ExperimentalThumbnailsApi
-interface ExtractionBehavior {
+@ExperimentalFrameExtractorApi
+interface FrameExtractBehavior {
     /**
      * Perform frame extraction work here, and notify [listener] for each frame extracted. This method is called only once.
      *
@@ -34,7 +33,7 @@ interface ExtractionBehavior {
      *
      * @return Return true if extraction is completed/scheduled, false if it was canceled.
      */
-    fun extract(params: ThumbnailExtractParameters, listener: ExtractBehaviorFrameListener): Boolean
+    fun extract(params: FrameExtractParameters, listener: FrameExtractBehaviorFrameListener): Boolean
 
     /**
      * Called when this behavior should clean up any associated resources.

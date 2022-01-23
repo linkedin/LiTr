@@ -9,6 +9,6 @@ package com.linkedin.android.litr.render
 
 import android.graphics.Bitmap
 
-interface ThumbnailRenderer {
+interface SingleFrameRenderer {
     fun renderFrame(input: Bitmap?, presentationTimeNs: Long): Bitmap?
 }

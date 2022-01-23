@@ -5,37 +5,34 @@
  * Licensed under the BSD 2-Clause License (the "License").  See License in the project root for
  * license information.
  */
-package com.linkedin.android.litr.thumbnails
+package com.linkedin.android.litr.frameextract
 
 import android.content.Context
 import android.graphics.Bitmap
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
-import com.linkedin.android.litr.ExperimentalThumbnailsApi
-import com.linkedin.android.litr.filter.GlFilter
-import com.linkedin.android.litr.render.GlThumbnailRenderer
-import com.linkedin.android.litr.render.ThumbnailRenderer
-import com.linkedin.android.litr.thumbnails.behaviors.ExtractionBehavior
-import com.linkedin.android.litr.thumbnails.behaviors.MediaMetadataExtractionBehavior
-import com.linkedin.android.litr.thumbnails.queue.ComparableFutureTask
-import com.linkedin.android.litr.thumbnails.queue.PriorityExecutorUtil
+import com.linkedin.android.litr.ExperimentalFrameExtractorApi
+import com.linkedin.android.litr.frameextract.behaviors.FrameExtractBehavior
+import com.linkedin.android.litr.frameextract.behaviors.MediaMetadataExtractBehavior
+import com.linkedin.android.litr.frameextract.queue.ComparableFutureTask
+import com.linkedin.android.litr.frameextract.queue.PriorityExecutorUtil
 import java.util.concurrent.*
 
 /**
- * Provides the entry point for thumbnail extraction.
+ * Provides the entry point for single frame extraction.
  *
- * This class uses a single, dedicated thread to schedule jobs. The priority of each job can be specified within [ThumbnailExtractParameters].
+ * This class uses a single, dedicated thread to schedule jobs. The priority of each job can be specified within [FrameExtractParameters].
  *
  * @param context The application context.
  * @param listenerLooper The looper on which [extract] listener events will be processed.
- * @param extractionBehavior The behavior to use for extracting frames from media.
+ * @param extractBehavior The behavior to use for extracting frames from media.
  */
-@ExperimentalThumbnailsApi
-class VideoThumbnailExtractor @JvmOverloads constructor(
+@ExperimentalFrameExtractorApi
+class VideoFrameExtractor @JvmOverloads constructor(
     context: Context,
     private val listenerLooper: Looper = Looper.getMainLooper(),
-    private var extractionBehavior: ExtractionBehavior = MediaMetadataExtractionBehavior(context)
+    private var extractBehavior: FrameExtractBehavior = MediaMetadataExtractBehavior(context)
 ) {
 
     private val activeJobMap = mutableMapOf<String, ActiveExtractJob>()
@@ -47,26 +44,26 @@ class VideoThumbnailExtractor @JvmOverloads constructor(
     private val executorService = PriorityExecutorUtil.newSingleThreadPoolPriorityExecutor()
 
     /**
-     * Starts a new thumbnail extract job with the specified parameters. The [listener] will be updated with the job status.
+     * Starts a new frame extract job with the specified parameters. The [listener] will be updated with the job status.
      *
      * @param requestId The ID of this request. Only one request per ID can be active. This ID is used to then refer to the request when calling [stop].
      * @param params Specifies extraction options and other parameters.
      * @param listener The listener to notify about the job status, such as success/error.
      */
-    fun extract(requestId: String, params: ThumbnailExtractParameters, listener: ThumbnailExtractListener?) {
+    fun extract(requestId: String, params: FrameExtractParameters, listener: FrameExtractListener?) {
         if (activeJobMap.containsKey(requestId)) {
             Log.w(TAG, "Request with ID $requestId already exists")
             return
         }
-        val task = ThumbnailExtractJob(requestId, params, extractionBehavior, rootListener)
+        val task = FrameExtractJob(requestId, params, extractBehavior, rootListener)
         val futureTask = ComparableFutureTask(task, null, params.priority)
         executorService.execute(futureTask)
         activeJobMap[requestId] = ActiveExtractJob(futureTask, listener)
     }
 
     /**
-     * Cancels the specified extract job. If the job was in progress, [ThumbnailExtractListener.onCancelled] will be called for the job.
-     * Does not terminate immediately: [ThumbnailExtractListener.onExtracted] may still be called after this method is called.
+     * Cancels the specified extract job. If the job was in progress, [FrameExtractListener.onCancelled] will be called for the job.
+     * Does not terminate immediately: [FrameExtractListener.onExtracted] may still be called after this method is called.
      */
     fun stop(requestId: String) {
         activeJobMap[requestId]?.let {
@@ -77,7 +74,7 @@ class VideoThumbnailExtractor @JvmOverloads constructor(
     }
 
     /**
-     * Cancels all started extract jobs. [ThumbnailExtractListener.onCancelled] will be called for jobs that have been started.
+     * Cancels all started extract jobs. [FrameExtractListener.onCancelled] will be called for jobs that have been started.
      */
     fun stopAll() {
         activeJobMap.values.forEach {
@@ -92,7 +89,7 @@ class VideoThumbnailExtractor @JvmOverloads constructor(
      */
     fun release() {
         executorService.shutdownNow()
-        extractionBehavior.release()
+        extractBehavior.release()
         activeJobMap.clear()
     }
 
@@ -100,7 +97,7 @@ class VideoThumbnailExtractor @JvmOverloads constructor(
         activeJobMap.remove(jobId)
     }
 
-    private val rootListener = object : ThumbnailExtractListener {
+    private val rootListener = object : FrameExtractListener {
 
         override fun onStarted(id: String, timestampUs: Long) {
             runOnListenerHandler(activeJobMap[id]?.listener) { it.onStarted(id, timestampUs) }
@@ -127,7 +124,7 @@ class VideoThumbnailExtractor @JvmOverloads constructor(
             }
         }
 
-        private fun runOnListenerHandler(listener: ThumbnailExtractListener?, func: (ThumbnailExtractListener) -> Unit) {
+        private fun runOnListenerHandler(listener: FrameExtractListener?, func: (FrameExtractListener) -> Unit) {
             if (listener != null) {
                 listenerHandler.post {
                     func(listener)
@@ -136,7 +133,7 @@ class VideoThumbnailExtractor @JvmOverloads constructor(
         }
     }
 
-    private data class ActiveExtractJob(val future: Future<*>, val listener: ThumbnailExtractListener?)
+    private data class ActiveExtractJob(val future: Future<*>, val listener: FrameExtractListener?)
 
     companion object {
         private const val TAG = "VideoThumbnailExtractor"

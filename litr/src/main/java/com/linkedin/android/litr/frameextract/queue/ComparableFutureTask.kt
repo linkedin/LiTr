@@ -5,7 +5,7 @@
  * Licensed under the BSD 2-Clause License (the "License").  See License in the project root for
  * license information.
  */
-package com.linkedin.android.litr.thumbnails.queue
+package com.linkedin.android.litr.frameextract.queue
 
 import java.util.concurrent.*
 import java.util.concurrent.atomic.AtomicLong

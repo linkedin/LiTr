@@ -16,17 +16,19 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import androidx.recyclerview.widget.RecyclerView
-import com.linkedin.android.litr.thumbnails.ThumbnailExtractListener
-import com.linkedin.android.litr.thumbnails.ThumbnailExtractParameters
-import com.linkedin.android.litr.thumbnails.VideoThumbnailExtractor
+import com.linkedin.android.litr.ExperimentalFrameExtractorApi
+import com.linkedin.android.litr.frameextract.FrameExtractListener
+import com.linkedin.android.litr.frameextract.FrameExtractParameters
+import com.linkedin.android.litr.frameextract.VideoFrameExtractor
 import java.util.*
 
-class ExtractedFramesAdapter(private val extractor: VideoThumbnailExtractor, private val cache: LruCache<Long, ByteArray>) :
+@OptIn(ExperimentalFrameExtractorApi::class)
+class ExtractedFramesAdapter(private val extractor: VideoFrameExtractor, private val cache: LruCache<Long, ByteArray>) :
         RecyclerView.Adapter<ExtractedFramesAdapter.FrameViewHolder>() {
 
-    private val frames = mutableListOf<ThumbnailExtractParameters>()
+    private val frames = mutableListOf<FrameExtractParameters>()
 
-    fun loadData(frames: List<ThumbnailExtractParameters>) {
+    fun loadData(frames: List<FrameExtractParameters>) {
         this.frames.clear()
         this.frames.addAll(frames)
         notifyDataSetChanged()
@@ -57,11 +59,11 @@ class ExtractedFramesAdapter(private val extractor: VideoThumbnailExtractor, pri
             holder.imageView.visibility = View.VISIBLE
             holder.indicator.setBackgroundColor(Color.BLACK)
         } else {
-            // Cache miss: start the thumbnail extraction job.
+            // Cache miss: start the frame extraction job.
             extractor.extract(
                     requestId,
                     frameParams,
-                    object : ThumbnailExtractListener {
+                    object : FrameExtractListener {
                         override fun onStarted(id: String, timestampUs: Long) {
                             holder.indicator.setBackgroundColor(Color.BLUE)
                         }

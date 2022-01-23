@@ -5,24 +5,26 @@
  * Licensed under the BSD 2-Clause License (the "License").  See License in the project root for
  * license information.
  */
-package com.linkedin.android.litr.thumbnails
+package com.linkedin.android.litr.frameextract
 
 import android.graphics.Bitmap
 import android.media.ThumbnailUtils
 import android.util.Log
-import com.linkedin.android.litr.thumbnails.behaviors.ExtractionBehavior
-import com.linkedin.android.litr.thumbnails.behaviors.ExtractBehaviorFrameListener
+import com.linkedin.android.litr.ExperimentalFrameExtractorApi
+import com.linkedin.android.litr.frameextract.behaviors.FrameExtractBehavior
+import com.linkedin.android.litr.frameextract.behaviors.FrameExtractBehaviorFrameListener
 
 /**
- * Provides the request lifecycle for extracting video thumbnails. The specifics of extraction work are delegated to [ExtractionBehavior]s.
+ * Provides the request lifecycle for extracting video frames. The specifics of extraction work are delegated to [FrameExtractBehavior]s.
  */
-class ThumbnailExtractJob constructor(
+@ExperimentalFrameExtractorApi
+class FrameExtractJob constructor(
     private val jobId: String,
-    private val params: ThumbnailExtractParameters,
-    private val behavior: ExtractionBehavior,
-    private val listener: ThumbnailExtractListener?
+    private val params: FrameExtractParameters,
+    private val behavior: FrameExtractBehavior,
+    private val listener: FrameExtractListener?
 ) : Runnable {
-    private val behaviorFrameListener = object: ExtractBehaviorFrameListener {
+    private val behaviorFrameListener = object: FrameExtractBehaviorFrameListener {
         override fun onFrameExtracted(bitmap: Bitmap) {
             val renderedBitmap = renderExtractedFrame(bitmap)
 
@@ -42,7 +44,7 @@ class ThumbnailExtractJob constructor(
         try {
             extract()
         } catch (e: RuntimeException) {
-            Log.e(TAG, "ThumbnailExtractJob error", e)
+            Log.e(TAG, "FrameExtractJob error", e)
             when (e.cause) {
                 is InterruptedException -> {
                     listener?.onCancelled(jobId, params.timestampUs)
@@ -98,11 +100,11 @@ class ThumbnailExtractJob constructor(
     }
 
     private fun error(cause: Throwable?) {
-        Log.e(TAG, "Error encountered while extracting thumbnails", cause)
+        Log.e(TAG, "Error encountered while extracting frames", cause)
         listener?.onError(jobId, params.timestampUs, cause)
     }
 
     companion object {
-        private val TAG: String = ThumbnailExtractJob::class.java.simpleName
+        private val TAG: String = FrameExtractJob::class.java.simpleName
     }
 }

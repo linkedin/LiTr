@@ -5,12 +5,12 @@
  * Licensed under the BSD 2-Clause License (the "License").  See License in the project root for
  * license information.
  */
-package com.linkedin.android.litr.thumbnails
+package com.linkedin.android.litr.frameextract
 
-import com.linkedin.android.litr.ExperimentalThumbnailsApi
+import com.linkedin.android.litr.ExperimentalFrameExtractorApi
 
-@ExperimentalThumbnailsApi
-enum class ExtractionMode {
+@ExperimentalFrameExtractorApi
+enum class FrameExtractMode {
     /**
      * Extract just the sync frames (typically this is fastest).
      */

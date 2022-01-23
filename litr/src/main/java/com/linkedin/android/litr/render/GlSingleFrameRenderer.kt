@@ -24,7 +24,7 @@ import java.util.*
 /**
  * A renderer that applies OpenGL filters to a bitmap, and returns a new bitmap.
  */
-class GlThumbnailRenderer(filters: List<GlFilter>?) : ThumbnailRenderer {
+class GlSingleFrameRenderer(filters: List<GlFilter>?) : SingleFrameRenderer {
     private val hasFilters: Boolean = filters != null && filters.isNotEmpty()
 
     private val filters: MutableList<GlFilter>

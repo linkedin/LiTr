@@ -5,18 +5,17 @@
  * Licensed under the BSD 2-Clause License (the "License").  See License in the project root for
  * license information.
  */
-package com.linkedin.android.litr.thumbnails.behaviors
+package com.linkedin.android.litr.frameextract.behaviors
 
 import android.content.Context
 import android.media.MediaMetadataRetriever
-import android.media.ThumbnailUtils
 import android.net.Uri
-import com.linkedin.android.litr.ExperimentalThumbnailsApi
-import com.linkedin.android.litr.thumbnails.ExtractionMode
-import com.linkedin.android.litr.thumbnails.ThumbnailExtractParameters
+import com.linkedin.android.litr.ExperimentalFrameExtractorApi
+import com.linkedin.android.litr.frameextract.FrameExtractMode
+import com.linkedin.android.litr.frameextract.FrameExtractParameters
 
-@ExperimentalThumbnailsApi
-class MediaMetadataExtractionBehavior(private val context: Context) : ExtractionBehavior {
+@ExperimentalFrameExtractorApi
+class MediaMetadataExtractBehavior(private val context: Context) : FrameExtractBehavior {
     private var retrieverToMediaUri: RetrieverToMediaUri? = null
 
     @Synchronized
@@ -38,14 +37,14 @@ class MediaMetadataExtractionBehavior(private val context: Context) : Extraction
         }
     }
 
-    override fun extract(params: ThumbnailExtractParameters, listener: ExtractBehaviorFrameListener): Boolean {
+    override fun extract(params: FrameExtractParameters, listener: FrameExtractBehaviorFrameListener): Boolean {
 
         val completed = when (params.mode) {
-            ExtractionMode.Fast -> {
-                retrieveThumbnail(params, MediaMetadataRetriever.OPTION_CLOSEST_SYNC, listener)
+            FrameExtractMode.Fast -> {
+                retrieveFrame(params, MediaMetadataRetriever.OPTION_CLOSEST_SYNC, listener)
             }
-            ExtractionMode.Exact -> {
-                retrieveThumbnail(params, MediaMetadataRetriever.OPTION_CLOSEST, listener)
+            FrameExtractMode.Exact -> {
+                retrieveFrame(params, MediaMetadataRetriever.OPTION_CLOSEST, listener)
             }
         }
         return completed
@@ -55,7 +54,7 @@ class MediaMetadataExtractionBehavior(private val context: Context) : Extraction
         retrieverToMediaUri?.retriever?.release()
     }
 
-    private fun retrieveThumbnail(params: ThumbnailExtractParameters, retrieverOptions: Int, listener: ExtractBehaviorFrameListener): Boolean {
+    private fun retrieveFrame(params: FrameExtractParameters, retrieverOptions: Int, listener: FrameExtractBehaviorFrameListener): Boolean {
         val retriever = setupRetriever(params.mediaUri)
         val extractedBitmap = retriever.getFrameAtTime(params.timestampUs, retrieverOptions)
 

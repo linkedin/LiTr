@@ -21,21 +21,23 @@ import android.widget.AdapterView.OnItemSelectedListener
 import android.widget.ArrayAdapter
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.linkedin.android.litr.ExperimentalFrameExtractorApi
 import com.linkedin.android.litr.demo.data.SourceMedia
 import com.linkedin.android.litr.demo.databinding.FragmentExtractFramesBinding
 import com.linkedin.android.litr.filter.GlFilter
-import com.linkedin.android.litr.render.GlThumbnailRenderer
-import com.linkedin.android.litr.thumbnails.ExtractionMode
-import com.linkedin.android.litr.thumbnails.ThumbnailExtractListener
-import com.linkedin.android.litr.thumbnails.ThumbnailExtractParameters
-import com.linkedin.android.litr.thumbnails.VideoThumbnailExtractor
+import com.linkedin.android.litr.render.GlSingleFrameRenderer
+import com.linkedin.android.litr.frameextract.FrameExtractMode
+import com.linkedin.android.litr.frameextract.FrameExtractListener
+import com.linkedin.android.litr.frameextract.FrameExtractParameters
+import com.linkedin.android.litr.frameextract.VideoFrameExtractor
 import java.io.ByteArrayOutputStream
 import java.util.*
 
+@OptIn(ExperimentalFrameExtractorApi::class)
 class ExtractFramesFragment : BaseTransformationFragment(), MediaPickerListener {
     private lateinit var binding: FragmentExtractFramesBinding
     private lateinit var filtersAdapter: ArrayAdapter<DemoFilter>
-    private lateinit var thumbnailExtractor: VideoThumbnailExtractor
+    private lateinit var frameExtractor: VideoFrameExtractor
     private lateinit var framesAdapter: ExtractedFramesAdapter
     private lateinit var bitmapInMemoryCache: LruCache<Long, ByteArray>
 
@@ -52,13 +54,13 @@ class ExtractFramesFragment : BaseTransformationFragment(), MediaPickerListener 
             setDropDownViewResource(R.layout.simple_spinner_dropdown_item)
         }
 
-        thumbnailExtractor = VideoThumbnailExtractor(requireContext())
-        framesAdapter = ExtractedFramesAdapter(thumbnailExtractor, bitmapInMemoryCache)
+        frameExtractor = VideoFrameExtractor(requireContext())
+        framesAdapter = ExtractedFramesAdapter(frameExtractor, bitmapInMemoryCache)
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        thumbnailExtractor.release()
+        frameExtractor.release()
     }
 
     override fun onCreateView(
@@ -92,7 +94,7 @@ class ExtractFramesFragment : BaseTransformationFragment(), MediaPickerListener 
     }
 
     fun extractThumbnails(sourceMedia: SourceMedia, filter: GlFilter?) {
-        thumbnailExtractor.stopAll()
+        frameExtractor.stopAll()
         bitmapInMemoryCache.evictAll()
 
         val thumbCount = 50
@@ -112,15 +114,15 @@ class ExtractFramesFragment : BaseTransformationFragment(), MediaPickerListener 
         }
 
         // Because we want to apply the same filter to each frame, the renderer may be shared between all thumbnail requests.
-        val renderer = GlThumbnailRenderer(filter?.let { listOf(it) })
+        val renderer = GlSingleFrameRenderer(filter?.let { listOf(it) })
 
         // From each timestamp, construct the parameters to send to the thumbnail extractor.
         val params = timestamps.map {
-            ThumbnailExtractParameters(
+            FrameExtractParameters(
                 sourceMedia.uri,
                 it,
                 renderer,
-                ExtractionMode.Fast,
+                FrameExtractMode.Fast,
                 Point(thumbHeight, thumbHeight),
                 0L
             )
@@ -134,7 +136,7 @@ class ExtractFramesFragment : BaseTransformationFragment(), MediaPickerListener 
         // Because of the lower priority, these frames will only load when the RecyclerView adapter is not requesting frames at a higher priority.
         // In a production application, an on-disk bitmap cache may be preferred.
         params.forEach {
-            thumbnailExtractor.extract(UUID.randomUUID().toString(), it.copy(priority = 100L), object: ThumbnailExtractListener {
+            frameExtractor.extract(UUID.randomUUID().toString(), it.copy(priority = 100L), object: FrameExtractListener {
                 override fun onExtracted(id: String, timestampUs: Long, bitmap: Bitmap) {
                     // Compress bitmap
                     val baos = ByteArrayOutputStream()
