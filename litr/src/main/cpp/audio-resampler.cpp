@@ -52,7 +52,13 @@ Java_com_linkedin_android_litr_render_AudioRenderer_resample(
             } else {
                 audio_resampler->readNextFrame(outputBuffer);
                 for (int channel = 0; channel < channel_count; channel++) {
-                    targetBuffer[framesProcessed * channel_count + channel] = (short) *(outputBuffer + channel);
+                    float value = *(outputBuffer + channel);
+                    if (value < -32768) {
+                        value = -32768;
+                    } else if (value > 32767) {
+                        value = 32767;
+                    }
+                    targetBuffer[framesProcessed * channel_count + channel] = (short) value;
                 }
                 framesProcessed++;
             }
