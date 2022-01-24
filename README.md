@@ -13,6 +13,7 @@ In its current iteration LiTr supports:
  - positioning source video frame arbitrarily onto target video frame
  - trimming video/audio
  - ability to create "empty" video, or a video out of single image
+ - ability to create preview bitmap(s) (with filters applied) at specific timestamp(s) (filmstrip)
 
 By default, LiTr uses Android MediaCodec stack for hardware accelerated decoding/encoding and OpenGL for rendering. It also uses MediaExtractor and MediaMuxer to read/write media.
 
@@ -21,7 +22,7 @@ By default, LiTr uses Android MediaCodec stack for hardware accelerated decoding
 Simply grab via Gradle:
 
 ```groovy
- implementation 'com.linkedin.android.litr:litr:1.4.16'
+ implementation 'com.linkedin.android.litr:litr:1.4.17'
 ```
 ...or Maven:
 
@@ -29,7 +30,7 @@ Simply grab via Gradle:
 <dependency>
   <groupId>com.linkedin.android.litr</groupId>
   <artifactId>litr</artifactId>
-  <version>1.4.16</version>
+  <version>1.4.17</version>
 </dependency>
 
 ```
@@ -124,7 +125,7 @@ You can use custom filters to modify video frames. Write your own in OpenGL as a
 LiTr now has 40 new GPU accelerated video filters ported from [Mp4Composer-android](https://github.com/MasayukiSuda/Mp4Composer-android) and [android-gpuimage](https://github.com/cats-oss/android-gpuimage) projects. You can also create your own filter simply by configuring VideoFrameRenderFilter with your custom shader, with no extra coding!
 
 ```groovy
- implementation 'com.linkedin.android.litr:litr-filters:1.4.16'
+ implementation 'com.linkedin.android.litr:litr-filters:1.4.17'
 ```
 ...or Maven:
 
@@ -132,7 +133,7 @@ LiTr now has 40 new GPU accelerated video filters ported from [Mp4Composer-andro
 <dependency>
   <groupId>com.linkedin.android.litr</groupId>
   <artifactId>litr-filters</artifactId>
-  <version>1.4.16</version>
+  <version>1.4.17</version>
 </dependency>
 
 ```
