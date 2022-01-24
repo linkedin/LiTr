@@ -8,7 +8,9 @@
 package com.linkedin.android.litr.render
 
 import android.graphics.Bitmap
+import com.linkedin.android.litr.ExperimentalFrameExtractorApi
 
+@ExperimentalFrameExtractorApi
 interface SingleFrameRenderer {
     fun renderFrame(input: Bitmap?, presentationTimeNs: Long): Bitmap?
 }

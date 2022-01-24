@@ -12,7 +12,7 @@ import java.util.concurrent.*
 /**
  * Helpers for constructing an [ExecutorService] backed by a [PriorityBlockingQueue] for prioritizing tasks.
  */
-object PriorityExecutorUtil {
+internal object PriorityExecutorUtil {
     fun newSingleThreadPoolPriorityExecutor() = ThreadPoolExecutor(
         1,
         1,

@@ -15,7 +15,7 @@ import java.util.concurrent.atomic.AtomicLong
  *
  * This task maintains a FIFO order for priority.
  */
-open class ComparableFutureTask<T>(runnable: Runnable?, result: T, private var priority: Long) : FutureTask<T>(runnable, result),
+internal class ComparableFutureTask<T>(runnable: Runnable?, result: T, private var priority: Long) : FutureTask<T>(runnable, result),
     Comparable<ComparableFutureTask<T>> {
     private val sequenceNumber = sharedSequence.getAndIncrement()
 

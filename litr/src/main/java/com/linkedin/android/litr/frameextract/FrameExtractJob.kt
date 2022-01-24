@@ -18,7 +18,7 @@ import com.linkedin.android.litr.frameextract.behaviors.FrameExtractBehaviorFram
  * Provides the request lifecycle for extracting video frames. The specifics of extraction work are delegated to [FrameExtractBehavior]s.
  */
 @ExperimentalFrameExtractorApi
-class FrameExtractJob constructor(
+internal class FrameExtractJob constructor(
     private val jobId: String,
     private val params: FrameExtractParameters,
     private val behavior: FrameExtractBehavior,
