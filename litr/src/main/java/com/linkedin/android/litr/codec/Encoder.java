@@ -30,7 +30,7 @@ public interface Encoder {
      * Requests a Surface to use as the input to an encoder, in place of input buffers. This may only be called after init() and before start()
      * @return a surface, which will be input to an encoder
      */
-    @NonNull
+    @Nullable
     Surface createInputSurface();
 
     /**

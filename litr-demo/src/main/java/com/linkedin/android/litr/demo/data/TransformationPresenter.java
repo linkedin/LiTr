@@ -24,6 +24,7 @@ import androidx.annotation.Nullable;
 import com.linkedin.android.litr.MediaTransformer;
 import com.linkedin.android.litr.TrackTransform;
 import com.linkedin.android.litr.TransformationOptions;
+import com.linkedin.android.litr.codec.Encoder;
 import com.linkedin.android.litr.codec.MediaCodecDecoder;
 import com.linkedin.android.litr.codec.MediaCodecEncoder;
 import com.linkedin.android.litr.codec.PassthroughDecoder;
@@ -38,6 +39,7 @@ import com.linkedin.android.litr.io.MediaRange;
 import com.linkedin.android.litr.io.MediaSource;
 import com.linkedin.android.litr.io.MediaTarget;
 import com.linkedin.android.litr.io.MockVideoMediaSource;
+import com.linkedin.android.litr.render.AudioRenderer;
 import com.linkedin.android.litr.render.GlVideoRenderer;
 import com.linkedin.android.litr.utils.TransformationUtil;
 
@@ -556,33 +558,51 @@ public class TransformationPresenter {
                 TimeUnit.MILLISECONDS.toMicros((long) (trimConfig.range.get(1) * 1000)))
                 : new MediaRange(0, Long.MAX_VALUE);
 
-        TransformationOptions transformationOptions = new TransformationOptions.Builder()
-                .setGranularity(MediaTransformer.GRANULARITY_DEFAULT)
-                .setSourceMediaRange(mediaRange)
-                .build();
+        try {
+            MediaSource mediaSource = new MediaExtractorMediaSource(context, sourceMedia.uri, mediaRange);
+            //MediaTarget mediaTarget = new WavMediaTarget(targetMedia.targetFile.getPath() + ".wav");
+            MediaTarget mediaTarget = new MediaMuxerMediaTarget(targetMedia.targetFile.getPath(),
+                    1,
+                    0,
+                    MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4);
 
-        MediaFormat mediaFormat = null;
-        for (TargetTrack targetTrack : targetMedia.tracks) {
-            if (targetTrack.format instanceof AudioTrackFormat) {
-                AudioTrackFormat trackFormat = (AudioTrackFormat) targetTrack.format;
-                mediaFormat = MediaFormat.createAudioFormat(
-                        "audio/mp4a-latm",
-                        trackFormat.samplingRate / 2,
-                        trackFormat.channelCount);
-                mediaFormat.setInteger(MediaFormat.KEY_BIT_RATE, trackFormat.bitrate / 2);
-                mediaFormat.setLong(MediaFormat.KEY_DURATION, trackFormat.duration);
-                break;
+            List<TrackTransform> trackTransforms = new ArrayList<>(1);
+
+            MediaFormat mediaFormat = null;
+            for (TargetTrack targetTrack : targetMedia.tracks) {
+                if (targetTrack.format instanceof AudioTrackFormat) {
+                    AudioTrackFormat trackFormat = (AudioTrackFormat) targetTrack.format;
+                    mediaFormat = MediaFormat.createAudioFormat(
+                            "audio/mp4a-latm",
+                            trackFormat.samplingRate / 2,
+                            trackFormat.channelCount);
+                    mediaFormat.setInteger(MediaFormat.KEY_BIT_RATE, trackFormat.bitrate / 2);
+                    mediaFormat.setLong(MediaFormat.KEY_DURATION, trackFormat.duration);
+
+                    Encoder encoder = new MediaCodecEncoder();
+                    TrackTransform trackTransform = new TrackTransform.Builder(
+                            mediaSource,
+                            targetTrack.format.index,
+                            mediaTarget)
+                            .setTargetTrack(0)
+                            .setDecoder(new MediaCodecDecoder())
+                            .setEncoder(encoder)
+                            .setRenderer(new AudioRenderer(encoder))
+                            .setTargetFormat(mediaFormat)
+                            .build();
+                    trackTransforms.add(trackTransform);
+                    break;
+                }
             }
-        }
 
-        mediaTransformer.transform(
-                transformationState.requestId,
-                sourceMedia.uri,
-                targetMedia.targetFile.getPath(),
-                null,
-                mediaFormat,
-                transformationListener,
-                transformationOptions);
+            mediaTransformer.transform(
+                    transformationState.requestId,
+                    trackTransforms,
+                    transformationListener,
+                    MediaTransformer.GRANULARITY_DEFAULT);
+        } catch (MediaTransformationException ex) {
+            Log.e(TAG, "Exception when transcoding audio", ex);
+        }
     }
 
     public void cancelTransformation(@NonNull String requestId) {

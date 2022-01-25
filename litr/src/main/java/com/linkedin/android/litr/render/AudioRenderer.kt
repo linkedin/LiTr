@@ -14,6 +14,7 @@ import android.view.Surface
 import com.linkedin.android.litr.codec.Encoder
 import com.linkedin.android.litr.codec.Frame
 import java.nio.ByteBuffer
+import java.nio.ByteOrder
 import java.util.concurrent.LinkedBlockingDeque
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.math.ceil
@@ -82,13 +83,12 @@ class AudioRenderer(private val encoder: Encoder) : Renderer {
             if (samplingRatio != 1.0) {
                 val sourceSampleCount = inputFrame.bufferInfo.size / (BYTES_PER_SAMPLE * channelCount)
                 val estimatedTargetSampleCount = ceil(sourceSampleCount * samplingRatio).toInt()
-                val targetBuffer = ShortArray(estimatedTargetSampleCount * channelCount)
+                val targetBuffer = ByteBuffer.allocateDirect(estimatedTargetSampleCount * channelCount * BYTES_PER_SAMPLE).order(ByteOrder.LITTLE_ENDIAN)
 
                 val targetSampleCount = resample(inputFrame.buffer, sourceSampleCount, targetBuffer)
 
                 val targetBufferSize = targetSampleCount * BYTES_PER_SAMPLE * channelCount
-                val outByteBuffer = ByteBuffer.allocate(targetBufferSize)
-                outByteBuffer.asShortBuffer().put(targetBuffer, 0, targetSampleCount * channelCount)
+                targetBuffer.limit(targetBufferSize)
 
                 bufferInfo.size = targetBufferSize
                 bufferInfo.offset = 0
@@ -97,7 +97,7 @@ class AudioRenderer(private val encoder: Encoder) : Renderer {
 
                 this.presentationTimeNs += (targetSampleCount * sampleDurationUs).toLong()
 
-                renderQueue.add(Frame(inputFrame.tag, outByteBuffer, bufferInfo))
+                renderQueue.add(Frame(inputFrame.tag, targetBuffer, bufferInfo))
             } else {
                 val buffer = ByteBuffer.allocate(inputFrame.buffer.limit())
                 buffer.put(inputFrame.buffer)
@@ -176,7 +176,7 @@ class AudioRenderer(private val encoder: Encoder) : Renderer {
 
     private external fun initAudioResampler(channelCount: Int, sourceSampleRate: Int, targetSampleRate: Int)
 
-    private external fun resample(sourceBuffer: ByteBuffer, sampleCount: Int, targetBuffer: ShortArray): Int
+    private external fun resample(sourceBuffer: ByteBuffer, sampleCount: Int, targetBuffer: ByteBuffer): Int
 
     private external fun releaseAudioResampler()
 

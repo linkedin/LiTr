@@ -1,4 +1,5 @@
 #include <jni.h>
+#include <android/log.h>
 #include "oboe_resampler/MultiChannelResampler.h"
 
 using namespace resampler;
@@ -17,7 +18,7 @@ Java_com_linkedin_android_litr_render_AudioRenderer_initAudioResampler(
             channelCount,
             sourceSampleRate,
             targetSampleRate,
-            MultiChannelResampler::Quality::Fastest);
+            MultiChannelResampler::Quality::High);
     channel_count = channelCount;
 }
 
@@ -27,18 +28,18 @@ Java_com_linkedin_android_litr_render_AudioRenderer_resample(
         jobject,
         jobject jsourceBuffer,
         jint sampleCount,
-        jshortArray jtargetBuffer) {
+        jobject jtargetBuffer) {
     if (audio_resampler != nullptr && channel_count > 0) {
         auto sourceBuffer = (jbyte *) env->GetDirectBufferAddress(jsourceBuffer);
-        jshort* targetBuffer = env->GetShortArrayElements(jtargetBuffer, JNI_FALSE);
+        auto targetBuffer = (jbyte *) env->GetDirectBufferAddress(jtargetBuffer);
 
         auto inputBuffer = new float[sampleCount * channel_count];
         auto outputBuffer = new float[channel_count];
 
-        // bytes contained in audio buffer produced by MediaCodec contains make up big endian shorts
+        // bytes contained in audio buffer produced by MediaCodec contains make up little endian shorts
         // first we recreate short values, then simply cast them to floats, expected by Oboe resampler
         for (int index = 0; index < sampleCount * channel_count; index++) {
-            inputBuffer[index] = (float) ((short) ((sourceBuffer[index * 2] & 0xFF << 8) | sourceBuffer[index * 2 + 1] & 0xFF));
+            inputBuffer[index] = (float) ((short) (((sourceBuffer[index * 2 + 1] & 0xFF) << 8) | sourceBuffer[index * 2] & 0xFF));
         }
 
         int framesProcessed = 0;
@@ -52,19 +53,28 @@ Java_com_linkedin_android_litr_render_AudioRenderer_resample(
             } else {
                 audio_resampler->readNextFrame(outputBuffer);
                 for (int channel = 0; channel < channel_count; channel++) {
-                    float value = *(outputBuffer + channel);
+                    float value = outputBuffer[channel];
                     if (value < -32768) {
                         value = -32768;
                     } else if (value > 32767) {
                         value = 32767;
                     }
-                    targetBuffer[framesProcessed * channel_count + channel] = (short) value;
+                    int index = framesProcessed * channel_count + channel;
+                    targetBuffer[index * 2 + 0] = ((short) value) & 0xFF;
+                    targetBuffer[index * 2 + 1] = ((short) value >> 8) & 0xFF;
                 }
                 framesProcessed++;
             }
         }
 
-        env->ReleaseShortArrayElements(jtargetBuffer, targetBuffer, 0);
+//        int factor = 2;
+//        int framesProcessed = sampleCount / factor;
+//        for (int sample = 0; sample < framesProcessed; sample++) {
+//            for (int channel = 0; channel < channel_count; channel++) {
+//                targetBuffer[(sample * channel_count + channel) * 2 + 0] = sourceBuffer[(factor * sample * channel_count + channel) * 2 + 0];
+//                targetBuffer[(sample * channel_count + channel) * 2 + 1] = sourceBuffer[(factor * sample * channel_count + channel) * 2 + 1];
+//            }
+//        }
 
         return framesProcessed;
     }
