@@ -1,0 +1,110 @@
+package com.linkedin.android.litr.codec
+
+import android.media.MediaCodec
+import android.media.MediaFormat
+import android.view.Surface
+import java.nio.ByteBuffer
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.LinkedBlockingQueue
+
+private const val DEFAULT_BUFFER_POOL_SIZE = 2
+
+class PassthroughEncoder(
+    inputBufferCapacity: Int
+) : Encoder {
+
+    // pool of unused frames
+    private val availableFrames = LinkedBlockingQueue<Frame>()
+    // pool of frames a client dequeued to populate with raw input data
+    private val dequeuedInputFrames = ConcurrentHashMap<Int, Frame>()
+    // queue of frames being encoded
+    private val encodeQueue = LinkedBlockingQueue<Int>()
+    // pool of encoded frames
+    private val encodedFrames = ConcurrentHashMap<Int, Frame>()
+
+    private lateinit var mediaFormat: MediaFormat
+
+    private var isRunning = false
+    private var mediaFormatChanged = false
+
+    init {
+        for (tag in 0 until DEFAULT_BUFFER_POOL_SIZE) {
+            availableFrames.add(Frame(tag, ByteBuffer.allocate(inputBufferCapacity), MediaCodec.BufferInfo()))
+        }
+    }
+
+    override fun init(targetFormat: MediaFormat) {
+        this.mediaFormat = targetFormat
+    }
+
+    override fun createInputSurface(): Surface? {
+        return null
+    }
+
+    override fun start() {
+        isRunning = true
+    }
+
+    override fun isRunning(): Boolean {
+        return isRunning
+    }
+
+    override fun signalEndOfInputStream() {}
+
+    override fun dequeueInputFrame(timeout: Long): Int {
+        return availableFrames.firstOrNull()?.let { availableFrame ->
+            availableFrames.remove(availableFrame)
+            dequeuedInputFrames[availableFrame.tag] = availableFrame
+            availableFrame.tag
+        } ?: MediaCodec.INFO_TRY_AGAIN_LATER
+    }
+
+    override fun getInputFrame(tag: Int): Frame? {
+        return dequeuedInputFrames[tag]
+    }
+
+    override fun queueInputFrame(frame: Frame) {
+        frame.buffer?.flip()
+        dequeuedInputFrames.remove(frame.tag)
+        encodeQueue.add(frame.tag)
+        encodedFrames[frame.tag] = frame
+    }
+
+    override fun dequeueOutputFrame(timeout: Long): Int {
+        if (!mediaFormatChanged) {
+            mediaFormatChanged = true
+            return MediaCodec.INFO_OUTPUT_FORMAT_CHANGED
+        }
+        return encodeQueue.poll() ?: MediaCodec.INFO_TRY_AGAIN_LATER
+    }
+
+    override fun getOutputFrame(tag: Int): Frame? {
+        return encodedFrames[tag]
+    }
+
+    override fun releaseOutputFrame(tag: Int) {
+        encodedFrames.remove(tag)?.let {
+            it.buffer?.clear()
+            availableFrames.add(it)
+        }
+    }
+
+    override fun getOutputFormat(): MediaFormat {
+        return mediaFormat
+    }
+
+    override fun stop() {
+        isRunning = false
+    }
+
+    override fun release() {
+        availableFrames.clear()
+        dequeuedInputFrames.clear()
+        encodeQueue.clear()
+        encodedFrames.clear()
+    }
+
+    override fun getName(): String {
+        return "PassthroughEncoder"
+    }
+}
