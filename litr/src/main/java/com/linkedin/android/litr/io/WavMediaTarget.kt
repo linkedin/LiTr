@@ -5,7 +5,7 @@
  * Licensed under the BSD 2-Clause License (the "License").  See License in the project root for
  * license information.
  */
-// header implementation is taken from https://gist.github.com/kmark/d8b1b01fb0d2febf5770 and modified
+// header implementation by Kevin Mark is taken from https://gist.github.com/kmark/d8b1b01fb0d2febf5770 and modified
 package com.linkedin.android.litr.io
 
 import android.media.MediaCodec
@@ -75,6 +75,7 @@ class WavMediaTarget(
         return targetPath
     }
 
+    // modified version of https://gist.github.com/kmark/d8b1b01fb0d2febf5770#file-audiorecordactivity-java-L288
     /**
      * Writes the proper 44-byte RIFF/WAVE header to/for the given stream
      * Two size fields are left empty/null since we do not yet know the final stream size
@@ -114,6 +115,7 @@ class WavMediaTarget(
             0, 0, 0, 0))
     }
 
+    // modified version of https://gist.github.com/kmark/d8b1b01fb0d2febf5770#file-audiorecordactivity-java-L331
     /**
      * Updates the given wav file's header to include the final chunk sizes
      */
