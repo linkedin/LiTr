@@ -90,6 +90,10 @@ class AudioRenderer(private val encoder: Encoder) : Renderer {
                 val targetBufferSize = targetSampleCount * BYTES_PER_SAMPLE * channelCount
                 targetBuffer.limit(targetBufferSize)
 
+                val buffer = ByteBuffer.allocate(targetBufferSize)
+                buffer.put(targetBuffer)
+                buffer.flip()
+
                 bufferInfo.size = targetBufferSize
                 bufferInfo.offset = 0
                 bufferInfo.presentationTimeUs = this.presentationTimeNs
@@ -97,7 +101,7 @@ class AudioRenderer(private val encoder: Encoder) : Renderer {
 
                 this.presentationTimeNs += (targetSampleCount * sampleDurationUs).toLong()
 
-                renderQueue.add(Frame(inputFrame.tag, targetBuffer, bufferInfo))
+                renderQueue.add(Frame(inputFrame.tag, buffer, bufferInfo))
             } else {
                 val buffer = ByteBuffer.allocate(inputFrame.buffer.limit())
                 buffer.put(inputFrame.buffer)
