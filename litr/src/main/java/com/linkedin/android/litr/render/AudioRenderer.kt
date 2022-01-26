@@ -118,13 +118,9 @@ class AudioRenderer(private val encoder: Encoder) : Renderer {
                         outputFrame.bufferInfo.flags = outputFrame.bufferInfo.flags and MediaCodec.BUFFER_FLAG_END_OF_STREAM.inv()
                     }
 
-                    outputFrame.buffer.put(
-                        inputFrame.buffer.array(),
-                        inputFrame.buffer.position(),
-                        outputFrame.bufferInfo.size)
-
-                    // advance input buffer position by number of bytes copied
-                    inputFrame.buffer.position(inputFrame.buffer.position() + outputFrame.bufferInfo.size)
+                    repeat(outputFrame.bufferInfo.size) {
+                        outputFrame.buffer.put(inputFrame.buffer.get())
+                    }
 
                     encoder.queueInputFrame(outputFrame)
                 }
