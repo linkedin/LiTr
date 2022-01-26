@@ -1,5 +1,4 @@
 #include <jni.h>
-#include <android/log.h>
 #include "oboe_resampler/MultiChannelResampler.h"
 
 using namespace resampler;
