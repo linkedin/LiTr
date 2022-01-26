@@ -33,22 +33,22 @@ Java_com_linkedin_android_litr_render_AudioRenderer_resample(
         auto sourceBuffer = (jbyte *) env->GetDirectBufferAddress(jsourceBuffer);
         auto targetBuffer = (jbyte *) env->GetDirectBufferAddress(jtargetBuffer);
 
-        auto inputBuffer = new float[sampleCount * channel_count];
+        auto inputBuffer = new float[channel_count];
         auto outputBuffer = new float[channel_count];
-
-        // bytes contained in audio buffer produced by MediaCodec contains make up little endian shorts
-        // first we recreate short values, then simply cast them to floats, expected by Oboe resampler
-        for (int index = 0; index < sampleCount * channel_count; index++) {
-            inputBuffer[index] = (float) ((short) (((sourceBuffer[index * 2 + 1] & 0xFF) << 8) | sourceBuffer[index * 2] & 0xFF));
-        }
 
         int framesProcessed = 0;
         int inputFramesLeft = sampleCount;
 
         while (inputFramesLeft > 0) {
             if (audio_resampler->isWriteNeeded()) {
+                // bytes contained in audio buffer produced by MediaCodec contains make up little endian shorts
+                // first we recreate short values, then simply cast them to floats, expected by Oboe resampler
+                for (int channel = 0; channel < channel_count; channel++) {
+                    int index = (sampleCount - inputFramesLeft) * channel_count + channel;
+                    inputBuffer[channel] = (float) ((short) (((sourceBuffer[index * 2 + 1] & 0xFF) << 8) | sourceBuffer[index * 2] & 0xFF));
+                }
+
                 audio_resampler->writeNextFrame(inputBuffer);
-                inputBuffer += channel_count;
                 inputFramesLeft--;
             } else {
                 audio_resampler->readNextFrame(outputBuffer);
@@ -66,15 +66,6 @@ Java_com_linkedin_android_litr_render_AudioRenderer_resample(
                 framesProcessed++;
             }
         }
-
-//        int factor = 2;
-//        int framesProcessed = sampleCount / factor;
-//        for (int sample = 0; sample < framesProcessed; sample++) {
-//            for (int channel = 0; channel < channel_count; channel++) {
-//                targetBuffer[(sample * channel_count + channel) * 2 + 0] = sourceBuffer[(factor * sample * channel_count + channel) * 2 + 0];
-//                targetBuffer[(sample * channel_count + channel) * 2 + 1] = sourceBuffer[(factor * sample * channel_count + channel) * 2 + 1];
-//            }
-//        }
 
         return framesProcessed;
     }
