@@ -560,7 +560,6 @@ public class TransformationPresenter {
 
         try {
             MediaSource mediaSource = new MediaExtractorMediaSource(context, sourceMedia.uri, mediaRange);
-            //MediaTarget mediaTarget = new WavMediaTarget(targetMedia.targetFile.getPath() + ".wav");
             MediaTarget mediaTarget = new MediaMuxerMediaTarget(targetMedia.targetFile.getPath(),
                     1,
                     0,
