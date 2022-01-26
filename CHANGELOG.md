@@ -1,5 +1,16 @@
 # Change Log
 
+## Version 1.4.17 (2022-01-24)
+
+- Allow non-negative reads from source buffer during transcoding [#133](https://github.com/linkedin/LiTr/pull/133)
+- Fix GlVideoRenderer.hasFilters() logic [#135](https://github.com/linkedin/LiTr/pull/135)
+- Obtain frame rate and interval from MediaFormat as either float or int [#138](https://github.com/linkedin/LiTr/pull/138)
+- Do not set "profile" (MediaCodec.KEY_PROFILE) on the encoder [#139](https://github.com/linkedin/LiTr/pull/139)
+- Add new target size estimation APIs to MediaTransformer [#155](https://github.com/linkedin/LiTr/pull/155)
+- Fix for incorrect size estimation with range [#154](https://github.com/linkedin/LiTr/pull/154)
+- New AudioRenderer implementation, with a render queue [#159](https://github.com/linkedin/LiTr/pull/159)
+- Support for extracting a series of video thumbnails [#146](https://github.com/linkedin/LiTr/pull/146)
+
 ## Version 1.4.16 (2021-05-20)
 
 - New MockVideoMediaSource and PassthroughDecoder implementations [#122](https://github.com/linkedin/LiTr/pull/122) which provide capability to create "empty" video

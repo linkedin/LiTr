@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2021 LinkedIn Corporation -->
+<!-- All Rights Reserved. -->
+<!-- -->
+<!-- Licensed under the BSD 2-Clause License (the "License").  See License in the project root -->
+<!-- for license information. -->
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <data>
+
+        <import type="android.view.View" />
+
+        <variable
+            name="sourceMedia"
+            type="com.linkedin.android.litr.demo.data.SourceMedia" />
+
+        <variable
+            name="filter"
+            type="com.linkedin.android.litr.filter.GlFilter" />
+
+        <variable
+            name="fragment"
+            type="com.linkedin.android.litr.demo.ExtractFramesFragment" />
+
+    </data>
+
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <include
+                android:id="@+id/section_pick_video"
+                layout="@layout/section_pick_video"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:sourceMedia="@{sourceMedia}" />
+
+            <Spinner
+                android:id="@+id/spinner_filters"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:enabled="@{sourceMedia != null}"
+                android:padding="@dimen/cell_padding" />
+
+            <Button
+                android:id="@+id/button_extract"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:enabled="@{sourceMedia != null}"
+                android:onClick="@{() -> fragment.extractThumbnails(sourceMedia, filter)}"
+                android:padding="@dimen/cell_padding"
+                android:text="@string/extract" />
+
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/frames_recycler"
+                android:layout_width="match_parent"
+                android:layout_height="40dp"
+                />
+
+        </LinearLayout>
+
+    </androidx.core.widget.NestedScrollView>
+
+</layout>
