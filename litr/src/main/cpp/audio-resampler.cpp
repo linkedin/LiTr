@@ -1,3 +1,10 @@
+/*
+ * Copyright 2019 LinkedIn Corporation
+ * All Rights Reserved.
+ *
+ * Licensed under the BSD 2-Clause License (the "License").  See License in the project root for
+ * license information.
+ */
 #include <jni.h>
 #include "oboe_resampler/MultiChannelResampler.h"
 
