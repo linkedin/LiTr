@@ -29,6 +29,8 @@ class AudioRenderer(private val encoder: Encoder) : Renderer {
     private var sampleDurationUs: Float = 0f
     private var channelCount = 2
 
+    private lateinit var audioResampler: AudioResampler
+
     private var released: AtomicBoolean = AtomicBoolean(false)
 
     private val renderQueue = LinkedBlockingDeque<Frame>()
@@ -39,6 +41,7 @@ class AudioRenderer(private val encoder: Encoder) : Renderer {
         onMediaFormatChanged(sourceMediaFormat, targetMediaFormat)
         released.set(false)
         renderThread.start()
+        audioResampler = AudioResamplerFactory().createAudioResampler(sourceMediaFormat, targetMediaFormat)
     }
 
     override fun onMediaFormatChanged(sourceMediaFormat: MediaFormat?, targetMediaFormat: MediaFormat?) {
@@ -59,25 +62,15 @@ class AudioRenderer(private val encoder: Encoder) : Renderer {
     }
 
     override fun renderFrame(inputFrame: Frame?, presentationTimeNs: Long) {
-        if (!released.get() && inputFrame?.buffer != null) {
-            val buffer = ByteBuffer.allocate(inputFrame.buffer.limit())
-            buffer.put(inputFrame.buffer)
-            buffer.flip()
-
-            val bufferInfo = MediaCodec.BufferInfo()
-            bufferInfo.set(
-                0,
-                inputFrame.bufferInfo.size,
-                inputFrame.bufferInfo.presentationTimeUs,
-                inputFrame.bufferInfo.flags
-            )
-
-            renderQueue.add(Frame(inputFrame.tag, buffer, bufferInfo))
+        if (!released.get() && inputFrame != null) {
+            val resampledFrame = audioResampler.resample(inputFrame)
+            renderQueue.add(resampledFrame)
         }
     }
 
     override fun release() {
         released.set(true)
+        audioResampler.release()
     }
 
     override fun hasFilters(): Boolean {

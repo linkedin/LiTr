@@ -20,7 +20,7 @@ import com.linkedin.android.litr.codec.Encoder;
 import com.linkedin.android.litr.exception.TrackTranscoderException;
 import com.linkedin.android.litr.io.MediaSource;
 import com.linkedin.android.litr.io.MediaTarget;
-import com.linkedin.android.litr.render.PassthroughSoftwareRenderer;
+import com.linkedin.android.litr.render.AudioRenderer;
 import com.linkedin.android.litr.render.Renderer;
 
 @RestrictTo(RestrictTo.Scope.LIBRARY)
@@ -85,7 +85,7 @@ public class TrackTranscoderFactory {
                                             encoder);
         } else if (trackMimeType.startsWith("audio")) {
             Renderer audioRenderer = renderer == null
-                    ? new PassthroughSoftwareRenderer(encoder)
+                    ? new AudioRenderer(encoder)
                     : renderer;
 
             return new AudioTrackTranscoder(mediaSource,

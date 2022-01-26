@@ -19,7 +19,7 @@ private const val BYTES_PER_SAMPLE = 2
 /**
  * Implementation of audio resampler that uses Oboe library
  */
-class OboeAudioResampler(
+internal class OboeAudioResampler(
     private val channelCount: Int,
     sourceSampleRate: Int,
     targetSampleRate: Int
