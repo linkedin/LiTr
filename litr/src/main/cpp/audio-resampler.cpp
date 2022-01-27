@@ -29,6 +29,13 @@ Java_com_linkedin_android_litr_render_OboeAudioResampler_initResampler(
             sourceSampleRate,
             targetSampleRate,
             MultiChannelResampler::Quality::High);
+    if (sourceChannelCount > 1 && targetChannelCount > 1 && sourceChannelCount != targetChannelCount) {
+        jclass exClass = env->FindClass("java/lang/IllegalArgumentException");
+        if (exClass != nullptr) {
+            env->ThrowNew(exClass, "Multiple channel to multiple channel mixing is not supported");
+        }
+    }
+
     inputChannelCount = sourceChannelCount;
     outputChannelCount = targetChannelCount;
 }
