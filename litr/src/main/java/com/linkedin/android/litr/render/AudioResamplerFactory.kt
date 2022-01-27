@@ -18,7 +18,8 @@ internal class AudioResamplerFactory {
             targetMediaFormat.containsKey(MediaFormat.KEY_SAMPLE_RATE) &&
             sourceMediaFormat.containsKey(MediaFormat.KEY_CHANNEL_COUNT) &&
             targetMediaFormat.containsKey(MediaFormat.KEY_CHANNEL_COUNT) &&
-            sourceMediaFormat.getInteger(MediaFormat.KEY_SAMPLE_RATE) != targetMediaFormat.getInteger(MediaFormat.KEY_SAMPLE_RATE)) {
+            (sourceMediaFormat.getInteger(MediaFormat.KEY_SAMPLE_RATE) != targetMediaFormat.getInteger(MediaFormat.KEY_SAMPLE_RATE)
+                || sourceMediaFormat.getInteger(MediaFormat.KEY_CHANNEL_COUNT) != targetMediaFormat.getInteger(MediaFormat.KEY_CHANNEL_COUNT))) {
             OboeAudioResampler(
                 sourceMediaFormat.getInteger(MediaFormat.KEY_CHANNEL_COUNT),
                 sourceMediaFormat.getInteger(MediaFormat.KEY_SAMPLE_RATE),
