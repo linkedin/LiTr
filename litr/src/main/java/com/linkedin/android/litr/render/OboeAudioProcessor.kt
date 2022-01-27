@@ -17,27 +17,27 @@ import kotlin.math.ceil
 private const val BYTES_PER_SAMPLE = 2
 
 /**
- * Implementation of audio resampler that uses Oboe library
+ * Implementation of audio processor that uses Oboe library
  */
-internal class OboeAudioResampler(
+internal class OboeAudioProcessor(
     private val sourceChannelCount: Int,
     sourceSampleRate: Int,
     private val targetChannelCount: Int,
     targetSampleRate: Int
-) : AudioResampler {
+) : AudioProcessor {
 
     private val samplingRatio: Double
     private var sampleDurationUs: Double
     private var presentationTimeNs: Long
 
     init {
-        initResampler(sourceChannelCount, sourceSampleRate, targetChannelCount, targetSampleRate)
+        initProcessor(sourceChannelCount, sourceSampleRate, targetChannelCount, targetSampleRate)
         samplingRatio = targetSampleRate.toDouble() / sourceSampleRate
         sampleDurationUs = 1_000_000.0 / targetSampleRate
         presentationTimeNs = 0
     }
 
-    override fun resample(frame: Frame): Frame {
+    override fun processFrame(frame: Frame): Frame {
         return frame.buffer?.let { sourceBuffer ->
             val sourceSampleCount = frame.bufferInfo.size / (BYTES_PER_SAMPLE * sourceChannelCount)
             val estimatedTargetSampleCount = ceil(sourceSampleCount * samplingRatio).toInt()
@@ -45,7 +45,7 @@ internal class OboeAudioResampler(
                 ByteBuffer.allocateDirect(estimatedTargetSampleCount * targetChannelCount * BYTES_PER_SAMPLE)
                     .order(ByteOrder.LITTLE_ENDIAN)
 
-            val targetSampleCount = resample(sourceBuffer, sourceSampleCount, targetBuffer)
+            val targetSampleCount = processAudioFrame(sourceBuffer, sourceSampleCount, targetBuffer)
 
             val targetBufferSize = targetSampleCount * BYTES_PER_SAMPLE * targetChannelCount
             targetBuffer.limit(targetBufferSize)
@@ -59,18 +59,18 @@ internal class OboeAudioResampler(
             this.presentationTimeNs += (targetSampleCount * sampleDurationUs).toLong()
 
             Frame(frame.tag, targetBuffer, bufferInfo)
-        } ?: throw IllegalArgumentException("Frame doesn't have a buffer, cannot resize!")
+        } ?: throw IllegalArgumentException("Frame doesn't have a buffer, cannot process it!")
     }
 
     override fun release() {
-        releaseResampler()
+        releaseProcessor()
     }
 
-    private external fun initResampler(sourceChannelCount: Int, sourceSampleRate: Int, targetChannelCount: Int, targetSampleRate: Int)
+    private external fun initProcessor(sourceChannelCount: Int, sourceSampleRate: Int, targetChannelCount: Int, targetSampleRate: Int)
 
-    private external fun resample(sourceBuffer: ByteBuffer, sampleCount: Int, targetBuffer: ByteBuffer): Int
+    private external fun processAudioFrame(sourceBuffer: ByteBuffer, sampleCount: Int, targetBuffer: ByteBuffer): Int
 
-    private external fun releaseResampler()
+    private external fun releaseProcessor()
 
     companion object {
         init {

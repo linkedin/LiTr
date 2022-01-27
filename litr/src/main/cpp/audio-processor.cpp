@@ -17,7 +17,7 @@ int outputChannelCount = -1;
 void populateInputBuffer(const jbyte *sourceBuffer, int sourceSample, float* inputBuffer, int sourceChannelCount, int targetChannelCount);
 
 extern "C" JNIEXPORT void JNICALL
-Java_com_linkedin_android_litr_render_OboeAudioResampler_initResampler(
+Java_com_linkedin_android_litr_render_OboeAudioProcessor_initProcessor(
         JNIEnv* env,
         jobject /* this */,
         jint sourceChannelCount,
@@ -41,7 +41,7 @@ Java_com_linkedin_android_litr_render_OboeAudioResampler_initResampler(
 }
 
 extern "C" JNIEXPORT int JNICALL
-Java_com_linkedin_android_litr_render_OboeAudioResampler_resample(
+Java_com_linkedin_android_litr_render_OboeAudioProcessor_processAudioFrame(
         JNIEnv* env,
         jobject,
         jobject jsourceBuffer,
@@ -85,7 +85,7 @@ Java_com_linkedin_android_litr_render_OboeAudioResampler_resample(
 }
 
 extern "C" JNIEXPORT void JNICALL
-Java_com_linkedin_android_litr_render_OboeAudioResampler_releaseResampler(
+Java_com_linkedin_android_litr_render_OboeAudioProcessor_releaseProcessor(
         JNIEnv* env,
         jobject /* this */) {
     if (oboeResampler != nullptr) {
