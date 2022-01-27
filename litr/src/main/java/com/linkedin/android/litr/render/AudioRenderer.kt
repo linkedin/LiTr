@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 LinkedIn Corporation
+ * Copyright 2022 LinkedIn Corporation
  * All Rights Reserved.
  *
  * Licensed under the BSD 2-Clause License (the "License").  See License in the project root for
@@ -13,7 +13,6 @@ import android.util.Log
 import android.view.Surface
 import com.linkedin.android.litr.codec.Encoder
 import com.linkedin.android.litr.codec.Frame
-import java.nio.ByteBuffer
 import java.util.concurrent.LinkedBlockingDeque
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -29,7 +28,7 @@ class AudioRenderer(private val encoder: Encoder) : Renderer {
     private var sampleDurationUs: Float = 0f
     private var channelCount = 2
 
-    private lateinit var audioResampler: AudioResampler
+    private lateinit var audioProcessor: AudioProcessor
 
     private var released: AtomicBoolean = AtomicBoolean(false)
 
@@ -41,7 +40,7 @@ class AudioRenderer(private val encoder: Encoder) : Renderer {
         onMediaFormatChanged(sourceMediaFormat, targetMediaFormat)
         released.set(false)
         renderThread.start()
-        audioResampler = AudioResamplerFactory().createAudioResampler(sourceMediaFormat, targetMediaFormat)
+        audioProcessor = AudioProcessorFactory().createAudioProcessor(sourceMediaFormat, targetMediaFormat)
     }
 
     override fun onMediaFormatChanged(sourceMediaFormat: MediaFormat?, targetMediaFormat: MediaFormat?) {
@@ -63,14 +62,14 @@ class AudioRenderer(private val encoder: Encoder) : Renderer {
 
     override fun renderFrame(inputFrame: Frame?, presentationTimeNs: Long) {
         if (!released.get() && inputFrame != null) {
-            val resampledFrame = audioResampler.resample(inputFrame)
+            val resampledFrame = audioProcessor.processFrame(inputFrame)
             renderQueue.add(resampledFrame)
         }
     }
 
     override fun release() {
         released.set(true)
-        audioResampler.release()
+        audioProcessor.release()
     }
 
     override fun hasFilters(): Boolean {

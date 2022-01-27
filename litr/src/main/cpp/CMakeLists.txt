@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.10.2)
 project("LiTrNative")
 
 add_library(litr-jni SHARED
-        audio-resampler.cpp)
+        audio-processor.cpp)
 
 add_subdirectory(oboe_resampler)
 
