@@ -12,7 +12,9 @@ using namespace resampler;
 
 MultiChannelResampler* oboeResampler = nullptr;
 int inputChannelCount = -1;
-int ouputChannelCount = -1;
+int outputChannelCount = -1;
+
+void populateInputBuffer(const jbyte *sourceBuffer, int sourceSampleIndex, float* inputBuffer, int sourceChannelCount, int targetChannelCount);
 
 extern "C" JNIEXPORT void JNICALL
 Java_com_linkedin_android_litr_render_OboeAudioResampler_initResampler(
@@ -28,7 +30,7 @@ Java_com_linkedin_android_litr_render_OboeAudioResampler_initResampler(
             targetSampleRate,
             MultiChannelResampler::Quality::High);
     inputChannelCount = sourceChannelCount;
-    ouputChannelCount = targetChannelCount;
+    outputChannelCount = targetChannelCount;
 }
 
 extern "C" JNIEXPORT int JNICALL
@@ -38,37 +40,32 @@ Java_com_linkedin_android_litr_render_OboeAudioResampler_resample(
         jobject jsourceBuffer,
         jint sampleCount,
         jobject jtargetBuffer) {
-    if (oboeResampler != nullptr && inputChannelCount > 0 && ouputChannelCount > 0) {
+    if (oboeResampler != nullptr && inputChannelCount > 0 && outputChannelCount > 0) {
         auto sourceBuffer = (jbyte *) env->GetDirectBufferAddress(jsourceBuffer);
         auto targetBuffer = (jbyte *) env->GetDirectBufferAddress(jtargetBuffer);
 
-        auto resamplerInputBuffer = new float[ouputChannelCount];
-        auto resamplerOutputBuffer = new float[ouputChannelCount];
+        auto resamplerInputBuffer = new float[outputChannelCount];
+        auto resamplerOutputBuffer = new float[outputChannelCount];
 
         int framesProcessed = 0;
         int inputFramesLeft = sampleCount;
 
         while (inputFramesLeft > 0) {
             if (oboeResampler->isWriteNeeded()) {
-                // bytes contained in audio buffer produced by MediaCodec make up little endian shorts
-                // first we recreate short values, then cast them to floats, expected by Oboe resampler
-                for (int channel = 0; channel < inputChannelCount; channel++) {
-                    int index = (sampleCount - inputFramesLeft) * inputChannelCount + channel;
-                    resamplerInputBuffer[channel] = (float) ((short) (((sourceBuffer[index * 2 + 1] & 0xFF) << 8) | sourceBuffer[index * 2] & 0xFF));
-                }
+                populateInputBuffer(sourceBuffer, (sampleCount - inputFramesLeft), resamplerInputBuffer, inputChannelCount, outputChannelCount);
 
                 oboeResampler->writeNextFrame(resamplerInputBuffer);
                 inputFramesLeft--;
             } else {
                 oboeResampler->readNextFrame(resamplerOutputBuffer);
-                for (int channel = 0; channel < ouputChannelCount; channel++) {
+                for (int channel = 0; channel < outputChannelCount; channel++) {
                     float value = resamplerOutputBuffer[channel];
                     if (value < -32768) {
                         value = -32768;
                     } else if (value > 32767) {
                         value = 32767;
                     }
-                    int index = framesProcessed * ouputChannelCount + channel;
+                    int index = framesProcessed * outputChannelCount + channel;
                     targetBuffer[index * 2 + 0] = ((short) value) & 0xFF;
                     targetBuffer[index * 2 + 1] = ((short) value >> 8) & 0xFF;
                 }
@@ -89,6 +86,36 @@ Java_com_linkedin_android_litr_render_OboeAudioResampler_releaseResampler(
         delete oboeResampler;
         oboeResampler = nullptr;
         inputChannelCount = -1;
-        ouputChannelCount = -1;
+        outputChannelCount = -1;
+    }
+}
+
+void populateInputBuffer(const jbyte *sourceBuffer, int sourceSampleIndex, float* inputBuffer, int sourceChannelCount, int targetChannelCount) {
+    // bytes contained in audio buffer produced by MediaCodec make up little endian shorts
+    // first we recreate short values, then cast them to floats, expected by Oboe resampler
+    if (sourceChannelCount == targetChannelCount) {
+        // no channel mixing (mono to mono or stereo to stereo), just copy data over
+        for (int channel = 0; channel < sourceChannelCount; channel++) {
+            int index = sourceSampleIndex * sourceChannelCount + channel;
+            inputBuffer[channel] = (float) ((short) (((sourceBuffer[index * 2 + 1] & 0xFF) << 8) | sourceBuffer[index * 2] & 0xFF));
+        }
+    } else if (sourceChannelCount == 1) {
+        // mono to stereo, duplicate source value to both output channel
+        int index = sourceSampleIndex * sourceChannelCount;
+        auto sourceValue = (float) ((short) (((sourceBuffer[index * 2 + 1] & 0xFF) << 8) | sourceBuffer[index * 2] & 0xFF));
+        for (int channel = 0; channel < targetChannelCount; channel++) {
+            inputBuffer[channel] = sourceValue;
+        }
+    } else if (targetChannelCount == 1) {
+        // stereo to mono, calculate the average source channel values and use it as mono channel value
+        float monoValue = 0;
+        for (int channel = 0; channel < sourceChannelCount; channel++) {
+            int index = sourceSampleIndex * sourceChannelCount + channel;
+            monoValue += (float) ((short) (((sourceBuffer[index * 2 + 1] & 0xFF) << 8) | sourceBuffer[index * 2] & 0xFF));
+        }
+        monoValue = monoValue / (float) sourceChannelCount;
+        for (int channel = 0; channel < targetChannelCount; channel++) {
+            inputBuffer[channel] = monoValue;
+        }
     }
 }
