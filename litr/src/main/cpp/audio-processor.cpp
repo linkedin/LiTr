@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 LinkedIn Corporation
+ * Copyright 2022 LinkedIn Corporation
  * All Rights Reserved.
  *
  * Licensed under the BSD 2-Clause License (the "License").  See License in the project root for
