@@ -20,8 +20,9 @@ private const val BYTES_PER_SAMPLE = 2
  * Implementation of audio resampler that uses Oboe library
  */
 internal class OboeAudioResampler(
-    private val channelCount: Int,
+    private val sourceChannelCount: Int,
     sourceSampleRate: Int,
+    private val targetChannelCount: Int,
     targetSampleRate: Int
 ) : AudioResampler {
 
@@ -30,7 +31,7 @@ internal class OboeAudioResampler(
     private var presentationTimeNs: Long
 
     init {
-        initResampler(channelCount, sourceSampleRate, targetSampleRate)
+        initResampler(sourceChannelCount, sourceSampleRate, targetChannelCount, targetSampleRate)
         samplingRatio = targetSampleRate.toDouble() / sourceSampleRate
         sampleDurationUs = 1_000_000.0 / targetSampleRate
         presentationTimeNs = 0
@@ -38,15 +39,15 @@ internal class OboeAudioResampler(
 
     override fun resample(frame: Frame): Frame {
         return frame.buffer?.let { sourceBuffer ->
-            val sourceSampleCount = frame.bufferInfo.size / (BYTES_PER_SAMPLE * channelCount)
+            val sourceSampleCount = frame.bufferInfo.size / (BYTES_PER_SAMPLE * sourceChannelCount)
             val estimatedTargetSampleCount = ceil(sourceSampleCount * samplingRatio).toInt()
             val targetBuffer =
-                ByteBuffer.allocateDirect(estimatedTargetSampleCount * channelCount * BYTES_PER_SAMPLE)
+                ByteBuffer.allocateDirect(estimatedTargetSampleCount * targetChannelCount * BYTES_PER_SAMPLE)
                     .order(ByteOrder.LITTLE_ENDIAN)
 
             val targetSampleCount = resample(sourceBuffer, sourceSampleCount, targetBuffer)
 
-            val targetBufferSize = targetSampleCount * BYTES_PER_SAMPLE * channelCount
+            val targetBufferSize = targetSampleCount * BYTES_PER_SAMPLE * targetChannelCount
             targetBuffer.limit(targetBufferSize)
 
             val bufferInfo = MediaCodec.BufferInfo()
@@ -65,7 +66,7 @@ internal class OboeAudioResampler(
         releaseResampler()
     }
 
-    private external fun initResampler(channelCount: Int, sourceSampleRate: Int, targetSampleRate: Int)
+    private external fun initResampler(sourceChannelCount: Int, sourceSampleRate: Int, targetChannelCount: Int, targetSampleRate: Int)
 
     private external fun resample(sourceBuffer: ByteBuffer, sampleCount: Int, targetBuffer: ByteBuffer): Int
 
