@@ -8,16 +8,17 @@
 package com.linkedin.android.litr.demo
 
 import android.net.Uri
-import com.linkedin.android.litr.MediaTransformer
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.recyclerview.widget.LinearLayoutManager
+import com.linkedin.android.litr.MediaTransformer
 import com.linkedin.android.litr.demo.data.SourceMedia
-import com.linkedin.android.litr.demo.data.TransformationState
-import com.linkedin.android.litr.demo.data.TransformationPresenter
 import com.linkedin.android.litr.demo.data.TargetMedia
 import com.linkedin.android.litr.demo.data.TranscodingConfigPresenter
+import com.linkedin.android.litr.demo.data.TransformationPresenter
+import com.linkedin.android.litr.demo.data.TransformationState
 import com.linkedin.android.litr.demo.data.TrimConfig
 import com.linkedin.android.litr.demo.databinding.FragmentTranscodeAudioBinding
 import com.linkedin.android.litr.utils.TransformationUtil
@@ -50,6 +51,8 @@ class TranscodeAudioFragment : BaseTransformationFragment(), MediaPickerListener
         binding.transformationState = TransformationState()
         binding.transformationPresenter = TransformationPresenter(context!!, mediaTransformer)
 
+        binding.tracks.layoutManager = LinearLayoutManager(context)
+
         val targetMedia = TargetMedia()
         val transcodingConfigPresenter = TranscodingConfigPresenter(this, targetMedia)
         binding.transcodingConfigPresenter = transcodingConfigPresenter
@@ -69,6 +72,12 @@ class TranscodeAudioFragment : BaseTransformationFragment(), MediaPickerListener
             binding.targetMedia?.setTracks(sourceMedia.tracks)
             binding.transformationState?.setState(TransformationState.STATE_IDLE)
             binding.transformationState?.setStats(null)
+
+            binding.tracks.adapter = MediaTrackAdapter(
+                binding.transcodingConfigPresenter!!,
+                sourceMedia,
+                binding.targetMedia!!)
+            binding.tracks.isNestedScrollingEnabled = false
         }
     }
 }

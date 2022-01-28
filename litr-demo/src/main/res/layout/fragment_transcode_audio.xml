@@ -59,6 +59,12 @@
                 app:sourceMedia="@{sourceMedia}"
                 app:trimConfig="@{trimConfig}"/>
 
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/tracks"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="@dimen/cell_padding"/>
+
             <Button
                 android:id="@+id/button_transcode"
                 android:layout_width="match_parent"

@@ -4,7 +4,7 @@
 <!-- -->
 <!-- Licensed under the BSD 2-Clause License (the "License").  See License in the project root -->
 <!-- for license information. -->
-<layout>
+<layout xmlns:android="http://schemas.android.com/apk/res/android">
     <data>
         <import type="android.view.View"/>
         <import type="com.linkedin.android.litr.demo.data.Converter"/>
@@ -23,7 +23,7 @@
 
     </data>
 
-    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical">
@@ -85,17 +85,18 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@{audioTrack != null ? Integer.toString(audioTrack.channelCount) : null}"
+                    android:text="@{Converter.integerToString(audioTrack.channelCount)}"
                     android:textAlignment="textEnd"
                     android:paddingStart="@dimen/cell_padding"
                     android:paddingEnd="@dimen/cell_padding"/>
 
-                <TextView
+                <EditText
                     android:id="@+id/target_audio_channel_count"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@{audioTrack != null ? Integer.toString(audioTrack.channelCount) : null}"
+                    android:text="@={Converter.integerToString(targetTrack.getTrackFormat().channelCount)}"
                     android:textAlignment="textEnd"
+                    android:inputType="number"
                     android:paddingStart="@dimen/cell_padding"
                     android:paddingEnd="@dimen/cell_padding"
                     android:paddingTop="0dp"
@@ -117,17 +118,18 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@{audioTrack != null ? Integer.toString(audioTrack.samplingRate) : null}"
+                    android:text="@{Converter.integerToString(audioTrack.samplingRate)}"
                     android:textAlignment="textEnd"
                     android:paddingStart="@dimen/cell_padding"
                     android:paddingEnd="@dimen/cell_padding"/>
 
-                <TextView
+                <EditText
                     android:id="@+id/target_audio_sample_rate"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@{audioTrack != null ? Integer.toString(audioTrack.samplingRate) : null}"
+                    android:text="@={Converter.integerToString(targetTrack.getTrackFormat().samplingRate)}"
                     android:textAlignment="textEnd"
+                    android:inputType="number"
                     android:paddingStart="@dimen/cell_padding"
                     android:paddingEnd="@dimen/cell_padding"
                     android:paddingTop="0dp"
@@ -155,7 +157,7 @@
                     android:paddingEnd="@dimen/cell_padding"/>
 
                 <EditText
-                    android:id="@+id/target_audio_bitate"
+                    android:id="@+id/target_audio_bitrate"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@={Converter.audioBitrateToString(targetTrack.getTrackFormat().bitrate)}"

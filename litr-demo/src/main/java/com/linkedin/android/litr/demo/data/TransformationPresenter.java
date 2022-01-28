@@ -567,9 +567,9 @@ public class TransformationPresenter {
                 AudioTrackFormat trackFormat = (AudioTrackFormat) targetTrack.format;
                 mediaFormat = MediaFormat.createAudioFormat(
                         "audio/mp4a-latm",
-                        trackFormat.samplingRate / 2,
+                        trackFormat.samplingRate,
                         trackFormat.channelCount);
-                mediaFormat.setInteger(MediaFormat.KEY_BIT_RATE, trackFormat.bitrate / 2);
+                mediaFormat.setInteger(MediaFormat.KEY_BIT_RATE, trackFormat.bitrate);
                 mediaFormat.setLong(MediaFormat.KEY_DURATION, trackFormat.duration);
                 break;
             }
