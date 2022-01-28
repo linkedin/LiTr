@@ -37,29 +37,25 @@ internal class OboeAudioProcessor(
         presentationTimeNs = 0
     }
 
-    override fun processFrame(frame: Frame): Frame {
-        return frame.buffer?.let { sourceBuffer ->
-            val sourceSampleCount = frame.bufferInfo.size / (BYTES_PER_SAMPLE * sourceChannelCount)
-            val estimatedTargetSampleCount = ceil(sourceSampleCount * samplingRatio).toInt()
-            val targetBuffer =
-                ByteBuffer.allocateDirect(estimatedTargetSampleCount * targetChannelCount * BYTES_PER_SAMPLE)
-                    .order(ByteOrder.LITTLE_ENDIAN)
-
-            val targetSampleCount = processAudioFrame(sourceBuffer, sourceSampleCount, targetBuffer)
+    override fun processFrame(sourceFrame: Frame, targetFrame: Frame) {
+        if (sourceFrame.buffer != null && targetFrame.buffer != null) {
+            val sourceSampleCount = sourceFrame.bufferInfo.size / (BYTES_PER_SAMPLE * sourceChannelCount)
+            val targetSampleCount = processAudioFrame(sourceFrame.buffer, sourceSampleCount, targetFrame.buffer)
 
             val targetBufferSize = targetSampleCount * BYTES_PER_SAMPLE * targetChannelCount
-            targetBuffer.limit(targetBufferSize)
-
-            val bufferInfo = MediaCodec.BufferInfo()
-            bufferInfo.size = targetBufferSize
-            bufferInfo.offset = 0
-            bufferInfo.presentationTimeUs = presentationTimeNs
-            bufferInfo.flags = frame.bufferInfo.flags
+            targetFrame.buffer.rewind()
+            targetFrame.buffer.limit(targetBufferSize)
+            targetFrame.bufferInfo.set(
+                0,
+                targetBufferSize,
+                presentationTimeNs,
+                sourceFrame.bufferInfo.flags
+            )
 
             this.presentationTimeNs += (targetSampleCount * sampleDurationUs).toLong()
-
-            Frame(frame.tag, targetBuffer, bufferInfo)
-        } ?: throw IllegalArgumentException("Frame doesn't have a buffer, cannot process it!")
+        } else {
+            throw IllegalArgumentException("Source or target frame doesn't have a buffer, cannot process it!")
+        }
     }
 
     override fun release() {
