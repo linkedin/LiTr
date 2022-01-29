@@ -75,10 +75,11 @@ class AudioRenderer(private val encoder: Encoder) : Renderer {
             val estimatedTargetSampleCount = ceil(sourceSampleCount * samplingRatio).toInt()
             val targetBufferCapacity = estimatedTargetSampleCount * targetChannelCount * BYTES_PER_SAMPLE
             val targetBuffer = bufferPool.get(targetBufferCapacity)
-            val resampledFrame = Frame(inputFrame.tag, targetBuffer, MediaCodec.BufferInfo())
 
-            audioProcessor.processFrame(inputFrame, resampledFrame)
-            renderQueue.add(resampledFrame)
+            val processedFrame = Frame(inputFrame.tag, targetBuffer, MediaCodec.BufferInfo())
+
+            audioProcessor.processFrame(inputFrame, processedFrame)
+            renderQueue.add(processedFrame)
         }
     }
 
