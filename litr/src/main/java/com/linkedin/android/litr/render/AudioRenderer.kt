@@ -85,7 +85,7 @@ class AudioRenderer(private val encoder: Encoder) : Renderer {
     override fun release() {
         released.set(true)
         audioProcessor.release()
-        bufferPool.release()
+        bufferPool.clear()
     }
 
     override fun hasFilters(): Boolean {
