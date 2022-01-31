@@ -24,13 +24,12 @@ internal class PassthroughAudioProcessor : AudioProcessor {
             buffer.put(inputBuffer)
             buffer.flip()
 
-            val bufferInfo = MediaCodec.BufferInfo()
-            bufferInfo.set(
-                0,
-                frame.bufferInfo.size,
-                frame.bufferInfo.presentationTimeUs,
-                frame.bufferInfo.flags
-            )
+            val bufferInfo = MediaCodec.BufferInfo().apply {
+                offset = 0
+                size = frame.bufferInfo.size
+                presentationTimeUs = frame.bufferInfo.presentationTimeUs
+                flags = frame.bufferInfo.flags
+            }
 
             Frame(frame.tag, buffer, bufferInfo)
         } ?: throw IllegalArgumentException("Frame doesn't have a buffer, cannot process it!")
