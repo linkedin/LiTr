@@ -15,6 +15,7 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import java.nio.ByteBuffer
+import java.util.concurrent.Callable
 import java.util.concurrent.CountDownLatch
 import kotlin.test.assertNotNull
 
@@ -40,9 +41,6 @@ class AudioRendererShould {
 
     private lateinit var audioRenderer: AudioRenderer
 
-    private lateinit var encoderLatch: CountDownLatch
-    private val outputFrames = mutableListOf<Frame>()
-
     @Before
     fun setup() {
         MockitoAnnotations.openMocks(this)
@@ -50,10 +48,6 @@ class AudioRendererShould {
         whenever(encoder.dequeueInputFrame(any())).thenReturn(OUTPUT_FRAME_TAG_1).thenReturn(OUTPUT_FRAME_TAG_2)
         whenever(encoder.getInputFrame(OUTPUT_FRAME_TAG_1)).thenReturn(encoderInputFrame1)
         whenever(encoder.getInputFrame(OUTPUT_FRAME_TAG_2)).thenReturn(encoderInputFrame2)
-        whenever(encoder.queueInputFrame(any())).thenAnswer {
-            outputFrames.add(it.arguments[0] as Frame)
-            encoderLatch.countDown()
-        }
 
         audioRenderer = AudioRenderer(encoder)
     }
@@ -64,11 +58,11 @@ class AudioRendererShould {
         val targetMediaFormat = createMediaFormat(2, TARGET_SAMPLE_RATE)
         audioRenderer.init(null, sourceMediaFormat, targetMediaFormat)
 
-        encoderLatch = CountDownLatch(1)
+        val frameCollector = encoder.collectOutputFrames(1)
         val inputFrame = createFrame(INPUT_BUFFER_SIZE, PRESENTATION_TIME, 0)
         audioRenderer.renderFrame(inputFrame, PRESENTATION_TIME)
-        encoderLatch.await()
 
+        val outputFrames = frameCollector.call()
         verify(encoder).getInputFrame(OUTPUT_FRAME_TAG_1)
         assertThat(outputFrames.size, equalTo(1))
         verifyOutputFrame(inputFrame, outputFrames[0])
@@ -80,11 +74,11 @@ class AudioRendererShould {
         val targetMediaFormat = createMediaFormat(1, TARGET_SAMPLE_RATE)
         audioRenderer.init(null, sourceMediaFormat, targetMediaFormat)
 
-        encoderLatch = CountDownLatch(1)
+        val frameCollector = encoder.collectOutputFrames(1)
         val inputFrame = createFrame(INPUT_BUFFER_SIZE, PRESENTATION_TIME, 0)
         audioRenderer.renderFrame(inputFrame, PRESENTATION_TIME)
-        encoderLatch.await()
 
+        val outputFrames = frameCollector.call()
         verify(encoder).getInputFrame(OUTPUT_FRAME_TAG_1)
         assertThat(outputFrames.size, equalTo(1))
         verifyOutputFrame(inputFrame, outputFrames[0])
@@ -97,14 +91,14 @@ class AudioRendererShould {
         val targetMediaFormat = createMediaFormat(channelCount, TARGET_SAMPLE_RATE)
         audioRenderer.init(null, sourceMediaFormat, targetMediaFormat)
 
-        encoderLatch = CountDownLatch(2)
+        val frameCollector = encoder.collectOutputFrames(2)
         val inputFrame = createFrame(
             ENCODER_BUFFER_CAPACITY + EXTRA_INPUT_BYTES,
             PRESENTATION_TIME,
             MediaCodec.BUFFER_FLAG_END_OF_STREAM)
         audioRenderer.renderFrame(inputFrame, PRESENTATION_TIME)
-        encoderLatch.await()
 
+        val outputFrames = frameCollector.call()
         verify(encoder).getInputFrame(OUTPUT_FRAME_TAG_1)
         verify(encoder).getInputFrame(OUTPUT_FRAME_TAG_2)
         assertThat(outputFrames.size, equalTo(2))
@@ -117,7 +111,7 @@ class AudioRendererShould {
         val expectedBufferInfo1 = MediaCodec.BufferInfo()
         expectedBufferInfo1.offset = 0
         expectedBufferInfo1.size = ENCODER_BUFFER_CAPACITY
-        expectedBufferInfo1.presentationTimeUs = inputFrame.bufferInfo.presentationTimeUs
+        expectedBufferInfo1.presentationTimeUs = PRESENTATION_TIME
         expectedBufferInfo1.flags = 0 // EOS flag should be cleared from the first buffer
         val expectedOutputFrame1 = Frame(OUTPUT_FRAME_TAG_1, expectedByteBuffer1, expectedBufferInfo1)
 
@@ -183,5 +177,18 @@ class AudioRendererShould {
         whenever(mediaFormat.getInteger(MediaFormat.KEY_SAMPLE_RATE)).thenReturn(sampleRate)
 
         return mediaFormat
+    }
+
+    private fun Encoder.collectOutputFrames(count: Int) : Callable<List<Frame>> {
+        val latch = CountDownLatch(count)
+        val frames = mutableListOf<Frame>()
+        whenever(this.queueInputFrame(any())).thenAnswer {
+            frames.add(it.arguments[0] as Frame)
+            latch.countDown()
+        }
+        return Callable {
+            latch.await()
+            frames
+        }
     }
 }
