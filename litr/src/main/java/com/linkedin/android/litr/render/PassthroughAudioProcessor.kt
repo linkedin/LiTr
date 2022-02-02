@@ -7,10 +7,8 @@
  */
 package com.linkedin.android.litr.render
 
-import android.media.MediaCodec
 import com.linkedin.android.litr.codec.Frame
 import java.lang.IllegalArgumentException
-import java.nio.ByteBuffer
 
 /**
  * Simple implementation of [AudioProcessor] that duplicates a source frame into target frame.
@@ -18,21 +16,20 @@ import java.nio.ByteBuffer
 
 internal class PassthroughAudioProcessor : AudioProcessor {
 
-    override fun processFrame(frame: Frame): Frame {
-        return frame.buffer?.let { inputBuffer ->
-            val buffer = ByteBuffer.allocate(inputBuffer.limit())
-            buffer.put(inputBuffer)
-            buffer.flip()
+    override fun processFrame(sourceFrame: Frame, targetFrame: Frame) {
+        if (sourceFrame.buffer != null && targetFrame.buffer != null) {
+            targetFrame.buffer.put(sourceFrame.buffer)
+            targetFrame.buffer.flip()
 
-            val bufferInfo = MediaCodec.BufferInfo().apply {
+            targetFrame.bufferInfo.apply {
                 offset = 0
-                size = frame.bufferInfo.size
-                presentationTimeUs = frame.bufferInfo.presentationTimeUs
-                flags = frame.bufferInfo.flags
+                size = sourceFrame.bufferInfo.size
+                presentationTimeUs = sourceFrame.bufferInfo.presentationTimeUs
+                flags = sourceFrame.bufferInfo.flags
             }
-
-            Frame(frame.tag, buffer, bufferInfo)
-        } ?: throw IllegalArgumentException("Frame doesn't have a buffer, cannot process it!")
+        } else {
+            throw IllegalArgumentException("Source or target frame doesn't have a buffer, cannot process it!")
+        }
     }
 
     override fun release() {}

@@ -15,11 +15,11 @@ import com.linkedin.android.litr.codec.Frame
 interface AudioProcessor {
 
     /**
-     * Process (resample, mix channels, etc.) an audio frame from source to target format
-     * @param frame input frame that needs to be processed
-     * @return processed frame
+     * Process (resample, mix channels, etc.) an audio frame from source to target format.
+     * @param sourceFrame input frame that needs to be processed
+     * @param targetFrame output frame, which will have a pre-allocated buffer to put processed data into
      */
-    fun processFrame(frame: Frame): Frame
+    fun processFrame(sourceFrame: Frame, targetFrame: Frame)
 
     /**
      * Release processor. After this method is called, processor can no longer be used.
