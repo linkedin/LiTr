@@ -21,12 +21,12 @@ internal class PassthroughAudioProcessor : AudioProcessor {
             targetFrame.buffer.put(sourceFrame.buffer)
             targetFrame.buffer.flip()
 
-            targetFrame.bufferInfo.set(
-                0,
-                sourceFrame.bufferInfo.size,
-                sourceFrame.bufferInfo.presentationTimeUs,
-                sourceFrame.bufferInfo.flags
-            )
+            targetFrame.bufferInfo.apply {
+                offset = 0
+                size = sourceFrame.bufferInfo.size
+                presentationTimeUs = sourceFrame.bufferInfo.presentationTimeUs
+                flags = sourceFrame.bufferInfo.flags
+            }
         } else {
             throw IllegalArgumentException("Source or target frame doesn't have a buffer, cannot process it!")
         }
