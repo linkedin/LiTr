@@ -13,6 +13,7 @@ import android.util.Log
 import android.view.Surface
 import com.linkedin.android.litr.codec.Encoder
 import com.linkedin.android.litr.codec.Frame
+import com.linkedin.android.litr.filter.BufferFilter
 import com.linkedin.android.litr.utils.ByteBufferPool
 import java.util.concurrent.LinkedBlockingDeque
 import java.util.concurrent.atomic.AtomicBoolean
@@ -23,7 +24,10 @@ private const val FRAME_WAIT_TIMEOUT: Long = 0L
 
 private const val TAG = "AudioRenderer"
 
-class AudioRenderer(private val encoder: Encoder) : Renderer {
+class AudioRenderer @JvmOverloads constructor(
+    private val encoder: Encoder,
+    private val filters: MutableList<BufferFilter> = mutableListOf()
+) : Renderer {
 
     private var sourceMediaFormat: MediaFormat? = null
     private var targetMediaFormat: MediaFormat? = null
@@ -79,6 +83,8 @@ class AudioRenderer(private val encoder: Encoder) : Renderer {
             val processedFrame = Frame(inputFrame.tag, targetBuffer, MediaCodec.BufferInfo())
 
             audioProcessor.processFrame(inputFrame, processedFrame)
+            filters.forEach { it.apply(processedFrame) }
+
             renderQueue.add(processedFrame)
         }
     }
