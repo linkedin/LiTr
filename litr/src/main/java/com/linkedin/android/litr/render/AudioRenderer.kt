@@ -48,6 +48,7 @@ class AudioRenderer @JvmOverloads constructor(
         released.set(false)
         renderThread.start()
         audioProcessor = AudioProcessorFactory().createAudioProcessor(sourceMediaFormat, targetMediaFormat)
+        filters.forEach { it.init(targetMediaFormat) }
     }
 
     override fun onMediaFormatChanged(sourceMediaFormat: MediaFormat?, targetMediaFormat: MediaFormat?) {
