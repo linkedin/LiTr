@@ -13,6 +13,7 @@ import android.view.Surface
 import java.nio.ByteBuffer
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.LinkedBlockingQueue
+import java.util.concurrent.TimeUnit
 
 private const val DEFAULT_BUFFER_POOL_SIZE = 2
 
@@ -83,8 +84,8 @@ class PassthroughBufferEncoder(
         synchronized(this) {
             frame.buffer?.flip()
             dequeuedInputFrames.remove(frame.tag)
-            encodeQueue.add(frame.tag)
             encodedFrames[frame.tag] = frame
+            encodeQueue.add(frame.tag)
         }
     }
 
@@ -93,7 +94,7 @@ class PassthroughBufferEncoder(
             mediaFormatChanged = true
             return MediaCodec.INFO_OUTPUT_FORMAT_CHANGED
         }
-        return encodeQueue.poll() ?: MediaCodec.INFO_TRY_AGAIN_LATER
+        return encodeQueue.poll(timeout, TimeUnit.MICROSECONDS) ?: MediaCodec.INFO_TRY_AGAIN_LATER
     }
 
     override fun getOutputFrame(tag: Int): Frame? {
@@ -101,9 +102,11 @@ class PassthroughBufferEncoder(
     }
 
     override fun releaseOutputFrame(tag: Int) {
-        encodedFrames.remove(tag)?.let {
-            it.buffer?.clear()
-            availableFrames.add(it)
+        synchronized(this) {
+            encodedFrames.remove(tag)?.let {
+                it.buffer?.clear()
+                availableFrames.add(it)
+            }
         }
     }
 
