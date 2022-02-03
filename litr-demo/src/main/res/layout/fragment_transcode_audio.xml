@@ -65,6 +65,14 @@
                 android:layout_height="wrap_content"
                 android:padding="@dimen/cell_padding"/>
 
+            <CheckBox
+                android:id="@+id/checkbox_write_to_wav"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/write_to_wav"
+                android:checked="@={targetMedia.writeToWav}"
+                android:visibility="@{(sourceMedia != null &amp;&amp; targetMedia.getIncludedTrackCount() > 0) ? View.VISIBLE : View.GONE}"/>
+
             <Button
                 android:id="@+id/button_transcode"
                 android:layout_width="match_parent"

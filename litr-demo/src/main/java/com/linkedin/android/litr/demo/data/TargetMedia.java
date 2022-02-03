@@ -33,6 +33,7 @@ public class TargetMedia extends BaseObservable {
     public List<TargetTrack> tracks = new ArrayList<>();
     public Uri backgroundImageUri;
     public GlFilter filter;
+    public boolean writeToWav;
 
     public void setTracks(@NonNull List<MediaTrackFormat> sourceTracks) {
         tracks = new ArrayList<>(sourceTracks.size());
