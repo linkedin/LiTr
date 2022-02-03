@@ -11,12 +11,13 @@ import android.content.Context;
 import android.media.MediaFormat;
 import android.media.MediaMuxer;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Looper;
 import android.util.Log;
+
 import androidx.annotation.IntRange;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+
 import com.linkedin.android.litr.codec.Decoder;
 import com.linkedin.android.litr.codec.Encoder;
 import com.linkedin.android.litr.codec.MediaCodecDecoder;
@@ -28,9 +29,9 @@ import com.linkedin.android.litr.io.MediaExtractorMediaSource;
 import com.linkedin.android.litr.io.MediaMuxerMediaTarget;
 import com.linkedin.android.litr.io.MediaSource;
 import com.linkedin.android.litr.io.MediaTarget;
+import com.linkedin.android.litr.render.AudioRenderer;
 import com.linkedin.android.litr.render.GlVideoRenderer;
 import com.linkedin.android.litr.render.Renderer;
-import com.linkedin.android.litr.utils.CodecUtils;
 import com.linkedin.android.litr.utils.TranscoderUtils;
 
 import java.util.ArrayList;
@@ -190,6 +191,7 @@ public class MediaTransformer {
                 } else if (mimeType.startsWith("audio")) {
                     trackTransformBuilder.setDecoder(decoder)
                             .setEncoder(encoder)
+                            .setRenderer(new AudioRenderer(encoder, options.audioFilters))
                             .setTargetFormat(targetAudioFormat);
                 }
 
