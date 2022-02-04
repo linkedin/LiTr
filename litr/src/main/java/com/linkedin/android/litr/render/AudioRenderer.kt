@@ -97,7 +97,7 @@ class AudioRenderer @JvmOverloads constructor(
     }
 
     override fun hasFilters(): Boolean {
-        return false
+        return filters.isNotEmpty()
     }
 
     private inner class RenderThread : Thread() {
