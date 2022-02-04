@@ -1,5 +1,16 @@
 # Change Log
 
+## Version 1.4.18 (2022-02-04)
+
+This release introduces a lot of audio processing improvements and fixes:
+
+- A new AudioRenderer, focused solely on audio processing
+- Capability to change sampling rate with high performance and high quality, provided by integrating [Oboe resampler](https://github.com/google/oboe/tree/master/src/flowgraph/resampler).
+- Capability to mix stereo audio to mono and vice versa.
+- Support for audio filters.
+- Support for writing raw audio into WAV file.
+- Fix for dropped audio frames.
+
 ## Version 1.4.17 (2022-01-24)
 
 - Allow non-negative reads from source buffer during transcoding [#133](https://github.com/linkedin/LiTr/pull/133)

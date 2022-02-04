@@ -5,15 +5,16 @@ LiTr (pronounced "lai-tr") is a lightweight video/audio transformation tool whic
 
 In its current iteration LiTr supports:
  - changing resolution and/or bitrate of a video track(s)
- - changing bitrate of an audio track(s)
+ - changing sampling rate, channel count and/or bitrate of an audio track(s)
  - overlaying bitmap watermark onto video track(s)
  - applying different effects (brightness/contrast, saturation/hue, blur, etc.) to video pixels
  - including/excluding tracks, which allows muxing/demuxing tracks
  - transforming tracks individually (e.g. apply overlay to one video track, but not the other)
  - positioning source video frame arbitrarily onto target video frame
  - trimming video/audio
- - ability to create "empty" video, or a video out of single image
- - ability to create preview bitmap(s) (with filters applied) at specific timestamp(s) (filmstrip)
+ - creating "empty" video, or a video out of single image
+ - creating preview bitmap(s) (with filters applied) at specific timestamp(s) (filmstrip)
+ - writing raw audio into WAV container
 
 By default, LiTr uses Android MediaCodec stack for hardware accelerated decoding/encoding and OpenGL for rendering. It also uses MediaExtractor and MediaMuxer to read/write media.
 
@@ -22,7 +23,7 @@ By default, LiTr uses Android MediaCodec stack for hardware accelerated decoding
 Simply grab via Gradle:
 
 ```groovy
- implementation 'com.linkedin.android.litr:litr:1.4.17'
+ implementation 'com.linkedin.android.litr:litr:1.4.18'
 ```
 ...or Maven:
 
@@ -30,7 +31,7 @@ Simply grab via Gradle:
 <dependency>
   <groupId>com.linkedin.android.litr</groupId>
   <artifactId>litr</artifactId>
-  <version>1.4.17</version>
+  <version>1.4.18</version>
 </dependency>
 
 ```
@@ -62,6 +63,7 @@ Few notable things related to transformation:
  - transformation is performed asynchronously, listener will be called with any transformation progress or state changes
  - by default listener callbacks happen on a UI thread, it is safe to update UI in listener implementation. It is also possible to have them on a non-UI transformation thread, for example, if any "heavy" works needs to be done in listener implementation.
  - if you want to modify video frames, pass in a list of `GlFilter`s in `TransformationOptions`, which will be applied in order
+ - if you want to modify audio frames, pass in a list of `BufferFilter`s in `TransformationOptions`, which will be applied in order
  - client can call `transform` multiple times, to queue transformation requests
  - video will be written into MP4 container, we recommend using H.264 ("video/avc" MIME type) for target encoding
  - progress update granularity is 100 by default, to match percentage, and can be set in `TransformationOptions`
@@ -125,7 +127,7 @@ You can use custom filters to modify video frames. Write your own in OpenGL as a
 LiTr now has 40 new GPU accelerated video filters ported from [Mp4Composer-android](https://github.com/MasayukiSuda/Mp4Composer-android) and [android-gpuimage](https://github.com/cats-oss/android-gpuimage) projects. You can also create your own filter simply by configuring VideoFrameRenderFilter with your custom shader, with no extra coding!
 
 ```groovy
- implementation 'com.linkedin.android.litr:litr-filters:1.4.17'
+ implementation 'com.linkedin.android.litr:litr-filters:1.4.18'
 ```
 ...or Maven:
 
@@ -133,12 +135,12 @@ LiTr now has 40 new GPU accelerated video filters ported from [Mp4Composer-andro
 <dependency>
   <groupId>com.linkedin.android.litr</groupId>
   <artifactId>litr-filters</artifactId>
-  <version>1.4.17</version>
+  <version>1.4.18</version>
 </dependency>
 
 ```
 
-You can pass in a list of filters when transforming a video. Keep in mind that filters will be applied in the order they are in the list, so ordering matters.
+You can pass in a list of filters when transforming a video or audio track. Keep in mind that filters will be applied in the order they are in the list, so ordering matters.
 
 ## Using in Tests
 
@@ -190,9 +192,10 @@ This project is licensed under the BSD 2-Clause License - see the [LICENSE](LICE
 
 * A huge thank you to [ypresto](https://github.com/ypresto/) for his pioneering work on [android-transcoder](https://github.com/ypresto/android-transcoder) project, which was an inspiration and heavy influence on LiTr
 * A special thank you to [MasayukiSuda](https://github.com/MasayukiSuda) for his work on [Mp4Composer-android](https://github.com/MasayukiSuda/Mp4Composer-android) project, whose filters now power LiTr, and for his work on [ExoPlayerFilter](https://github.com/MasayukiSuda/ExoPlayerFilter) project which was a foundation for filter preview functionality in LiTr.
-* A special thank you to [android-gpuimage](https://github.com/cats-oss/android-gpuimage) project for amazing filter collection, which is now being migrated into LiTr
+* A special thank you to [android-gpuimage](https://github.com/cats-oss/android-gpuimage) project for amazing filter collection, which have been ported into LiTr
 * A thank you to Google's AOSP CTS team for writing Surface to Surface rendering implementation in OpenGL, which became a foundation for GlRenderer in LiTr
-* A shout out to my awesome colleagues Amita Sahasrabudhe, Long Peng and Keerthi Korrapati for contributions and code reviews
+* A thank you to Google [Oboe](https://github.com/google/oboe) project for high quality audio resampling implementation, which became a foundation of audio processing in LiTr
+* A shout out to my awesome colleagues Amita Sahasrabudhe, Long Peng, Keerthi Korrapati and Vasiliy Kulakov for contributions and code reviews
 * A shout out to my colleague Vidhya Pandurangan for prototyping video trimming, which now became a feature
 * A shout out to our designer Mauroof Ahmed for giving LiTr a visual identity
 * A shout out to [PurpleBooth](https://gist.github.com/PurpleBooth/) for very useful [README.md template](https://gist.github.com/PurpleBooth/109311bb0361f32d87a2)
