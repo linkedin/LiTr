@@ -26,8 +26,10 @@ private const val TAG = "AudioRenderer"
 
 class AudioRenderer @JvmOverloads constructor(
     private val encoder: Encoder,
-    private val filters: MutableList<BufferFilter> = mutableListOf()
+    filters: MutableList<BufferFilter>? = null
 ) : Renderer {
+
+    private val filters: List<BufferFilter> = filters ?: listOf()
 
     private var sourceMediaFormat: MediaFormat? = null
     private var targetMediaFormat: MediaFormat? = null
