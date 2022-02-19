@@ -40,7 +40,6 @@ public class MediaMuxerMediaTargetShould {
 
     private static final int BUFFER_SIZE = 42;
     private static final long PRESENTATION_TIME = 17;
-    private static final int SAMPLE_FLAGS = 0;
 
     @Mock private MediaMuxer mediaMuxer;
 
@@ -63,7 +62,7 @@ public class MediaMuxerMediaTargetShould {
 
         byteBuffer = ByteBuffer.allocate(BUFFER_SIZE);
         bufferInfo = new MediaCodec.BufferInfo();
-        bufferInfo.set(0, BUFFER_SIZE, PRESENTATION_TIME, SAMPLE_FLAGS);
+        bufferInfo.set(0, BUFFER_SIZE, PRESENTATION_TIME, 0);
 
         videoMediaFormat = new MediaFormat();
         audioMediaFormat = new MediaFormat();
