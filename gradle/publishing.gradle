@@ -1,23 +1,19 @@
 apply plugin: 'maven-publish'
 apply plugin: 'signing'
 
-// Ideally AGP should provide sources and javadoc integration for their components:
-// https://issuetracker.google.com/issues/145670440
-tasks.register("sourcesJar", Jar) {
-    classifier 'sources'
-    from android.sourceSets.main.java.srcDirs
-}
+android {
+    publishing {
+        singleVariant("release") {
+            withSourcesJar()
+            withJavadocJar()
+        }
 
-tasks.register("javadoc", Javadoc) {
-    failOnError false
-    source = android.sourceSets.main.java.srcDirs
-    classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
-}
-
-tasks.register("javadocJar", Jar) {
-    dependsOn javadoc
-    classifier 'javadoc'
-    from javadoc.destinationDir
+        multipleVariants {
+            withSourcesJar()
+            withJavadocJar()
+            allVariants()
+        }
+    }
 }
 
 // AGP creates the components in afterEvaluate, so we need to use it too
@@ -27,9 +23,6 @@ afterEvaluate {
         publications {
             maven(MavenPublication) {
                 from components.release
-
-                artifact sourcesJar
-                artifact javadocJar
 
                 pom {
                     name = 'LiTr'
