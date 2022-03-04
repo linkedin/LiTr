@@ -17,7 +17,6 @@ import com.linkedin.android.litr.frameextract.behaviors.FrameExtractBehavior
 import com.linkedin.android.litr.frameextract.behaviors.MediaMetadataExtractBehavior
 import com.linkedin.android.litr.frameextract.queue.ComparableFutureTask
 import com.linkedin.android.litr.frameextract.queue.PriorityExecutorUtil
-import java.util.concurrent.*
 
 /**
  * Provides the entry point for single frame extraction.
@@ -70,6 +69,11 @@ class VideoFrameExtractor @JvmOverloads constructor(
             if (!it.future.isCancelled && !it.future.isDone) {
                 it.future.cancel(true)
             }
+            if (!it.future.isStarted) {
+                // If the job hasn't started, it won't probably even start, but it will remain in the activeJobMap,
+                // we must remove it from there.
+                activeJobMap.remove(requestId)
+            }
         }
     }
 
@@ -77,9 +81,14 @@ class VideoFrameExtractor @JvmOverloads constructor(
      * Cancels all started extract jobs. [FrameExtractListener.onCancelled] will be called for jobs that have been started.
      */
     fun stopAll() {
-        activeJobMap.values.forEach {
-            if (!it.future.isCancelled && !it.future.isDone) {
-                it.future.cancel(true)
+        activeJobMap.forEach { (requestId, job) ->
+            if (!job.future.isCancelled && !job.future.isDone) {
+                job.future.cancel(true)
+            }
+            if (!job.future.isStarted) {
+                // If the job hasn't started, it won't probably even start, but it will remain in the activeJobMap,
+                // we must remove it from there.
+                activeJobMap.remove(requestId)
             }
         }
     }
@@ -133,7 +142,7 @@ class VideoFrameExtractor @JvmOverloads constructor(
         }
     }
 
-    private data class ActiveExtractJob(val future: Future<*>, val listener: FrameExtractListener?)
+    private data class ActiveExtractJob(val future: ComparableFutureTask<*>, val listener: FrameExtractListener?)
 
     companion object {
         private const val TAG = "VideoThumbnailExtractor"

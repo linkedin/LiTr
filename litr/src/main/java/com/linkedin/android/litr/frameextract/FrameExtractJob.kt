@@ -24,6 +24,10 @@ internal class FrameExtractJob constructor(
     private val behavior: FrameExtractBehavior,
     private val listener: FrameExtractListener?
 ) : Runnable {
+
+    var isStarted: Boolean = false
+        private set
+
     private val behaviorFrameListener = object: FrameExtractBehaviorFrameListener {
         override fun onFrameExtracted(bitmap: Bitmap) {
             val renderedBitmap = renderExtractedFrame(bitmap)
@@ -41,6 +45,7 @@ internal class FrameExtractJob constructor(
     }
 
     override fun run() {
+        isStarted = true
         try {
             extract()
         } catch (e: RuntimeException) {
