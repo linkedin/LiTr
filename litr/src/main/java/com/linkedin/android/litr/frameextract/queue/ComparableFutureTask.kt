@@ -7,6 +7,8 @@
  */
 package com.linkedin.android.litr.frameextract.queue
 
+import com.linkedin.android.litr.ExperimentalFrameExtractorApi
+import com.linkedin.android.litr.frameextract.FrameExtractJob
 import java.util.concurrent.*
 import java.util.concurrent.atomic.AtomicLong
 
@@ -15,9 +17,13 @@ import java.util.concurrent.atomic.AtomicLong
  *
  * This task maintains a FIFO order for priority.
  */
-internal class ComparableFutureTask<T>(runnable: Runnable?, result: T, private var priority: Long) : FutureTask<T>(runnable, result),
+@ExperimentalFrameExtractorApi
+internal class ComparableFutureTask<T>(private val job: FrameExtractJob?, result: T, private var priority: Long) : FutureTask<T>(job, result),
     Comparable<ComparableFutureTask<T>> {
     private val sequenceNumber = sharedSequence.getAndIncrement()
+
+    val isStarted: Boolean
+        get() = job?.isStarted ?: false
 
     override fun compareTo(other: ComparableFutureTask<T>): Int {
         var res = priority.compareTo(other.priority)
