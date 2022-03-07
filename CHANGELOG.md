@@ -1,5 +1,10 @@
 # Change Log
 
+## Version 1.4.19 (2022-03-07)
+
+- Fix for missing documentation jar in release
+- Fix for not yet started thumbnail jobs not being cleared when cancelled [#177](https://github.com/linkedin/LiTr/pull/177)
+
 ## Version 1.4.18 (2022-02-04)
 
 This release introduces a lot of audio processing improvements and fixes:
