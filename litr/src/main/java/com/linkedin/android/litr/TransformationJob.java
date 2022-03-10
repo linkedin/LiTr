@@ -231,10 +231,12 @@ class TransformationJob implements Runnable {
 
     @VisibleForTesting
     void release(boolean success) {
-        for (int track = 0; track < trackTranscoders.size(); track++) {
-            TrackTranscoder trackTranscoder = trackTranscoders.get(track);
-            trackTranscoder.stop();
-            statsCollector.setTargetFormat(track, trackTranscoder.getTargetMediaFormat());
+        if (trackTranscoders != null) {
+            for (int track = 0; track < trackTranscoders.size(); track++) {
+                TrackTranscoder trackTranscoder = trackTranscoders.get(track);
+                trackTranscoder.stop();
+                statsCollector.setTargetFormat(track, trackTranscoder.getTargetMediaFormat());
+            }
         }
 
         HashSet<MediaSource> mediaSources = new HashSet<>();
