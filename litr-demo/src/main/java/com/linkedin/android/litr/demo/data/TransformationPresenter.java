@@ -95,10 +95,13 @@ public class TransformationPresenter {
                     break;
                 }
             }
-            MediaTarget mediaTarget = new MediaMuxerMediaTarget(targetMedia.targetFile.getPath(),
-                                                                targetMedia.getIncludedTrackCount(),
-                                                                videoRotation,
-                                                                MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4);
+
+            MediaTarget mediaTarget = new MediaMuxerMediaTarget(
+                    context,
+                    Uri.fromFile(targetMedia.targetFile),
+                    targetMedia.getIncludedTrackCount(),
+                    videoRotation,
+                    MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4);
 
             List<TrackTransform> trackTransforms = new ArrayList<>(targetMedia.tracks.size());
 
