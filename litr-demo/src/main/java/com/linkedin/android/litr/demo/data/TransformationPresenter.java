@@ -17,6 +17,7 @@ import android.media.MediaMuxer;
 import android.net.Uri;
 import android.os.Build;
 import android.util.Log;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -29,6 +30,7 @@ import com.linkedin.android.litr.codec.MediaCodecDecoder;
 import com.linkedin.android.litr.codec.MediaCodecEncoder;
 import com.linkedin.android.litr.codec.PassthroughDecoder;
 import com.linkedin.android.litr.codec.PassthroughBufferEncoder;
+import com.linkedin.android.litr.demo.R;
 import com.linkedin.android.litr.exception.MediaTransformationException;
 import com.linkedin.android.litr.filter.GlFilter;
 import com.linkedin.android.litr.filter.GlFrameRenderFilter;
@@ -600,6 +602,53 @@ public class TransformationPresenter {
         } catch (MediaTransformationException ex) {
             Log.e(TAG, "Exception when trying to transcode audio", ex);
         }
+    }
+
+    public void transcodeToVp9(@NonNull SourceMedia sourceMedia,
+                               @NonNull TargetMedia targetMedia,
+                               @NonNull TrimConfig trimConfig,
+                               @NonNull TransformationState transformationState) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
+            Toast.makeText(context, R.string.error_vp9_not_supported, Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        if (targetMedia.targetFile.exists()) {
+            targetMedia.targetFile.delete();
+        }
+
+        transformationState.requestId = UUID.randomUUID().toString();
+        MediaTransformationListener transformationListener = new MediaTransformationListener(context,
+                transformationState.requestId,
+                transformationState,
+                targetMedia);
+
+        MediaRange mediaRange = trimConfig.enabled
+                ? new MediaRange(
+                TimeUnit.MILLISECONDS.toMicros((long) (trimConfig.range.get(0) * 1000)),
+                TimeUnit.MILLISECONDS.toMicros((long) (trimConfig.range.get(1) * 1000)))
+                : new MediaRange(0, Long.MAX_VALUE);
+        TransformationOptions transformationOptions = new TransformationOptions.Builder()
+                .setGranularity(MediaTransformer.GRANULARITY_DEFAULT)
+                .setSourceMediaRange(mediaRange)
+                .build();
+
+        MediaFormat targetVideoFormat = MediaFormat.createVideoFormat(
+                MediaFormat.MIMETYPE_VIDEO_VP9,
+                1280,
+                720);
+        targetVideoFormat.setInteger(MediaFormat.KEY_BIT_RATE, 5_000_000);
+        targetVideoFormat.setInteger(MediaFormat.KEY_FRAME_RATE, 30);
+        targetVideoFormat.setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, 5);
+
+        mediaTransformer.transform(
+                transformationState.requestId,
+                sourceMedia.uri,
+                targetMedia.targetFile.getPath(),
+                targetVideoFormat,
+                null,
+                transformationListener,
+                transformationOptions);
     }
 
     public void cancelTransformation(@NonNull String requestId) {

@@ -11,7 +11,9 @@ import android.content.Context;
 import android.media.MediaFormat;
 import android.media.MediaMuxer;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Looper;
+import android.text.TextUtils;
 import android.util.Log;
 
 import androidx.annotation.IntRange;
@@ -157,11 +159,19 @@ public class MediaTransformer {
 
         try {
             MediaSource mediaSource = new MediaExtractorMediaSource(context, inputUri, options.sourceMediaRange);
+
+            boolean isVp8OrVp9 = Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP
+                    && targetVideoFormat != null
+                    && targetVideoFormat.containsKey(MediaFormat.KEY_MIME)
+                    && (TextUtils.equals(targetVideoFormat.getString(MediaFormat.KEY_MIME), MediaFormat.MIMETYPE_VIDEO_VP9)
+                    || TextUtils.equals(targetVideoFormat.getString(MediaFormat.KEY_MIME), MediaFormat.MIMETYPE_VIDEO_VP8));
             MediaTarget mediaTarget = new MediaMuxerMediaTarget(
                     outputFilePath,
                     mediaSource.getTrackCount(),
                     mediaSource.getOrientationHint(),
-                    MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4);
+                    Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && isVp8OrVp9
+                            ? MediaMuxer.OutputFormat.MUXER_OUTPUT_WEBM
+                            : MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4);
 
             int trackCount = mediaSource.getTrackCount();
             List<TrackTransform> trackTransforms = new ArrayList<>(trackCount);
@@ -192,7 +202,12 @@ public class MediaTransformer {
                     trackTransformBuilder.setDecoder(decoder)
                             .setEncoder(encoder)
                             .setRenderer(new AudioRenderer(encoder, options.audioFilters))
-                            .setTargetFormat(targetAudioFormat);
+                            .setTargetFormat(createTargetAudioFormat(
+                                    sourceMediaFormat,
+                                    targetAudioFormat,
+                                    Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && isVp8OrVp9
+                                            ? MediaFormat.MIMETYPE_AUDIO_OPUS
+                                            : null));
                 }
 
                 trackTransforms.add(trackTransformBuilder.build());
@@ -428,5 +443,29 @@ public class MediaTransformer {
         }
 
         return targetMediaFormat;
+    }
+
+    @Nullable
+    private MediaFormat createTargetAudioFormat(@NonNull MediaFormat sourceMediaFormat,
+                                                @Nullable MediaFormat targetAudioFormat,
+                                                @Nullable String targetMimeType) {
+        if (targetMimeType == null) {
+            return targetAudioFormat;
+        }
+        MediaFormat adjustedAudioFormat = MediaFormat.createAudioFormat(
+                targetMimeType,
+                sourceMediaFormat.getInteger(MediaFormat.KEY_SAMPLE_RATE),
+                sourceMediaFormat.getInteger(MediaFormat.KEY_CHANNEL_COUNT));
+        if (sourceMediaFormat.containsKey(MediaFormat.KEY_BIT_RATE)) {
+            adjustedAudioFormat.setInteger(
+                    MediaFormat.KEY_BIT_RATE,
+                    sourceMediaFormat.getInteger(MediaFormat.KEY_BIT_RATE));
+        }
+        if (sourceMediaFormat.containsKey(MediaFormat.KEY_DURATION)) {
+            adjustedAudioFormat.setLong(
+                    MediaFormat.KEY_DURATION,
+                    sourceMediaFormat.getLong(MediaFormat.KEY_DURATION));
+        }
+        return adjustedAudioFormat;
     }
 }
