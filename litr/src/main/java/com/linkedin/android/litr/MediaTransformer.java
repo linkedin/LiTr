@@ -34,6 +34,7 @@ import com.linkedin.android.litr.render.GlVideoRenderer;
 import com.linkedin.android.litr.render.Renderer;
 import com.linkedin.android.litr.utils.TranscoderUtils;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -150,7 +151,40 @@ public class MediaTransformer {
                           @Nullable MediaFormat targetAudioFormat,
                           @NonNull TransformationListener listener,
                           @Nullable TransformationOptions transformationOptions) {
+        transform(
+                requestId,
+                inputUri,
+                Uri.fromFile(new File(outputFilePath)),
+                targetVideoFormat,
+                targetAudioFormat,
+                listener,
+                transformationOptions
+        );
+    }
 
+    /**
+     * Transform video and audio track(s): change resolution, frame rate, bitrate, etc. Video track transformation
+     * uses default hardware accelerated codecs and OpenGL renderer.
+     *
+     * If overlay(s) are provided, video track(s) will be transcoded with parameters as close to source format as possible.
+     *
+     * This API is recommended to be used on devices with Android 10+ because it works with scoped storage
+     *
+     * @param requestId client defined unique id for a transformation request. If not unique, {@link IllegalArgumentException} will be thrown.
+     * @param inputUri input video {@link Uri}
+     * @param outputUri {@link Uri} of transformation output media
+     * @param targetVideoFormat target format parameters for video track(s), null to keep them as is
+     * @param targetAudioFormat target format parameters for audio track(s), null to keep them as is
+     * @param listener {@link TransformationListener} implementation, to get updates on transformation status/result/progress
+     * @param transformationOptions optional instance of {@link TransformationOptions}
+     */
+    public void transform(@NonNull String requestId,
+                          @NonNull Uri inputUri,
+                          @NonNull Uri outputUri,
+                          @Nullable MediaFormat targetVideoFormat,
+                          @Nullable MediaFormat targetAudioFormat,
+                          @NonNull TransformationListener listener,
+                          @Nullable TransformationOptions transformationOptions) {
         TransformationOptions options = transformationOptions == null
                 ? new TransformationOptions.Builder().build()
                 : transformationOptions;
@@ -158,7 +192,8 @@ public class MediaTransformer {
         try {
             MediaSource mediaSource = new MediaExtractorMediaSource(context, inputUri, options.sourceMediaRange);
             MediaTarget mediaTarget = new MediaMuxerMediaTarget(
-                    outputFilePath,
+                    context,
+                    outputUri,
                     mediaSource.getTrackCount(),
                     mediaSource.getOrientationHint(),
                     MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4);
