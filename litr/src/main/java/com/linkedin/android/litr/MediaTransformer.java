@@ -449,7 +449,7 @@ public class MediaTransformer {
     private MediaFormat createTargetAudioFormat(@NonNull MediaFormat sourceMediaFormat,
                                                 @Nullable MediaFormat targetAudioFormat,
                                                 @Nullable String targetMimeType) {
-        if (targetMimeType == null) {
+        if (targetMimeType == null || targetAudioFormat != null) {
             return targetAudioFormat;
         }
         MediaFormat adjustedAudioFormat = MediaFormat.createAudioFormat(
