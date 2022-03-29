@@ -57,6 +57,7 @@ public class MediaTransformer {
     public static final int GRANULARITY_DEFAULT = 100;
 
     public static final int DEFAULT_KEY_FRAME_INTERVAL = 5;
+    private static final int DEFAULT_AUDIO_BITRATE = 256_000;
 
     private static final String TAG = MediaTransformer.class.getSimpleName();
     private static final int DEFAULT_FUTURE_MAP_SIZE = 10;
@@ -456,11 +457,11 @@ public class MediaTransformer {
                 targetMimeType,
                 sourceMediaFormat.getInteger(MediaFormat.KEY_SAMPLE_RATE),
                 sourceMediaFormat.getInteger(MediaFormat.KEY_CHANNEL_COUNT));
-        if (sourceMediaFormat.containsKey(MediaFormat.KEY_BIT_RATE)) {
-            adjustedAudioFormat.setInteger(
-                    MediaFormat.KEY_BIT_RATE,
-                    sourceMediaFormat.getInteger(MediaFormat.KEY_BIT_RATE));
-        }
+        adjustedAudioFormat.setInteger(
+                MediaFormat.KEY_BIT_RATE,
+                sourceMediaFormat.containsKey(MediaFormat.KEY_BIT_RATE)
+                        ? sourceMediaFormat.getInteger(MediaFormat.KEY_BIT_RATE)
+                        : DEFAULT_AUDIO_BITRATE);
         if (sourceMediaFormat.containsKey(MediaFormat.KEY_DURATION)) {
             adjustedAudioFormat.setLong(
                     MediaFormat.KEY_DURATION,
