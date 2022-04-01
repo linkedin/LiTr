@@ -1,5 +1,12 @@
 # Change Log
 
+## Version 1.5.0 (2022-04-01)
+
+- Fix for error callback is not called with InsufficientDiskSpace exception [#179] (https://github.com/linkedin/LiTr/pull/179) by @mikeshuttjuvo
+- Add new transform method that accepts output URI [#182] (https://github.com/linkedin/LiTr/pull/182)
+- Support for transcoding video to VP8/VP9 [#183] (https://github.com/linkedin/LiTr/pull/183)
+- Remove deprecated MediaTransformer methods [#184] (https://github.com/linkedin/LiTr/pull/184)
+
 ## Version 1.4.19 (2022-03-07)
 
 - Fix for missing documentation jar in release

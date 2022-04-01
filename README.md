@@ -23,7 +23,7 @@ By default, LiTr uses Android MediaCodec stack for hardware accelerated decoding
 Simply grab via Gradle:
 
 ```groovy
- implementation 'com.linkedin.android.litr:litr:1.4.19'
+ implementation 'com.linkedin.android.litr:litr:1.5.0'
 ```
 ...or Maven:
 
@@ -31,7 +31,7 @@ Simply grab via Gradle:
 <dependency>
   <groupId>com.linkedin.android.litr</groupId>
   <artifactId>litr</artifactId>
-  <version>1.4.19</version>
+  <version>1.5.0</version>
 </dependency>
 
 ```
@@ -65,7 +65,7 @@ Few notable things related to transformation:
  - if you want to modify video frames, pass in a list of `GlFilter`s in `TransformationOptions`, which will be applied in order
  - if you want to modify audio frames, pass in a list of `BufferFilter`s in `TransformationOptions`, which will be applied in order
  - client can call `transform` multiple times, to queue transformation requests
- - video will be written into MP4 container, we recommend using H.264 ("video/avc" MIME type) for target encoding
+ - video will be written into MP4 container, we recommend using H.264 ("video/avc" MIME type) for target encoding. If VP8 or VP9 MIME type is used for target video track, audio track will be encoded using Opus codec, and tracks will be written into WebM container.
  - progress update granularity is 100 by default, to match percentage, and can be set in `TransformationOptions`
  - media can be optionally trimmed by specifying a `MediaRange` in `TransformationOptions`
 
@@ -127,7 +127,7 @@ You can use custom filters to modify video frames. Write your own in OpenGL as a
 LiTr now has 40 new GPU accelerated video filters ported from [Mp4Composer-android](https://github.com/MasayukiSuda/Mp4Composer-android) and [android-gpuimage](https://github.com/cats-oss/android-gpuimage) projects. You can also create your own filter simply by configuring VideoFrameRenderFilter with your custom shader, with no extra coding!
 
 ```groovy
- implementation 'com.linkedin.android.litr:litr-filters:1.4.19'
+ implementation 'com.linkedin.android.litr:litr-filters:1.5.0'
 ```
 ...or Maven:
 
@@ -135,7 +135,7 @@ LiTr now has 40 new GPU accelerated video filters ported from [Mp4Composer-andro
 <dependency>
   <groupId>com.linkedin.android.litr</groupId>
   <artifactId>litr-filters</artifactId>
-  <version>1.4.19</version>
+  <version>1.5.0</version>
 </dependency>
 
 ```
