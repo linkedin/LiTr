@@ -7,12 +7,9 @@
  */
 package com.linkedin.android.litr.render
 
-import android.media.MediaCodec
 import com.linkedin.android.litr.codec.Frame
 import java.lang.IllegalArgumentException
 import java.nio.ByteBuffer
-import java.nio.ByteOrder
-import kotlin.math.ceil
 
 private const val BYTES_PER_SAMPLE = 2
 
