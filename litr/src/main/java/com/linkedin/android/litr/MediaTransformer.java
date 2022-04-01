@@ -24,14 +24,12 @@ import com.linkedin.android.litr.codec.MediaCodecDecoder;
 import com.linkedin.android.litr.codec.MediaCodecEncoder;
 import com.linkedin.android.litr.exception.MediaSourceException;
 import com.linkedin.android.litr.exception.MediaTargetException;
-import com.linkedin.android.litr.filter.GlFilter;
 import com.linkedin.android.litr.io.MediaExtractorMediaSource;
 import com.linkedin.android.litr.io.MediaMuxerMediaTarget;
 import com.linkedin.android.litr.io.MediaSource;
 import com.linkedin.android.litr.io.MediaTarget;
 import com.linkedin.android.litr.render.AudioRenderer;
 import com.linkedin.android.litr.render.GlVideoRenderer;
-import com.linkedin.android.litr.render.Renderer;
 import com.linkedin.android.litr.utils.TranscoderUtils;
 
 import java.io.File;
@@ -88,46 +86,6 @@ public class MediaTransformer {
         futureMap = new HashMap<>(DEFAULT_FUTURE_MAP_SIZE);
         this.looper = looper;
         this.executorService = executorService;
-    }
-
-    /**
-     * Transform video and audio track(s): change resolution, frame rate, bitrate, etc. Video track transformation
-     * uses default hardware accelerated codecs and OpenGL renderer.
-     *
-     * If overlay(s) are provided, video track(s) will be transcoded with parameters as close to source format as possible.
-     *
-     * @param requestId client defined unique id for a transformation request. If not unique, {@link IllegalArgumentException} will be thrown.
-     * @param inputUri input video {@link Uri}
-     * @param outputFilePath Absolute path of output media file
-     * @param targetVideoFormat target format parameters for video track(s), null to keep them as is
-     * @param targetAudioFormat target format parameters for audio track(s), null to keep them as is
-     * @param listener {@link TransformationListener} implementation, to get updates on transformation status/result/progress
-     * @param granularity progress reporting granularity. NO_GRANULARITY for per-frame progress reporting,
-     *                    or positive integer value for number of times transformation progress should be reported
-     * @param filters optional OpenGL filters to apply to video frames
-     *
-     * @deprecated use the version with {@link TransformationOptions}
-     */
-    @Deprecated
-    public void transform(@NonNull String requestId,
-                          @NonNull Uri inputUri,
-                          @NonNull String outputFilePath,
-                          @Nullable MediaFormat targetVideoFormat,
-                          @Nullable MediaFormat targetAudioFormat,
-                          @NonNull TransformationListener listener,
-                          @IntRange(from = GRANULARITY_NONE) int granularity,
-                          @Nullable List<GlFilter> filters) {
-        TransformationOptions transformationOptions = new TransformationOptions.Builder()
-                .setGranularity(granularity)
-                .setVideoFilters(filters)
-                .build();
-        transform(requestId,
-                inputUri,
-                outputFilePath,
-                targetVideoFormat,
-                targetAudioFormat,
-                listener,
-                transformationOptions);
     }
 
     /**
@@ -240,75 +198,6 @@ public class MediaTransformer {
     }
 
     /**
-     * Transform audio/video tracks using provided transformation components (source, target, decoder, etc.)
-     * It is up to a client to provide component implementations that work together - for example, output of media source
-     * should be in format that decoder would accept, or renderer should use OpenGL if decoder and encoder use Surface.
-     *
-     * If renderer has overlay(s), video track(s) will be transcoded with parameters as close to source format as possible.
-     *
-     * @param requestId client defined unique id for a transformation request. If not unique, {@link IllegalArgumentException} will be thrown.
-     * @param mediaSource {@link MediaSource} to provide input frames
-     * @param decoder {@link Decoder} to decode input video frames
-     * @param videoRenderer {@link Renderer} to draw (with optional filters) decoder's output frame onto encoder's input frame
-     * @param encoder {@link Encoder} to encode output video frames into target format
-     * @param mediaTarget {@link MediaTarget} to write/mux output frames
-     * @param targetVideoFormat target format parameters for video track(s), null to keep them as is
-     * @param targetAudioFormat target format parameters for audio track(s), null to keep them as is
-     * @param listener {@link TransformationListener} implementation, to get updates on transformation status/result/progress
-     * @param granularity progress reporting granularity. NO_GRANULARITY for per-frame progress reporting,
-     *                    or positive integer value for number of times transformation progress should be reported
-     * @deprecated use transform(List<TrackTransform>> instead
-     */
-    @Deprecated
-    public void transform(@NonNull String requestId,
-                          @NonNull MediaSource mediaSource,
-                          @NonNull Decoder decoder,
-                          @NonNull Renderer videoRenderer,
-                          @NonNull Encoder encoder,
-                          @NonNull MediaTarget mediaTarget,
-                          @Nullable MediaFormat targetVideoFormat,
-                          @Nullable MediaFormat targetAudioFormat,
-                          @NonNull TransformationListener listener,
-                          @IntRange(from = GRANULARITY_NONE) int granularity) {
-        if (futureMap.containsKey(requestId)) {
-            throw new IllegalArgumentException("Request with id " + requestId + " already exists");
-        }
-
-        int trackCount = mediaSource.getTrackCount();
-        List<TrackTransform> trackTransforms = new ArrayList<>(trackCount);
-        for (int track = 0; track < trackCount; track++) {
-            MediaFormat sourceMediaFormat = mediaSource.getTrackFormat(track);
-            String mimeType = null;
-            if (sourceMediaFormat.containsKey(MediaFormat.KEY_MIME)) {
-                mimeType = sourceMediaFormat.getString(MediaFormat.KEY_MIME);
-            }
-
-            if (mimeType == null) {
-                Log.e(TAG, "Mime type is null for track " + track);
-                continue;
-            }
-
-            TrackTransform.Builder trackTransformBuilder = new TrackTransform.Builder(mediaSource, track, mediaTarget)
-                .setTargetTrack(track);
-
-            if (mimeType.startsWith("video")) {
-                trackTransformBuilder.setDecoder(decoder)
-                                     .setRenderer(videoRenderer)
-                                     .setEncoder(encoder)
-                                     .setTargetFormat(targetVideoFormat);
-            } else if (mimeType.startsWith("audio")) {
-                trackTransformBuilder.setDecoder(new MediaCodecDecoder())
-                                     .setEncoder(new MediaCodecEncoder())
-                                     .setTargetFormat(targetAudioFormat);
-            }
-
-            trackTransforms.add(trackTransformBuilder.build());
-        }
-
-        transform(requestId, trackTransforms, listener, granularity);
-    }
-
-    /**
      * Transform using specific track transformation instructions. This allows things muxing/demuxing tracks, applying
      * different transformations to different tracks, etc.
      *
@@ -377,23 +266,6 @@ public class MediaTransformer {
      */
     public void release() {
         executorService.shutdownNow();
-    }
-
-    /**
-     * Estimates target size of a target video based on a provided target format. If no target audio format is specified,
-     * uses 320 Kbps bitrate to estimate audio track size, if cannot extract audio bitrate. If track duration is not available,
-     * maximum track duration will be used. If track bitrate cannot be extracted, track will not be used to estimate size.
-     * @param inputUri {@link Uri} of a source video
-     * @param targetVideoFormat video format for a transformation target
-     * @param targetAudioFormat audio format for a transformation target
-     * @return estimated size of a transcoding target video file in bytes, -1 otherwise
-     * @deprecated use getEstimatedTargetVideoSize that takes List<TrackTransform> or TransformationOptions
-     */
-    @Deprecated
-    public long getEstimatedTargetVideoSize(@NonNull Uri inputUri,
-                                            @NonNull MediaFormat targetVideoFormat,
-                                            @Nullable MediaFormat targetAudioFormat) {
-        return getEstimatedTargetVideoSize(inputUri, targetVideoFormat, targetAudioFormat, null);
     }
 
     /**
