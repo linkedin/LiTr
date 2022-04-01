@@ -22,7 +22,8 @@ public enum DemoCase {
     VIDEO_FILTERS_PREVIEW(R.string.demo_case_video_filters_preview, "VideoFiltersPreview", new VideoFilterPreviewFragment()),
     TRANSCODE_VIDEO_MOCK(R.string.demo_case_mock_transcode_video, "TranscodeVideoMock", new MockTranscodeFragment()),
     TRANSCODE_AUDIO(R.string.demo_case_transcode_audio, "TranscodeAudio", new TranscodeAudioFragment()),
-    EXTRACT_FRAMES(R.string.demo_case_extract_frames, "ExtractFramesFragment", new ExtractFramesFragment());
+    EXTRACT_FRAMES(R.string.demo_case_extract_frames, "ExtractFramesFragment", new ExtractFramesFragment()),
+    TRANSCODE_TO_VP9(R.string.demo_case_transcode_to_vp9, "TranscodeToVp9Fragment", new TranscodeToVp9Fragment());
 
     @StringRes int displayName;
     String fragmentTag;

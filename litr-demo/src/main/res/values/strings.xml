@@ -17,6 +17,9 @@
     <string name="demo_case_mock_transcode_video">Mock Transcode Video</string>
     <string name="demo_case_transcode_audio">Transcode Audio</string>
     <string name="demo_case_extract_frames">Extract Video Frames</string>
+    <string name="demo_case_transcode_to_vp9">Transcode To VP9</string>
+
+    <string name="error_vp9_not_supported">VP8/VP9 is not supported</string>
 
     <string name="include">Include</string>
     <string name="overlay">Overlay</string>
