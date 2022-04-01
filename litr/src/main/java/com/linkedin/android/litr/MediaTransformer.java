@@ -63,10 +63,10 @@ public class MediaTransformer {
 
     private final Context context;
 
-    private ExecutorService executorService;
-    private Looper looper;
+    private final ExecutorService executorService;
+    private final Looper looper;
 
-    private Map<String, Future<?>> futureMap;
+    private final Map<String, Future<?>> futureMap;
 
     /**
      * Instantiate MediaTransformer. Listener callbacks will be done on main UI thread.
