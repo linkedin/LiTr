@@ -729,7 +729,7 @@ public class TransformationPresenter {
     @NonNull
     private MediaFormat createVideoMediaFormat(@NonNull VideoTrackFormat trackFormat) {
         MediaFormat mediaFormat = new MediaFormat();
-        mediaFormat.setString(MediaFormat.KEY_MIME, trackFormat.mimeType);
+        mediaFormat.setString(MediaFormat.KEY_MIME, "video/avc");
         mediaFormat.setInteger(MediaFormat.KEY_WIDTH, trackFormat.width);
         mediaFormat.setInteger(MediaFormat.KEY_HEIGHT, trackFormat.height);
         mediaFormat.setInteger(MediaFormat.KEY_BIT_RATE, trackFormat.bitrate);
