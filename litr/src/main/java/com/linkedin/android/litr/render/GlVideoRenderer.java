@@ -198,8 +198,8 @@ public class GlVideoRenderer implements Renderer {
                 break;
             default:
                 // this should never happen, but if it does, use trig as a last resort
-                upX = (float) Math.sin(rotation / Math.PI);
-                upY = (float) Math.cos(rotation / Math.PI);
+                upX = (float) Math.sin(rotation / 180 * Math.PI);
+                upY = (float) Math.cos(rotation / 180 * Math.PI);
                 break;
         }
         Matrix.setLookAtM(viewMatrix, 0,
