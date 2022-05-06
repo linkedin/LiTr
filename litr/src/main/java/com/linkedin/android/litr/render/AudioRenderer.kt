@@ -39,7 +39,8 @@ class AudioRenderer @JvmOverloads constructor(
     private var samplingRatio = 1.0
 
     private val bufferPool = ByteBufferPool(true)
-    private lateinit var audioProcessor: AudioProcessor
+    private val audioProcessorFactory = AudioProcessorFactory()
+    private var audioProcessor: AudioProcessor? = null
 
     private var released: AtomicBoolean = AtomicBoolean(false)
     private val renderQueue = LinkedBlockingDeque<Frame>()
@@ -49,13 +50,15 @@ class AudioRenderer @JvmOverloads constructor(
         onMediaFormatChanged(sourceMediaFormat, targetMediaFormat)
         released.set(false)
         renderThread.start()
-        audioProcessor = AudioProcessorFactory().createAudioProcessor(sourceMediaFormat, targetMediaFormat)
         filters.forEach { it.init(targetMediaFormat) }
     }
 
     override fun onMediaFormatChanged(sourceMediaFormat: MediaFormat?, targetMediaFormat: MediaFormat?) {
         this.sourceMediaFormat = sourceMediaFormat
         this.targetMediaFormat = targetMediaFormat
+
+        audioProcessor?.release()
+        audioProcessor = audioProcessorFactory.createAudioProcessor(sourceMediaFormat, targetMediaFormat)
 
         if (targetMediaFormat?.containsKey(MediaFormat.KEY_SAMPLE_RATE) == true) {
             targetSampleDurationUs = 1_000_000.0 / targetMediaFormat.getInteger(MediaFormat.KEY_SAMPLE_RATE)
@@ -85,7 +88,7 @@ class AudioRenderer @JvmOverloads constructor(
 
             val processedFrame = Frame(inputFrame.tag, targetBuffer, MediaCodec.BufferInfo())
 
-            audioProcessor.processFrame(inputFrame, processedFrame)
+            audioProcessor?.processFrame(inputFrame, processedFrame)
             filters.forEach { it.apply(processedFrame) }
 
             renderQueue.add(processedFrame)
@@ -94,7 +97,7 @@ class AudioRenderer @JvmOverloads constructor(
 
     override fun release() {
         released.set(true)
-        audioProcessor.release()
+        audioProcessor?.release()
         bufferPool.clear()
     }
 
