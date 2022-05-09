@@ -7,12 +7,22 @@ class MediaFormatUtils {
     companion object {
         @JvmStatic
         fun getIFrameInterval(format: MediaFormat, defaultValue: Number): Number {
-            return getNumber(format, MediaFormat.KEY_I_FRAME_INTERVAL) ?: return defaultValue
+            return getNumber(format, MediaFormat.KEY_I_FRAME_INTERVAL) ?: defaultValue
         }
 
         @JvmStatic
         fun getFrameRate(format: MediaFormat, defaultValue: Number): Number {
-            return getNumber(format, MediaFormat.KEY_FRAME_RATE) ?: return defaultValue
+            return getNumber(format, MediaFormat.KEY_FRAME_RATE) ?: defaultValue
+        }
+
+        @JvmStatic
+        fun getChannelCount(format: MediaFormat, defaultValue: Number): Number {
+            return getNumber(format, MediaFormat.KEY_CHANNEL_COUNT) ?: defaultValue
+        }
+
+        @JvmStatic
+        fun getSampleRate(format: MediaFormat, defaultValue: Number): Number {
+            return getNumber(format, MediaFormat.KEY_SAMPLE_RATE) ?: defaultValue
         }
 
         @JvmStatic
