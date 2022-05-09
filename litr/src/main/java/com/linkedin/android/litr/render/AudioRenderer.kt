@@ -15,12 +15,14 @@ import com.linkedin.android.litr.codec.Encoder
 import com.linkedin.android.litr.codec.Frame
 import com.linkedin.android.litr.filter.BufferFilter
 import com.linkedin.android.litr.utils.ByteBufferPool
+import com.linkedin.android.litr.utils.MediaFormatUtils
 import java.util.concurrent.LinkedBlockingDeque
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.math.ceil
 
 private const val BYTES_PER_SAMPLE = 2
 private const val FRAME_WAIT_TIMEOUT: Long = 0L
+private const val UNDEFINED_VALUE: Int = -1
 
 private const val TAG = "AudioRenderer"
 
@@ -34,8 +36,10 @@ class AudioRenderer @JvmOverloads constructor(
     private var sourceMediaFormat: MediaFormat? = null
     private var targetMediaFormat: MediaFormat? = null
     private var targetSampleDurationUs = 0.0
-    private var sourceChannelCount = -1
-    private var targetChannelCount = -1
+    private var sourceChannelCount = UNDEFINED_VALUE
+    private var targetChannelCount = UNDEFINED_VALUE
+    private var sourceSampleRate = UNDEFINED_VALUE
+    private var targetSampleRate = UNDEFINED_VALUE
     private var samplingRatio = 1.0
 
     private val bufferPool = ByteBufferPool(true)
@@ -54,24 +58,32 @@ class AudioRenderer @JvmOverloads constructor(
     }
 
     override fun onMediaFormatChanged(sourceMediaFormat: MediaFormat?, targetMediaFormat: MediaFormat?) {
-        this.sourceMediaFormat = sourceMediaFormat
-        this.targetMediaFormat = targetMediaFormat
+        val sourceChannelCount =
+            sourceMediaFormat?.let { MediaFormatUtils.getChannelCount(it, UNDEFINED_VALUE) } ?: UNDEFINED_VALUE
+        val targetChannelCount =
+            targetMediaFormat?.let { MediaFormatUtils.getChannelCount(it, UNDEFINED_VALUE) } ?: UNDEFINED_VALUE
+        val sourceSampleRate =
+            sourceMediaFormat?.let { MediaFormatUtils.getSampleRate(it, UNDEFINED_VALUE) } ?: UNDEFINED_VALUE
+        val targetSampleRate =
+            targetMediaFormat?.let { MediaFormatUtils.getSampleRate(it, UNDEFINED_VALUE) } ?: UNDEFINED_VALUE
 
-        audioProcessor?.release()
-        audioProcessor = audioProcessorFactory.createAudioProcessor(sourceMediaFormat, targetMediaFormat)
+        if (this.sourceChannelCount != sourceChannelCount ||
+            this.targetChannelCount != targetChannelCount ||
+            this.sourceSampleRate != sourceSampleRate ||
+            this.targetSampleRate != targetSampleRate) {
 
-        if (targetMediaFormat?.containsKey(MediaFormat.KEY_SAMPLE_RATE) == true) {
-            targetSampleDurationUs = 1_000_000.0 / targetMediaFormat.getInteger(MediaFormat.KEY_SAMPLE_RATE)
-            if (sourceMediaFormat?.containsKey(MediaFormat.KEY_SAMPLE_RATE) == true) {
-                samplingRatio =
-                    targetMediaFormat.getInteger(MediaFormat.KEY_SAMPLE_RATE).toDouble() / sourceMediaFormat.getInteger(MediaFormat.KEY_SAMPLE_RATE)
-            }
-        }
-        if (sourceMediaFormat?.containsKey(MediaFormat.KEY_CHANNEL_COUNT) == true) {
-            sourceChannelCount = sourceMediaFormat.getInteger(MediaFormat.KEY_CHANNEL_COUNT)
-        }
-        if (targetMediaFormat?.containsKey(MediaFormat.KEY_CHANNEL_COUNT) == true) {
-            targetChannelCount = targetMediaFormat.getInteger(MediaFormat.KEY_CHANNEL_COUNT)
+            audioProcessor?.release()
+            audioProcessor = audioProcessorFactory.createAudioProcessor(sourceMediaFormat, targetMediaFormat)
+
+            this.sourceChannelCount = sourceChannelCount.toInt()
+            this.targetChannelCount = targetChannelCount.toInt()
+            this.sourceSampleRate = sourceSampleRate.toInt()
+            this.targetSampleRate = targetSampleRate.toInt()
+            targetSampleDurationUs = 1_000_000.0 / targetSampleRate.toDouble()
+            samplingRatio = targetSampleRate.toDouble() / sourceSampleRate.toDouble()
+
+            this.sourceMediaFormat = sourceMediaFormat
+            this.targetMediaFormat = targetMediaFormat
         }
     }
 
