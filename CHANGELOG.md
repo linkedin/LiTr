@@ -1,5 +1,10 @@
 # Change Log
 
+## Version 1.5.1 (2022-05-10)
+
+- Fix for incorrect orientation angle calculation during MVP matrix initialization [#185] (https://github.com/linkedin/LiTr/pull/185) by @kolesnikov-pasha
+- AudioRenderer now picks correct AudioProcessor when audio format changes during transcoding [#190] (https://github.com/linkedin/LiTr/pull/190)
+
 ## Version 1.5.0 (2022-04-01)
 
 - Fix for error callback is not called with InsufficientDiskSpace exception [#179] (https://github.com/linkedin/LiTr/pull/179) by @mikeshuttjuvo
