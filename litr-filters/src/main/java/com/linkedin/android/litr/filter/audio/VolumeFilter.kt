@@ -21,7 +21,7 @@ private const val BASE = 10.0 // volume is logarithmic, we will use base 10
  * - 1 will keep the volume "as is"
  * - 0 will silence the track
  * - value <1 will lower the volume
- * - value >1 will increase it.
+ * - value >1 will increase it. One has to be careful with these, since large values may result in distortion.
  */
 class VolumeFilter(@FloatRange(from = 0.0) private val volume: Double) : BufferFilter{
 
