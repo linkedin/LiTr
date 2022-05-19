@@ -8,6 +8,7 @@
 package com.linkedin.android.litr.filter.audio
 
 import android.media.MediaFormat
+import androidx.annotation.FloatRange
 import com.linkedin.android.litr.codec.Frame
 import com.linkedin.android.litr.filter.BufferFilter
 import kotlin.math.pow
@@ -22,7 +23,7 @@ private const val BASE = 10.0 // volume is logarithmic, we will use base 10
  * - value <1 will lower the volume
  * - value >1 will increase it.
  */
-class VolumeFilter(private var volume: Double) : BufferFilter{
+class VolumeFilter(@FloatRange(from = 0.0) private val volume: Double) : BufferFilter{
 
     override fun init(mediaFormat: MediaFormat?) {}
 
