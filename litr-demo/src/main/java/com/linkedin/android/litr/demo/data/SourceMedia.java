@@ -20,4 +20,13 @@ public class SourceMedia extends BaseObservable {
     public float duration;
 
     public List<MediaTrackFormat> tracks = new ArrayList<>();
+
+    public boolean hasAudio() {
+        for (MediaTrackFormat trackFormat : tracks) {
+            if (trackFormat instanceof AudioTrackFormat) {
+                return true;
+            }
+        }
+        return false;
+    }
 }
