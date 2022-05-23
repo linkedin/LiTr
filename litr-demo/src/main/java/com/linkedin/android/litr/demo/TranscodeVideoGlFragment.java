@@ -16,6 +16,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import com.linkedin.android.litr.MediaTransformer;
+import com.linkedin.android.litr.demo.data.AudioVolumeConfig;
 import com.linkedin.android.litr.demo.data.SourceMedia;
 import com.linkedin.android.litr.demo.data.TargetMedia;
 import com.linkedin.android.litr.demo.data.TranscodingConfigPresenter;
@@ -72,6 +73,7 @@ public class TranscodeVideoGlFragment extends BaseTransformationFragment impleme
         binding.setTargetMedia(targetMedia);
 
         binding.setTrimConfig(new TrimConfig());
+        binding.setAudioVolumeConfig(new AudioVolumeConfig());
 
         return binding.getRoot();
     }
