@@ -81,14 +81,16 @@ class VideoFrameExtractor @JvmOverloads constructor(
      * Cancels all started extract jobs. [FrameExtractListener.onCancelled] will be called for jobs that have been started.
      */
     fun stopAll() {
-        activeJobMap.forEach { (requestId, job) ->
+        val iterator = activeJobMap.iterator()
+        while (iterator.hasNext()) {
+            val job = iterator.next().value
             if (!job.future.isCancelled && !job.future.isDone) {
                 job.future.cancel(true)
             }
             if (!job.future.isStarted) {
                 // If the job hasn't started, it won't probably even start, but it will remain in the activeJobMap,
                 // we must remove it from there.
-                activeJobMap.remove(requestId)
+                iterator.remove()
             }
         }
     }
