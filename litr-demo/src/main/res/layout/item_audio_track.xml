@@ -62,6 +62,17 @@
                 android:visibility="@{targetTrack.shouldInclude ? View.VISIBLE : View.GONE}"
                 android:onCheckedChanged="@{(switch, checked) -> presenter.onTranscodeTrackChanged(targetTrack, checked)}"/>
 
+            <CheckBox
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/overlay"
+                android:textStyle="bold"
+                android:padding="@dimen/cell_padding"
+                android:checked="@={targetTrack.shouldApplyOverlay}"
+                android:visibility="@{targetTrack.shouldInclude ? View.VISIBLE : View.GONE}"
+                android:onCheckedChanged="@{(switch, checked) -> presenter.onApplyOverlayChanged(targetTrack, checked)}"/>
+
         </LinearLayout>
 
         <TableLayout
@@ -202,6 +213,29 @@
             </TableRow>
 
         </TableLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:visibility="@{targetTrack.shouldApplyOverlay ? View.VISIBLE : View.GONE}"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/button_pick_audio_overlay"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:text="@string/pick_audio_overlay"/>
+
+            <ImageButton
+                android:id="@+id/play_audio_overlay"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:visibility="@{targetTrack.overlay == null ? View.GONE : View.VISIBLE}"
+                android:src="@android:drawable/ic_media_play" />
+
+        </LinearLayout>
 
     </LinearLayout>
 

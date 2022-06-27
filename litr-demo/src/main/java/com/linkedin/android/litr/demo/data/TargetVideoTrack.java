@@ -7,12 +7,7 @@
  */
 package com.linkedin.android.litr.demo.data;
 
-import android.net.Uri;
-
 public class TargetVideoTrack extends TargetTrack {
-
-    public boolean shouldApplyOverlay;
-    public Uri overlay;
 
     public TargetVideoTrack(int sourceTrackIndex,
                             boolean shouldInclude,

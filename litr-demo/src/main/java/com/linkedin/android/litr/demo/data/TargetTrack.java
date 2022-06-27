@@ -7,6 +7,8 @@
  */
 package com.linkedin.android.litr.demo.data;
 
+import android.net.Uri;
+
 import androidx.annotation.NonNull;
 import androidx.databinding.BaseObservable;
 
@@ -14,6 +16,8 @@ public class TargetTrack extends BaseObservable {
     public int sourceTrackIndex;
     public boolean shouldInclude;
     public boolean shouldTranscode;
+    public boolean shouldApplyOverlay;
+    public Uri overlay;
     public MediaTrackFormat format;
 
     public TargetTrack(int sourceTrackIndex, boolean shouldInclude, boolean shouldTranscode, @NonNull MediaTrackFormat format) {

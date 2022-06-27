@@ -32,6 +32,7 @@
     <string name="pick_video">Pick Video</string>
     <string name="pick_audio">Pick Audio</string>
     <string name="pick_video_overlay">Pick Video Overlay</string>
+    <string name="pick_audio_overlay">Pick Audio Overlay</string>
     <string name="source_path" formatted="true">Uri: %s</string>
     <string name="size" formatted="true">Size: %.2f MB</string>
 
