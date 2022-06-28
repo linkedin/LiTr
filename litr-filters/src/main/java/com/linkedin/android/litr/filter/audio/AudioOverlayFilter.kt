@@ -4,11 +4,13 @@ import android.content.Context
 import android.media.MediaCodec
 import android.media.MediaFormat
 import android.net.Uri
+import com.linkedin.android.litr.codec.Decoder
 import com.linkedin.android.litr.codec.Frame
 import com.linkedin.android.litr.codec.MediaCodecDecoder
 import com.linkedin.android.litr.exception.TrackTranscoderException
 import com.linkedin.android.litr.filter.BufferFilter
 import com.linkedin.android.litr.io.MediaExtractorMediaSource
+import com.linkedin.android.litr.io.MediaSource
 import com.linkedin.android.litr.render.AudioProcessor
 import com.linkedin.android.litr.render.AudioProcessorFactory
 import com.linkedin.android.litr.transcoder.TrackTranscoder
@@ -21,10 +23,15 @@ private const val UNDEFINED_VALUE = -1
 
 private const val TAG = "AudioOverlayFilter"
 
-class AudioOverlayFilter(context: Context, uri: Uri) : BufferFilter {
+class AudioOverlayFilter(
+    private val mediaSource: MediaSource,
+    private val decoder: Decoder
+) : BufferFilter {
 
-    private val mediaSource = MediaExtractorMediaSource(context, uri)
-    private val decoder = MediaCodecDecoder()
+    constructor(context: Context, uri: Uri) : this(
+        MediaExtractorMediaSource(context, uri),
+        MediaCodecDecoder()
+    )
 
     private val overlayChannelCount: Int
     private val overlaySampleRate: Int
