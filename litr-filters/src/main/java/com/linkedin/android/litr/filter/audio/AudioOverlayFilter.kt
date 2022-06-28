@@ -40,7 +40,8 @@ class AudioOverlayFilter(
 
     private val renderQueue = LinkedBlockingDeque<ByteBuffer>()
     private val bufferPool = ByteBufferPool(true)
-    private lateinit var audioProcessor: AudioProcessor
+    private val audioProcessorFactory = AudioProcessorFactory()
+    private var audioProcessor: AudioProcessor? = null
 
     private var overlayTrack = 0
     private var channelCount = UNDEFINED_VALUE
@@ -90,7 +91,8 @@ class AudioOverlayFilter(
 
         samplingRatio = sampleRate.toDouble() / overlaySampleRate.toDouble()
 
-        audioProcessor = AudioProcessorFactory().createAudioProcessor(
+        audioProcessor?.release()
+        audioProcessor = audioProcessorFactory.createAudioProcessor(
             mediaSource.getTrackFormat(overlayTrack),
             mediaFormat
         )
@@ -173,7 +175,7 @@ class AudioOverlayFilter(
 
         val processedBuffer = bufferPool.get(targetBufferCapacity)
         val processedFrame = Frame(outputTag, processedBuffer, MediaCodec.BufferInfo())
-        audioProcessor.processFrame(decoderOutputFrame, processedFrame)
+        audioProcessor?.processFrame(decoderOutputFrame, processedFrame)
 
         decoder.releaseOutputFrame(outputTag, false)
 
