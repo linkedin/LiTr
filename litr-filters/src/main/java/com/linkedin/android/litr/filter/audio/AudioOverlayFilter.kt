@@ -21,11 +21,7 @@ private const val UNDEFINED_VALUE = -1
 
 private const val TAG = "AudioOverlayFilter"
 
-class AudioOverlayFilter(
-    context: Context,
-    uri: Uri,
-    private val overlayTrack: Int = 0
-) : BufferFilter {
+class AudioOverlayFilter(context: Context, uri: Uri) : BufferFilter {
 
     private val mediaSource = MediaExtractorMediaSource(context, uri)
     private val decoder = MediaCodecDecoder()
@@ -37,6 +33,7 @@ class AudioOverlayFilter(
     private val bufferPool = ByteBufferPool(true)
     private lateinit var audioProcessor: AudioProcessor
 
+    private var overlayTrack = 0
     private var channelCount = UNDEFINED_VALUE
     private var sampleRate = UNDEFINED_VALUE
     private var samplingRatio = 1.0
@@ -46,10 +43,15 @@ class AudioOverlayFilter(
         for (track in 0 until mediaSource.trackCount) {
             mediaFormats.add(track, mediaSource.getTrackFormat(track))
         }
-        val audioMediaFormat = mediaFormats.firstOrNull { mediaFormat ->
+
+        overlayTrack = mediaFormats.indexOfFirst { mediaFormat ->
             mediaFormat.containsKey(MediaFormat.KEY_MIME) &&
                 mediaFormat.getString(MediaFormat.KEY_MIME)?.startsWith("audio") == true
-        } ?: throw IllegalArgumentException("Audio overlay does not have an audio track")
+        }
+
+        if (overlayTrack < 0) throw IllegalArgumentException("Audio overlay does not have an audio track")
+
+        val audioMediaFormat = mediaFormats[overlayTrack]
 
         overlayChannelCount = if (audioMediaFormat.containsKey(MediaFormat.KEY_CHANNEL_COUNT)) {
             audioMediaFormat.getInteger(MediaFormat.KEY_CHANNEL_COUNT)

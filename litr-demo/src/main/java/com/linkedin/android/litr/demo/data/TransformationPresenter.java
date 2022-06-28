@@ -138,7 +138,7 @@ public class TransformationPresenter {
                     trackTransformBuilder.setRenderer(
                             new AudioRenderer(
                                     encoder,
-                                    Collections.singletonList(new AudioOverlayFilter(context, targetTrack.overlay, 0))
+                                    Collections.singletonList(new AudioOverlayFilter(context, targetTrack.overlay))
                             )
                     );
                 }
