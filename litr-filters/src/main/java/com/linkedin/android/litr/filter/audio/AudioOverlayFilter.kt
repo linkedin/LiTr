@@ -4,7 +4,6 @@ import android.content.Context
 import android.media.MediaCodec
 import android.media.MediaFormat
 import android.net.Uri
-import android.util.Log
 import com.linkedin.android.litr.codec.Frame
 import com.linkedin.android.litr.codec.MediaCodecDecoder
 import com.linkedin.android.litr.exception.TrackTranscoderException
@@ -14,6 +13,7 @@ import com.linkedin.android.litr.render.AudioProcessor
 import com.linkedin.android.litr.render.AudioProcessorFactory
 import com.linkedin.android.litr.transcoder.TrackTranscoder
 import com.linkedin.android.litr.utils.ByteBufferPool
+import java.util.concurrent.LinkedBlockingDeque
 import kotlin.math.ceil
 
 private const val BYTES_PER_SAMPLE = 2 // android uses 2 bytes per audio sample
@@ -33,6 +33,7 @@ class AudioOverlayFilter(
     private val overlayChannelCount: Int
     private val overlaySampleRate: Int
 
+    private val renderQueue = LinkedBlockingDeque<Frame>()
     private val bufferPool = ByteBufferPool(true)
     private lateinit var audioProcessor: AudioProcessor
 
@@ -90,8 +91,23 @@ class AudioOverlayFilter(
     }
 
     override fun apply(frame: Frame) {
-        Log.d(TAG, "frame ${frame.bufferInfo.presentationTimeUs}")
-        val overlayBuffer = getNextOverlayFrame()
+        while (!sufficientOverlayFramesInQueue(frame)) {
+            // if we don't have enough overlay frames to apply to incoming audio frame, read more
+            getNextOverlayFrame()?.let { renderQueue.add(it) } ?: break
+        }
+
+        renderOverlay(frame)
+
+        // switch the buffer to "read" mode
+        frame.buffer?.flip()
+    }
+
+    private fun sufficientOverlayFramesInQueue(frame: Frame): Boolean {
+        val bytesInRenderQueue = renderQueue.sumBy { overlayFrame ->
+            overlayFrame.buffer?.let { it.limit() - it.position() } ?: 0
+        }
+
+        return frame.buffer!!.remaining() <= bytesInRenderQueue
     }
 
     private fun getNextOverlayFrame(): Frame? {
@@ -113,8 +129,6 @@ class AudioOverlayFilter(
         val bytesRead = mediaSource.readSampleData(decoderInputFrame.buffer!!, 0)
         val sampleTime = mediaSource.sampleTime
         val sampleFlags = mediaSource.sampleFlags
-
-        Log.d(TAG, "Overlay frame sample time $sampleTime")
 
         if (bytesRead == 0) {
             // nothing was read from the source
@@ -147,5 +161,23 @@ class AudioOverlayFilter(
         decoder.releaseOutputFrame(outputTag, false)
 
         return processedFrame
+    }
+
+    private fun renderOverlay(frame: Frame) {
+        while (frame.buffer!!.remaining() > 0) {
+            renderQueue.peek()?.let { overlayFrame ->
+                if (frame.buffer!!.remaining() >= overlayFrame.buffer!!.remaining()) {
+                    repeat(overlayFrame.buffer!!.remaining()) {
+                        frame.buffer!!.put(overlayFrame.buffer!!.get())
+                    }
+                    renderQueue.removeFirst()
+                    bufferPool.put(overlayFrame.buffer!!)
+                } else {
+                    repeat(frame.buffer!!.remaining()) {
+                        frame.buffer!!.put(overlayFrame.buffer!!.get())
+                    }
+                }
+            }
+        }
     }
 }
