@@ -108,9 +108,6 @@ class AudioOverlayFilter(
         }
 
         renderOverlay(frame)
-
-        // switch the buffer to "read" mode
-        frame.buffer?.flip()
     }
 
     private fun sufficientOverlayFramesInQueue(frame: Frame): Boolean {
@@ -189,6 +186,9 @@ class AudioOverlayFilter(
                 }
             }
         }
+
+        // reset the position back to 0 by flipping the frame to "read" mode
+        frame.buffer?.flip()
     }
 
     private fun applyOverlaySample(frameBuffer: ByteBuffer, overlayFrameBuffer: ByteBuffer, byteCount: Int) {
