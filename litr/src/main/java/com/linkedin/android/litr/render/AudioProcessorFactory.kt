@@ -9,7 +9,7 @@ package com.linkedin.android.litr.render
 
 import android.media.MediaFormat
 
-internal class AudioProcessorFactory {
+class AudioProcessorFactory {
 
     fun createAudioProcessor(sourceMediaFormat: MediaFormat?, targetMediaFormat: MediaFormat?): AudioProcessor {
         return if (sourceMediaFormat != null &&

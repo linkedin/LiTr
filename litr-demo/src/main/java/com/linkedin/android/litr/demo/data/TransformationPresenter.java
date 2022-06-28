@@ -35,6 +35,7 @@ import com.linkedin.android.litr.exception.MediaTransformationException;
 import com.linkedin.android.litr.filter.GlFilter;
 import com.linkedin.android.litr.filter.GlFrameRenderFilter;
 import com.linkedin.android.litr.filter.Transform;
+import com.linkedin.android.litr.filter.audio.AudioOverlayFilter;
 import com.linkedin.android.litr.filter.video.gl.DefaultVideoFrameRenderFilter;
 import com.linkedin.android.litr.io.MediaExtractorMediaSource;
 import com.linkedin.android.litr.io.MediaMuxerMediaTarget;
@@ -119,12 +120,13 @@ public class TransformationPresenter {
                 if (!targetTrack.shouldInclude) {
                     continue;
                 }
+                Encoder encoder = new MediaCodecEncoder();
                 TrackTransform.Builder trackTransformBuilder = new TrackTransform.Builder(mediaSource,
                                                                                           targetTrack.sourceTrackIndex,
                                                                                           mediaTarget)
                     .setTargetTrack(trackTransforms.size())
                     .setTargetFormat(targetTrack.shouldTranscode ? createMediaFormat(targetTrack) : null)
-                    .setEncoder(new MediaCodecEncoder())
+                    .setEncoder(encoder)
                     .setDecoder(new MediaCodecDecoder());
                 if (targetTrack.format instanceof VideoTrackFormat) {
                     trackTransformBuilder.setRenderer(new GlVideoRenderer(createGlFilters(sourceMedia,
@@ -132,6 +134,13 @@ public class TransformationPresenter {
                             0.56f,
                             new PointF(0.6f, 0.4f),
                             30)));
+                } else if (targetTrack.format instanceof AudioTrackFormat && targetTrack.overlay != null) {
+                    trackTransformBuilder.setRenderer(
+                            new AudioRenderer(
+                                    encoder,
+                                    Collections.singletonList(new AudioOverlayFilter(context, targetTrack.overlay, 0))
+                            )
+                    );
                 }
 
                 trackTransforms.add(trackTransformBuilder.build());
