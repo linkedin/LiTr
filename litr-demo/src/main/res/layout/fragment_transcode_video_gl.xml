@@ -19,6 +19,10 @@
             type="com.linkedin.android.litr.demo.data.TrimConfig" />
 
         <variable
+            name="audioVolumeConfig"
+            type="com.linkedin.android.litr.demo.data.AudioVolumeConfig" />
+
+        <variable
             name="targetMedia"
             type="com.linkedin.android.litr.demo.data.TargetMedia" />
 
@@ -59,6 +63,13 @@
                 app:sourceMedia="@{sourceMedia}"
                 app:trimConfig="@{trimConfig}"/>
 
+            <include layout="@layout/section_audio_volume"
+                android:id="@+id/section_audio_volume"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:visibility="@{(sourceMedia != null &amp;&amp; sourceMedia.hasAudio()) ? View.VISIBLE : View.GONE}"
+                app:audioVolumeConfig="@{audioVolumeConfig}"/>
+
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/tracks"
                 android:layout_width="match_parent"
@@ -72,7 +83,7 @@
                 android:text="@string/transcode"
                 android:enabled="@{sourceMedia != null &amp;&amp; targetMedia != null &amp;&amp; targetMedia.getIncludedTrackCount() > 0 &amp;&amp; (transformationState.state != transformationState.STATE_RUNNING)}"
                 android:padding="@dimen/cell_padding"
-                android:onClick="@{() -> transformationPresenter.startTransformation(sourceMedia, targetMedia, trimConfig, transformationState)}"/>
+                android:onClick="@{() -> transformationPresenter.startTransformation(sourceMedia, targetMedia, trimConfig, audioVolumeConfig, transformationState)}"/>
 
             <include layout="@layout/section_transformation_progress"
                 android:id="@+id/section_transformation_progress"

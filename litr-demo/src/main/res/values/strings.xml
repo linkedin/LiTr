@@ -27,6 +27,7 @@
     <string name="transcode_video">Transcode Video</string>
     <string name="transcode_audio">Transcode Audio</string>
     <string name="trim">Trim</string>
+    <string name="audio_volume">Volume</string>
     <string name="write_to_wav">Write to WAV file</string>
 
     <string name="pick_video">Pick Video</string>

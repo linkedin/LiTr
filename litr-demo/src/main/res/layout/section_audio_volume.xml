@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2019 LinkedIn Corporation -->
+<!-- All Rights Reserved. -->
+<!-- -->
+<!-- Licensed under the BSD 2-Clause License (the "License").  See License in the project root -->
+<!-- for license information. -->
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <data>
+        <variable
+            name="audioVolumeConfig"
+            type="com.linkedin.android.litr.demo.data.AudioVolumeConfig" />
+    </data>
+
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="@dimen/section_margin">
+
+        <com.google.android.material.slider.Slider
+            android:id="@+id/slider_audio_gain"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:valueFrom="0.0"
+            android:valueTo="2.0"
+            android:value="1.0"
+            android:padding="@dimen/cell_padding"
+            android:enabled="@{audioVolumeConfig.enabled}"
+            app:onChangeListener="@{audioVolumeConfig.onValueChangeListener}"/>
+
+        <CheckBox
+            android:id="@+id/checkbox_audio_gain"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/audio_volume"
+            android:checked="@={audioVolumeConfig.enabled}"
+            android:padding="@dimen/cell_padding"/>
+
+    </LinearLayout>
+</layout>
