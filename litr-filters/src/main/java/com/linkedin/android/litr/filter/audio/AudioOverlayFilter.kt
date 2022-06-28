@@ -15,8 +15,10 @@ import com.linkedin.android.litr.render.AudioProcessor
 import com.linkedin.android.litr.render.AudioProcessorFactory
 import com.linkedin.android.litr.transcoder.TrackTranscoder
 import com.linkedin.android.litr.utils.ByteBufferPool
+import java.nio.ByteBuffer
 import java.util.concurrent.LinkedBlockingDeque
 import kotlin.math.ceil
+import kotlin.math.min
 
 private const val BYTES_PER_SAMPLE = 2 // android uses 2 bytes per audio sample
 private const val UNDEFINED_VALUE = -1
@@ -175,18 +177,24 @@ class AudioOverlayFilter(
     private fun renderOverlay(frame: Frame) {
         while (frame.buffer!!.remaining() > 0) {
             renderQueue.peek()?.let { overlayFrame ->
-                if (frame.buffer!!.remaining() >= overlayFrame.buffer!!.remaining()) {
-                    repeat(overlayFrame.buffer!!.remaining()) {
-                        frame.buffer!!.put(overlayFrame.buffer!!.get())
-                    }
+                applyOverlaySample(
+                    frame.buffer!!,
+                    overlayFrame.buffer!!,
+                    min(frame.buffer!!.remaining(), overlayFrame.buffer!!.remaining())
+                )
+
+                if (overlayFrame.buffer!!.remaining() == 0) {
                     renderQueue.removeFirst()
                     bufferPool.put(overlayFrame.buffer!!)
-                } else {
-                    repeat(frame.buffer!!.remaining()) {
-                        frame.buffer!!.put(overlayFrame.buffer!!.get())
-                    }
                 }
             }
+        }
+    }
+
+    private fun applyOverlaySample(frameBuffer: ByteBuffer, overlayFrameBuffer: ByteBuffer, byteCount: Int) {
+        repeat(byteCount / 2) {
+            val mixedValue = (frameBuffer.short + overlayFrameBuffer.short) / 2
+            frameBuffer.putShort(frameBuffer.position() - 2, mixedValue.toShort())
         }
     }
 }
