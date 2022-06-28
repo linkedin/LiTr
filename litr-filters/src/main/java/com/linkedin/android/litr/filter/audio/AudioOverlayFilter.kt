@@ -38,7 +38,7 @@ class AudioOverlayFilter(
     private val overlayChannelCount: Int
     private val overlaySampleRate: Int
 
-    private val renderQueue = LinkedBlockingDeque<Frame>()
+    private val renderQueue = LinkedBlockingDeque<ByteBuffer>()
     private val bufferPool = ByteBufferPool(true)
     private lateinit var audioProcessor: AudioProcessor
 
@@ -102,20 +102,22 @@ class AudioOverlayFilter(
     }
 
     override fun apply(frame: Frame) {
-        while (!sufficientOverlayFramesInQueue(frame)) {
-            // if we don't have enough overlay frames to apply to incoming audio frame, read more
-            getNextOverlayFrame()?.let { renderQueue.add(it) } ?: break
-        }
+        frame.buffer?.let { frameBuffer ->
+            while (!sufficientOverlayFramesInQueue(frameBuffer)) {
+                // if we don't have enough overlay frames to apply to incoming audio frame, read more
+                getNextOverlayFrame()?.let { renderQueue.add(it.buffer) } ?: break
+            }
 
-        renderOverlay(frame)
+            renderOverlay(frameBuffer)
+        }
     }
 
-    private fun sufficientOverlayFramesInQueue(frame: Frame): Boolean {
-        val bytesInRenderQueue = renderQueue.sumBy { overlayFrame ->
-            overlayFrame.buffer?.let { it.limit() - it.position() } ?: 0
+    private fun sufficientOverlayFramesInQueue(frameBuffer: ByteBuffer): Boolean {
+        val bytesInRenderQueue = renderQueue.sumBy { overlayBuffer ->
+            overlayBuffer?.let { it.limit() - it.position() } ?: 0
         }
 
-        return frame.buffer!!.remaining() <= bytesInRenderQueue
+        return frameBuffer.remaining() <= bytesInRenderQueue
     }
 
     private fun getNextOverlayFrame(): Frame? {
@@ -171,29 +173,29 @@ class AudioOverlayFilter(
         return processedFrame
     }
 
-    private fun renderOverlay(frame: Frame) {
-        while (frame.buffer!!.remaining() > 0) {
-            renderQueue.peek()?.let { overlayFrame ->
+    private fun renderOverlay(frameBuffer: ByteBuffer) {
+        while (frameBuffer.remaining() > 0) {
+            renderQueue.peek()?.let { overlayBuffer ->
                 applyOverlaySample(
-                    frame.buffer!!,
-                    overlayFrame.buffer!!,
-                    min(frame.buffer!!.remaining(), overlayFrame.buffer!!.remaining())
+                    frameBuffer,
+                    overlayBuffer,
+                    min(frameBuffer.remaining(), overlayBuffer.remaining())
                 )
 
-                if (overlayFrame.buffer!!.remaining() == 0) {
+                if (overlayBuffer.remaining() == 0) {
                     renderQueue.removeFirst()
-                    bufferPool.put(overlayFrame.buffer!!)
+                    bufferPool.put(overlayBuffer)
                 }
             }
         }
 
         // reset the position back to 0 by flipping the frame to "read" mode
-        frame.buffer?.flip()
+        frameBuffer.flip()
     }
 
-    private fun applyOverlaySample(frameBuffer: ByteBuffer, overlayFrameBuffer: ByteBuffer, byteCount: Int) {
+    private fun applyOverlaySample(frameBuffer: ByteBuffer, overlayBuffer: ByteBuffer, byteCount: Int) {
         repeat(byteCount / 2) {
-            val mixedValue = (frameBuffer.short + overlayFrameBuffer.short) / 2
+            val mixedValue = (frameBuffer.short + overlayBuffer.short) / 2
             frameBuffer.putShort(frameBuffer.position() - 2, mixedValue.toShort())
         }
     }
