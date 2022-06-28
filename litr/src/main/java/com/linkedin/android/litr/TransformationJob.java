@@ -119,14 +119,14 @@ class TransformationJob implements Runnable {
 
     @VisibleForTesting
     void cancel() {
-        release(false);
         marshallingTransformationListener.onCancelled(jobId, statsCollector.getStats());
+        release(false);
     }
 
     @VisibleForTesting
     protected void error(@Nullable Throwable cause) {
-        release(false);
         marshallingTransformationListener.onError(jobId, cause, statsCollector.getStats());
+        release(false);
     }
 
     @VisibleForTesting
