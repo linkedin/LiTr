@@ -1,5 +1,11 @@
 # Change Log
 
+## Version 1.5.2 (2022-06-30)
+
+- Audio filter that changes track volume [#193] (https://github.com/linkedin/LiTr/pull/193)
+- Fix ConcurrentModificationException when removing jobs [#195] (https://github.com/linkedin/LiTr/pull/195) by @ReallyVasiliy
+- Notify TransformationListener before releasing TransformationJob [#198] (https://github.com/linkedin/LiTr/pull/198) by @simekadam
+
 ## Version 1.5.1 (2022-05-10)
 
 - Fix for incorrect orientation angle calculation during MVP matrix initialization [#185] (https://github.com/linkedin/LiTr/pull/185) by @kolesnikov-pasha
