@@ -39,4 +39,6 @@ class VolumeFilter(@FloatRange(from = 0.0) private val volume: Double) : BufferF
             }
         }
     }
+
+    override fun release() {}
 }
