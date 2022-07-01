@@ -112,13 +112,13 @@ class AudioOverlayFilter(
 
             renderOverlay(frameBuffer)
         }
+    }
 
-        if ((frame.bufferInfo.flags and MediaCodec.BUFFER_FLAG_END_OF_STREAM) != 0) {
-            decoder.stop()
-            decoder.release()
-            mediaSource.release()
-            bufferPool.clear()
-        }
+    override fun release() {
+        decoder.stop()
+        decoder.release()
+        mediaSource.release()
+        bufferPool.clear()
     }
 
     private fun sufficientOverlayFramesInQueue(frameBuffer: ByteBuffer): Boolean {
