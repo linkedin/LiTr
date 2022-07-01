@@ -111,6 +111,7 @@ class AudioRenderer @JvmOverloads constructor(
         released.set(true)
         audioProcessor?.release()
         bufferPool.clear()
+        filters.forEach { it.release() }
     }
 
     override fun hasFilters(): Boolean {

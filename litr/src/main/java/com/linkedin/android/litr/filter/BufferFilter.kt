@@ -21,4 +21,9 @@ interface BufferFilter {
      * sample rate and channel count.
      */
     fun apply(frame: Frame)
+
+    /**
+     * Release the filter.
+     */
+    fun release()
 }
