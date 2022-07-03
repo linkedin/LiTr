@@ -220,7 +220,7 @@ class AudioOverlayFilter(
 
     private fun applyOverlaySample(frameBuffer: ByteBuffer, overlayBuffer: ByteBuffer, byteCount: Int) {
         repeat(byteCount / 2) {
-            val mixedValue = (frameBuffer.short + overlayBuffer.short) / 2
+            val mixedValue = frameBuffer.short + overlayBuffer.short
             frameBuffer.putShort(frameBuffer.position() - 2, mixedValue.toShort())
         }
     }
