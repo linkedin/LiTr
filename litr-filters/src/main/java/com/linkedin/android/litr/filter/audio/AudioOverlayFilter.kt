@@ -53,6 +53,7 @@ class AudioOverlayFilter(
     private var channelCount = UNDEFINED_VALUE
     private var sampleRate = UNDEFINED_VALUE
     private var samplingRatio = 1.0
+    private var allOverlayFramesRead: Boolean = false
 
     init {
         val mediaFormats = mutableListOf<MediaFormat>()
@@ -115,7 +116,7 @@ class AudioOverlayFilter(
 
     override fun apply(frame: Frame) {
         frame.buffer?.let { frameBuffer ->
-            while (!sufficientOverlayFramesInQueue(frameBuffer)) {
+            while (!sufficientOverlayFramesInQueue(frameBuffer) && !allOverlayFramesRead) {
                 // if we don't have enough overlay frames to apply to incoming audio frame, read more
                 getNextOverlayFrame()?.let { renderQueue.add(it.buffer) } ?: break
             }
@@ -159,8 +160,9 @@ class AudioOverlayFilter(
         val sampleTime = mediaSource.sampleTime
         val sampleFlags = mediaSource.sampleFlags
 
-        if (bytesRead == 0) {
+        if (bytesRead <= 0 || (sampleFlags and MediaCodec.BUFFER_FLAG_END_OF_STREAM) != 0) {
             // nothing was read from the source
+            allOverlayFramesRead = true
             return null
         }
 
@@ -193,7 +195,11 @@ class AudioOverlayFilter(
     }
 
     private fun renderOverlay(frameBuffer: ByteBuffer) {
-        while (frameBuffer.remaining() > 0) {
+        if (renderQueue.isEmpty()) {
+            return
+        }
+
+        while (renderQueue.isNotEmpty() && frameBuffer.remaining() > 0) {
             renderQueue.peek()?.let { overlayBuffer ->
                 applyOverlaySample(
                     frameBuffer,
