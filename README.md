@@ -112,7 +112,7 @@ When using your own component implementations, make sure that output of a compon
 Custom components can be used in `TrackTransform`s in below "low level" transform method:
 
 ```java
-tranform(requestId,
+transform(requestId,
          List<TrackTransform> trackTransforms,
          listener,
          granularity)
