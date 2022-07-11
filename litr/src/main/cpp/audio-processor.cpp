@@ -98,11 +98,11 @@ Java_com_linkedin_android_litr_render_OboeAudioProcessor_releaseProcessor(
         outputChannelCount = -1;
     }
     if (resamplerInputBuffer != nullptr) {
-        delete resamplerInputBuffer;
+        delete[] resamplerInputBuffer;
         resamplerInputBuffer = nullptr;
     }
     if (resamplerOutputBuffer != nullptr) {
-        delete resamplerOutputBuffer;
+        delete[] resamplerOutputBuffer;
         resamplerOutputBuffer = nullptr;
     }
 }
