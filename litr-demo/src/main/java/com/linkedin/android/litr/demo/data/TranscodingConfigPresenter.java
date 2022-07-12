@@ -7,9 +7,12 @@
  */
 package com.linkedin.android.litr.demo.data;
 
+import android.content.Context;
 import android.widget.ImageView;
+
 import androidx.annotation.NonNull;
 import androidx.databinding.BindingAdapter;
+
 import com.bumptech.glide.Glide;
 import com.linkedin.android.litr.demo.BaseTransformationFragment;
 import com.linkedin.android.litr.demo.MediaPickerListener;
@@ -39,13 +42,21 @@ public class TranscodingConfigPresenter {
         targetTrack.notifyChange();
     }
 
-    public void onApplyOverlayChanged(@NonNull TargetVideoTrack targetTrack, boolean applyOverlay) {
+    public void onApplyOverlayChanged(@NonNull TargetTrack targetTrack, boolean applyOverlay) {
         targetTrack.shouldApplyOverlay = applyOverlay;
         targetTrack.notifyChange();
     }
 
     public void onPickOverlayClicked(@NonNull MediaPickerListener mediaPickerListener) {
         fragment.pickOverlay(mediaPickerListener);
+    }
+
+    public void onPickAudioOverlayClicked(@NonNull MediaPickerListener mediaPickerListener) {
+        fragment.pickAudio(mediaPickerListener);
+    }
+
+    public Context getContext() {
+        return fragment.getContext();
     }
 
     @BindingAdapter("overlayThumbnail")

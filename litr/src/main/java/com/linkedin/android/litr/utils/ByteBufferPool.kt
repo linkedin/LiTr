@@ -15,7 +15,7 @@ import java.util.concurrent.LinkedBlockingQueue
  * A helper thread safe class that manages a [ByteBuffer] pool, to increase buffer reuse.
  * This class is very useful in classes like renderers because they work with sequences of same sized buffers.
  */
-internal class ByteBufferPool(private val isDirect: Boolean = false) {
+class ByteBufferPool(private val isDirect: Boolean = false) {
 
     private val bufferQueue = LinkedBlockingQueue<ByteBuffer>()
 
