@@ -295,4 +295,10 @@ public class VideoTrackTranscoder extends TrackTranscoder {
 
         return encodeFrameResult;
     }
+
+    @VisibleForTesting
+    @Nullable
+    public FrameDropper getFrameDropper() {
+        return frameDropper;
+    }
 }
