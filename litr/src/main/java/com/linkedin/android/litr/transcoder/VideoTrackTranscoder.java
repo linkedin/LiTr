@@ -149,6 +149,8 @@ public class VideoTrackTranscoder extends TrackTranscoder {
             && lastDecodeFrameResult == RESULT_EOS_REACHED
             && lastEncodeFrameResult == RESULT_EOS_REACHED) {
             result = RESULT_EOS_REACHED;
+        } else if (lastDecodeFrameResult == RESULT_FRAME_SKIPPED) {
+            result = RESULT_FRAME_SKIPPED;
         }
 
         return result;
