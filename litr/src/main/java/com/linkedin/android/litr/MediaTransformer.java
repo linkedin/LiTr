@@ -36,7 +36,6 @@ import com.linkedin.android.litr.utils.TranscoderUtils;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -171,62 +170,63 @@ public class MediaTransformer {
                     ? MediaMuxer.OutputFormat.MUXER_OUTPUT_WEBM
                     : MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4;
 
-            if (targetTrackCount == 0) {
-                listener.onError(
-                        requestId,
-                        new MediaTargetException(MediaTargetException.Error.NO_OUTPUT_TRACKS, outputUri, outputFormat, new IllegalArgumentException("No output tracks left")),
-                        Collections.emptyList());
-                return;
+            if (targetTrackCount > 0) {
+                MediaTarget mediaTarget = new MediaMuxerMediaTarget(
+                        context,
+                        outputUri,
+                        targetTrackCount,
+                        mediaSource.getOrientationHint(),
+                        outputFormat);
+
+                int trackCount = mediaSource.getTrackCount();
+                List<TrackTransform> trackTransforms = new ArrayList<>(trackCount);
+                for (int track = 0; track < trackCount; track++) {
+                    MediaFormat sourceMediaFormat = mediaSource.getTrackFormat(track);
+
+                    String mimeType = null;
+                    if (sourceMediaFormat.containsKey(MediaFormat.KEY_MIME)) {
+                        mimeType = sourceMediaFormat.getString(MediaFormat.KEY_MIME);
+                    }
+
+                    if (!shouldIncludeTrack(mimeType, options.removeAudio)) {
+                        continue;
+                    }
+
+                    Decoder decoder = new MediaCodecDecoder();
+                    Encoder encoder = new MediaCodecEncoder();
+
+                    TrackTransform.Builder trackTransformBuilder = new TrackTransform.Builder(mediaSource, track, mediaTarget)
+                            .setTargetTrack(trackTransforms.size());
+
+                    if (mimeType.startsWith("video")) {
+                        trackTransformBuilder.setDecoder(decoder)
+                                .setRenderer(new GlVideoRenderer(options.videoFilters))
+                                .setEncoder(encoder)
+                                .setTargetFormat(targetVideoFormat);
+                    } else if (mimeType.startsWith("audio")) {
+                        trackTransformBuilder.setDecoder(decoder)
+                                .setEncoder(encoder)
+                                .setRenderer(new AudioRenderer(encoder, options.audioFilters))
+                                .setTargetFormat(createTargetAudioFormat(
+                                        sourceMediaFormat,
+                                        targetAudioFormat,
+                                        Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && isVp8OrVp9
+                                                ? MediaFormat.MIMETYPE_AUDIO_OPUS
+                                                : null));
+                    }
+
+                    trackTransforms.add(trackTransformBuilder.build());
+                }
+
+                transform(requestId, trackTransforms, listener, options.granularity);
+            } else {
+                throw new MediaTargetException(
+                        MediaTargetException.Error.NO_OUTPUT_TRACKS,
+                        outputUri,
+                        outputFormat,
+                        new IllegalArgumentException("No output tracks left")
+                );
             }
-
-            MediaTarget mediaTarget = new MediaMuxerMediaTarget(
-                    context,
-                    outputUri,
-                    targetTrackCount,
-                    mediaSource.getOrientationHint(),
-                    outputFormat);
-
-            int trackCount = mediaSource.getTrackCount();
-            List<TrackTransform> trackTransforms = new ArrayList<>(trackCount);
-            for (int track = 0; track < trackCount; track++) {
-                MediaFormat sourceMediaFormat = mediaSource.getTrackFormat(track);
-
-                String mimeType = null;
-                if (sourceMediaFormat.containsKey(MediaFormat.KEY_MIME)) {
-                    mimeType = sourceMediaFormat.getString(MediaFormat.KEY_MIME);
-                }
-
-                if (!shouldIncludeTrack(mimeType, options.removeAudio)) {
-                    continue;
-                }
-
-                Decoder decoder = new MediaCodecDecoder();
-                Encoder encoder = new MediaCodecEncoder();
-
-                TrackTransform.Builder trackTransformBuilder = new TrackTransform.Builder(mediaSource, track, mediaTarget)
-                        .setTargetTrack(trackTransforms.size());
-
-                if (mimeType.startsWith("video")) {
-                    trackTransformBuilder.setDecoder(decoder)
-                            .setRenderer(new GlVideoRenderer(options.videoFilters))
-                            .setEncoder(encoder)
-                            .setTargetFormat(targetVideoFormat);
-                } else if (mimeType.startsWith("audio")) {
-                    trackTransformBuilder.setDecoder(decoder)
-                            .setEncoder(encoder)
-                            .setRenderer(new AudioRenderer(encoder, options.audioFilters))
-                            .setTargetFormat(createTargetAudioFormat(
-                                    sourceMediaFormat,
-                                    targetAudioFormat,
-                                    Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && isVp8OrVp9
-                                            ? MediaFormat.MIMETYPE_AUDIO_OPUS
-                                            : null));
-                }
-
-                trackTransforms.add(trackTransformBuilder.build());
-            }
-
-            transform(requestId, trackTransforms, listener, options.granularity);
         } catch (MediaSourceException | MediaTargetException ex) {
             listener.onError(requestId, ex, null);
         }
