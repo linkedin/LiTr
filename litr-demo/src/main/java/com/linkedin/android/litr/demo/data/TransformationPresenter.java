@@ -644,6 +644,7 @@ public class TransformationPresenter {
         TransformationOptions transformationOptions = new TransformationOptions.Builder()
                 .setGranularity(MediaTransformer.GRANULARITY_DEFAULT)
                 .setSourceMediaRange(mediaRange)
+                .setRemoveAudio(true)
                 .build();
 
         MediaFormat targetVideoFormat = MediaFormat.createVideoFormat(

@@ -16,6 +16,7 @@ public class MediaTargetException extends MediaTransformationException {
     private static final String INVALID_PARAMS_TEXT = "Invalid parameters";
     private static final String IO_FAILURE_TEXT = "Failed to open the media target for write.";
     private static final String UNSUPPORTED_URI_TYPE_TEXT = "URI type not supported at API level below 26";
+    private static final String NO_OUTPUT_TRACKS_TEXT = "No output tracks";
 
     private final Error error;
     private final String outputFilePath;
@@ -35,7 +36,9 @@ public class MediaTargetException extends MediaTransformationException {
     public enum Error {
         INVALID_PARAMS(INVALID_PARAMS_TEXT),
         IO_FAILUE(IO_FAILURE_TEXT),
-        UNSUPPORTED_URI_TYPE(UNSUPPORTED_URI_TYPE_TEXT);
+        UNSUPPORTED_URI_TYPE(UNSUPPORTED_URI_TYPE_TEXT),
+        NO_OUTPUT_TRACKS(NO_OUTPUT_TRACKS_TEXT);
+
 
         private final String text;
         Error(String text) {

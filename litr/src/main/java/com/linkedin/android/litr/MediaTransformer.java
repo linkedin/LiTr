@@ -36,6 +36,7 @@ import com.linkedin.android.litr.utils.TranscoderUtils;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -153,31 +154,49 @@ public class MediaTransformer {
         try {
             MediaSource mediaSource = new MediaExtractorMediaSource(context, inputUri, options.sourceMediaRange);
 
+            int targetTrackCount = 0;
+            for (int track = 0; track < mediaSource.getTrackCount(); track++) {
+                if (shouldIncludeTrack(mediaSource.getTrackFormat(track), options.removeAudio)) {
+                    targetTrackCount++;
+                }
+            }
+
             boolean isVp8OrVp9 = Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP
                     && targetVideoFormat != null
                     && targetVideoFormat.containsKey(MediaFormat.KEY_MIME)
                     && (TextUtils.equals(targetVideoFormat.getString(MediaFormat.KEY_MIME), MediaFormat.MIMETYPE_VIDEO_VP9)
                     || TextUtils.equals(targetVideoFormat.getString(MediaFormat.KEY_MIME), MediaFormat.MIMETYPE_VIDEO_VP8));
+
+            int outputFormat = Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && isVp8OrVp9
+                    ? MediaMuxer.OutputFormat.MUXER_OUTPUT_WEBM
+                    : MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4;
+
+            if (targetTrackCount == 0) {
+                listener.onError(
+                        requestId,
+                        new MediaTargetException(MediaTargetException.Error.NO_OUTPUT_TRACKS, outputUri, outputFormat, new IllegalArgumentException("No output tracks left")),
+                        Collections.emptyList());
+                return;
+            }
+
             MediaTarget mediaTarget = new MediaMuxerMediaTarget(
                     context,
                     outputUri,
-                    mediaSource.getTrackCount(),
+                    targetTrackCount,
                     mediaSource.getOrientationHint(),
-                    Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && isVp8OrVp9
-                            ? MediaMuxer.OutputFormat.MUXER_OUTPUT_WEBM
-                            : MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4);
+                    outputFormat);
 
             int trackCount = mediaSource.getTrackCount();
             List<TrackTransform> trackTransforms = new ArrayList<>(trackCount);
             for (int track = 0; track < trackCount; track++) {
                 MediaFormat sourceMediaFormat = mediaSource.getTrackFormat(track);
+
                 String mimeType = null;
                 if (sourceMediaFormat.containsKey(MediaFormat.KEY_MIME)) {
                     mimeType = sourceMediaFormat.getString(MediaFormat.KEY_MIME);
                 }
 
-                if (mimeType == null) {
-                    Log.e(TAG, "Mime type is null for track " + track);
+                if (!shouldIncludeTrack(mimeType, options.removeAudio)) {
                     continue;
                 }
 
@@ -185,7 +204,7 @@ public class MediaTransformer {
                 Encoder encoder = new MediaCodecEncoder();
 
                 TrackTransform.Builder trackTransformBuilder = new TrackTransform.Builder(mediaSource, track, mediaTarget)
-                        .setTargetTrack(track);
+                        .setTargetTrack(trackTransforms.size());
 
                 if (mimeType.startsWith("video")) {
                     trackTransformBuilder.setDecoder(decoder)
@@ -316,6 +335,24 @@ public class MediaTransformer {
      */
     public long getEstimatedTargetVideoSize(@NonNull List<TrackTransform> trackTransforms) {
         return TranscoderUtils.getEstimatedTargetFileSize(trackTransforms);
+    }
+
+    private boolean shouldIncludeTrack(@NonNull MediaFormat sourceMediaFormat, boolean removeAudio) {
+        String mimeType = null;
+        if (sourceMediaFormat.containsKey(MediaFormat.KEY_MIME)) {
+            mimeType = sourceMediaFormat.getString(MediaFormat.KEY_MIME);
+        }
+
+        return shouldIncludeTrack(mimeType, removeAudio);
+    }
+
+    private boolean shouldIncludeTrack(@Nullable String mimeType, boolean removeAudio) {
+        if (mimeType == null) {
+            Log.e(TAG, "Mime type is null for track ");
+            return false;
+        }
+
+        return !removeAudio || !mimeType.startsWith("audio");
     }
 
     @Nullable
