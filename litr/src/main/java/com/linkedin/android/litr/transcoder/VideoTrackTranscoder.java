@@ -11,6 +11,7 @@ import android.media.MediaCodec;
 import android.media.MediaFormat;
 import android.util.Log;
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.annotation.RestrictTo;
 import androidx.annotation.VisibleForTesting;
 import com.linkedin.android.litr.codec.Decoder;
@@ -19,6 +20,8 @@ import com.linkedin.android.litr.codec.Frame;
 import com.linkedin.android.litr.exception.TrackTranscoderException;
 import com.linkedin.android.litr.io.MediaSource;
 import com.linkedin.android.litr.io.MediaTarget;
+import com.linkedin.android.litr.render.DefaultFrameDropper;
+import com.linkedin.android.litr.render.FrameDropper;
 import com.linkedin.android.litr.render.GlVideoRenderer;
 import com.linkedin.android.litr.render.Renderer;
 import com.linkedin.android.litr.utils.MediaFormatUtils;
@@ -40,6 +43,7 @@ public class VideoTrackTranscoder extends TrackTranscoder {
 
     @NonNull private MediaFormat sourceVideoFormat;
     @NonNull private MediaFormat targetVideoFormat;
+    @Nullable private FrameDropper frameDropper;
 
     VideoTrackTranscoder(@NonNull MediaSource mediaSource,
                          int sourceTrack,
@@ -67,14 +71,33 @@ public class VideoTrackTranscoder extends TrackTranscoder {
 
     private void initCodecs() throws TrackTranscoderException {
         sourceVideoFormat = mediaSource.getTrackFormat(sourceTrack);
-        Number sourceFrameRate = MediaFormatUtils.getNumber(sourceVideoFormat, MediaFormat.KEY_FRAME_RATE);
-        if (sourceFrameRate != null) {
-            targetVideoFormat.setInteger(MediaFormat.KEY_FRAME_RATE, sourceFrameRate.intValue());
-        }
+        frameDropper = createFrameDropper();
 
         encoder.init(targetFormat);
         renderer.init(encoder.createInputSurface(), sourceVideoFormat, targetVideoFormat);
         decoder.init(sourceVideoFormat, renderer.getInputSurface());
+    }
+
+    /**
+     * Initialize and return a {@link FrameDropper} if required.
+     *
+     * @return {@link FrameDropper}, or null if we shouldn't skip any frames
+     */
+    @Nullable
+    private FrameDropper createFrameDropper() {
+        @Nullable final Number sourceFrameRate = MediaFormatUtils
+                .getNumber(sourceVideoFormat, MediaFormat.KEY_FRAME_RATE);
+        @Nullable Number targetFrameRate = MediaFormatUtils
+                .getNumber(targetVideoFormat, MediaFormat.KEY_FRAME_RATE);
+        if (targetFrameRate == null || targetFrameRate.intValue() < 1) {
+            targetFrameRate = sourceFrameRate;
+        }
+
+        if (sourceFrameRate != null && sourceFrameRate.intValue() > targetFrameRate.intValue()) {
+            return new DefaultFrameDropper(sourceFrameRate.intValue(), targetFrameRate.intValue());
+        } else {
+            return null;
+        }
     }
 
     @Override
@@ -126,6 +149,8 @@ public class VideoTrackTranscoder extends TrackTranscoder {
             && lastDecodeFrameResult == RESULT_EOS_REACHED
             && lastEncodeFrameResult == RESULT_EOS_REACHED) {
             result = RESULT_EOS_REACHED;
+        } else if (lastDecodeFrameResult == RESULT_FRAME_SKIPPED) {
+            result = RESULT_FRAME_SKIPPED;
         }
 
         return result;
@@ -195,9 +220,14 @@ public class VideoTrackTranscoder extends TrackTranscoder {
             } else {
                 boolean isFrameAfterSelectionStart = frame.bufferInfo.presentationTimeUs >= sourceMediaSelection.getStart();
                 decoder.releaseOutputFrame(tag, isFrameAfterSelectionStart);
-                if (isFrameAfterSelectionStart) {
+
+                final boolean shouldRender = frameDropper == null || frameDropper.shouldRender();
+
+                if (isFrameAfterSelectionStart && shouldRender) {
                     renderer.renderFrame(null,
                             TimeUnit.MICROSECONDS.toNanos(frame.bufferInfo.presentationTimeUs - sourceMediaSelection.getStart()));
+                } else {
+                    decodeFrameResult = RESULT_FRAME_SKIPPED;
                 }
             }
         } else {
@@ -266,5 +296,11 @@ public class VideoTrackTranscoder extends TrackTranscoder {
         }
 
         return encodeFrameResult;
+    }
+
+    @VisibleForTesting
+    @Nullable
+    public FrameDropper getFrameDropper() {
+        return frameDropper;
     }
 }

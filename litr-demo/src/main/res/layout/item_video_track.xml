@@ -236,16 +236,19 @@
                     android:paddingStart="@dimen/cell_padding"
                     android:paddingEnd="@dimen/cell_padding"/>
 
-                <TextView
+                <EditText
                     android:id="@+id/target_video_frame_rate"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@{Integer.toString(targetTrack.getTrackFormat().frameRate)}"
+                    android:text="@={Converter.integerToString(targetTrack.getTrackFormat().frameRate)}"
+                    android:inputType="number"
                     android:textAlignment="textEnd"
                     android:paddingStart="@dimen/cell_padding"
                     android:paddingEnd="@dimen/cell_padding"
                     android:paddingTop="0dp"
-                    android:paddingBottom="@dimen/edit_text_padding"/>
+                    android:paddingBottom="@dimen/edit_text_padding"
+                    android:textSize="15sp"/>
+
             </TableRow>
 
             <TableRow

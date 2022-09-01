@@ -29,7 +29,8 @@ public abstract class TrackTranscoder {
 
     public static final int RESULT_OUTPUT_MEDIA_FORMAT_CHANGED = 1;
     public static final int RESULT_FRAME_PROCESSED = 2;
-    public static final int RESULT_EOS_REACHED = 3;
+    public static final int RESULT_FRAME_SKIPPED = 3;
+    public static final int RESULT_EOS_REACHED = 4;
 
     @NonNull protected final MediaSource mediaSource;
     @NonNull protected final MediaTarget mediaMuxer;
