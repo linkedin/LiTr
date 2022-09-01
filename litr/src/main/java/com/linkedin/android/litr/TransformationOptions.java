@@ -25,21 +25,25 @@ import java.util.List;
  *  - callback granularity (how frequently listener is called back during transformation)
  *  - video filters, in order they must be applied
  *  - source media range, if only part of {@link com.linkedin.android.litr.io.MediaSource} should be used
+ *  - ability to mute video by removing audio track(s)
  */
 public class TransformationOptions {
     @IntRange(from = GRANULARITY_NONE) public final int granularity;
     @Nullable public final List<GlFilter> videoFilters;
     @Nullable public final List<BufferFilter> audioFilters;
     @NonNull public final MediaRange sourceMediaRange;
+    public final boolean removeAudio;
 
     private TransformationOptions(@IntRange(from = GRANULARITY_NONE) int granularity,
                                   @Nullable List<GlFilter> videoFilters,
                                   @Nullable List<BufferFilter> audioFilters,
-                                  @Nullable MediaRange sourceMediaRange) {
+                                  @Nullable MediaRange sourceMediaRange,
+                                  boolean removeAudio) {
         this.granularity = granularity;
         this.videoFilters = videoFilters;
         this.audioFilters = audioFilters;
         this.sourceMediaRange = sourceMediaRange == null ? new MediaRange(0, Long.MAX_VALUE) : sourceMediaRange;
+        this.removeAudio = removeAudio;
     }
 
     public static class Builder {
@@ -47,6 +51,7 @@ public class TransformationOptions {
         private List<GlFilter> videoFilters;
         private List<BufferFilter> audioFilters;
         private MediaRange sourceMediaRange;
+        private boolean removeAudio;
 
         @NonNull
         public Builder setGranularity(@IntRange(from = GRANULARITY_NONE) int granularity) {
@@ -73,8 +78,14 @@ public class TransformationOptions {
         }
 
         @NonNull
+        public Builder setRemoveAudio(boolean removeAudio) {
+            this.removeAudio = removeAudio;
+            return this;
+        }
+
+        @NonNull
         public TransformationOptions build() {
-            return new TransformationOptions(granularity, videoFilters, audioFilters, sourceMediaRange);
+            return new TransformationOptions(granularity, videoFilters, audioFilters, sourceMediaRange, removeAudio);
         }
     }
 }

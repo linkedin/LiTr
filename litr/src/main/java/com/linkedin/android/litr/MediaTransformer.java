@@ -153,61 +153,80 @@ public class MediaTransformer {
         try {
             MediaSource mediaSource = new MediaExtractorMediaSource(context, inputUri, options.sourceMediaRange);
 
+            int targetTrackCount = 0;
+            for (int track = 0; track < mediaSource.getTrackCount(); track++) {
+                if (shouldIncludeTrack(mediaSource.getTrackFormat(track), options.removeAudio)) {
+                    targetTrackCount++;
+                }
+            }
+
             boolean isVp8OrVp9 = Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP
                     && targetVideoFormat != null
                     && targetVideoFormat.containsKey(MediaFormat.KEY_MIME)
                     && (TextUtils.equals(targetVideoFormat.getString(MediaFormat.KEY_MIME), MediaFormat.MIMETYPE_VIDEO_VP9)
                     || TextUtils.equals(targetVideoFormat.getString(MediaFormat.KEY_MIME), MediaFormat.MIMETYPE_VIDEO_VP8));
-            MediaTarget mediaTarget = new MediaMuxerMediaTarget(
-                    context,
-                    outputUri,
-                    mediaSource.getTrackCount(),
-                    mediaSource.getOrientationHint(),
-                    Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && isVp8OrVp9
-                            ? MediaMuxer.OutputFormat.MUXER_OUTPUT_WEBM
-                            : MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4);
 
-            int trackCount = mediaSource.getTrackCount();
-            List<TrackTransform> trackTransforms = new ArrayList<>(trackCount);
-            for (int track = 0; track < trackCount; track++) {
-                MediaFormat sourceMediaFormat = mediaSource.getTrackFormat(track);
-                String mimeType = null;
-                if (sourceMediaFormat.containsKey(MediaFormat.KEY_MIME)) {
-                    mimeType = sourceMediaFormat.getString(MediaFormat.KEY_MIME);
+            int outputFormat = Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && isVp8OrVp9
+                    ? MediaMuxer.OutputFormat.MUXER_OUTPUT_WEBM
+                    : MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4;
+
+            if (targetTrackCount > 0) {
+                MediaTarget mediaTarget = new MediaMuxerMediaTarget(
+                        context,
+                        outputUri,
+                        targetTrackCount,
+                        mediaSource.getOrientationHint(),
+                        outputFormat);
+
+                int trackCount = mediaSource.getTrackCount();
+                List<TrackTransform> trackTransforms = new ArrayList<>(trackCount);
+                for (int track = 0; track < trackCount; track++) {
+                    MediaFormat sourceMediaFormat = mediaSource.getTrackFormat(track);
+
+                    String mimeType = null;
+                    if (sourceMediaFormat.containsKey(MediaFormat.KEY_MIME)) {
+                        mimeType = sourceMediaFormat.getString(MediaFormat.KEY_MIME);
+                    }
+
+                    if (!shouldIncludeTrack(mimeType, options.removeAudio)) {
+                        continue;
+                    }
+
+                    Decoder decoder = new MediaCodecDecoder();
+                    Encoder encoder = new MediaCodecEncoder();
+
+                    TrackTransform.Builder trackTransformBuilder = new TrackTransform.Builder(mediaSource, track, mediaTarget)
+                            .setTargetTrack(trackTransforms.size());
+
+                    if (mimeType.startsWith("video")) {
+                        trackTransformBuilder.setDecoder(decoder)
+                                .setRenderer(new GlVideoRenderer(options.videoFilters))
+                                .setEncoder(encoder)
+                                .setTargetFormat(targetVideoFormat);
+                    } else if (mimeType.startsWith("audio")) {
+                        trackTransformBuilder.setDecoder(decoder)
+                                .setEncoder(encoder)
+                                .setRenderer(new AudioRenderer(encoder, options.audioFilters))
+                                .setTargetFormat(createTargetAudioFormat(
+                                        sourceMediaFormat,
+                                        targetAudioFormat,
+                                        Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && isVp8OrVp9
+                                                ? MediaFormat.MIMETYPE_AUDIO_OPUS
+                                                : null));
+                    }
+
+                    trackTransforms.add(trackTransformBuilder.build());
                 }
 
-                if (mimeType == null) {
-                    Log.e(TAG, "Mime type is null for track " + track);
-                    continue;
-                }
-
-                Decoder decoder = new MediaCodecDecoder();
-                Encoder encoder = new MediaCodecEncoder();
-
-                TrackTransform.Builder trackTransformBuilder = new TrackTransform.Builder(mediaSource, track, mediaTarget)
-                        .setTargetTrack(track);
-
-                if (mimeType.startsWith("video")) {
-                    trackTransformBuilder.setDecoder(decoder)
-                            .setRenderer(new GlVideoRenderer(options.videoFilters))
-                            .setEncoder(encoder)
-                            .setTargetFormat(targetVideoFormat);
-                } else if (mimeType.startsWith("audio")) {
-                    trackTransformBuilder.setDecoder(decoder)
-                            .setEncoder(encoder)
-                            .setRenderer(new AudioRenderer(encoder, options.audioFilters))
-                            .setTargetFormat(createTargetAudioFormat(
-                                    sourceMediaFormat,
-                                    targetAudioFormat,
-                                    Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && isVp8OrVp9
-                                            ? MediaFormat.MIMETYPE_AUDIO_OPUS
-                                            : null));
-                }
-
-                trackTransforms.add(trackTransformBuilder.build());
+                transform(requestId, trackTransforms, listener, options.granularity);
+            } else {
+                throw new MediaTargetException(
+                        MediaTargetException.Error.NO_OUTPUT_TRACKS,
+                        outputUri,
+                        outputFormat,
+                        new IllegalArgumentException("No output tracks left")
+                );
             }
-
-            transform(requestId, trackTransforms, listener, options.granularity);
         } catch (MediaSourceException | MediaTargetException ex) {
             listener.onError(requestId, ex, null);
         }
@@ -316,6 +335,24 @@ public class MediaTransformer {
      */
     public long getEstimatedTargetVideoSize(@NonNull List<TrackTransform> trackTransforms) {
         return TranscoderUtils.getEstimatedTargetFileSize(trackTransforms);
+    }
+
+    private boolean shouldIncludeTrack(@NonNull MediaFormat sourceMediaFormat, boolean removeAudio) {
+        String mimeType = null;
+        if (sourceMediaFormat.containsKey(MediaFormat.KEY_MIME)) {
+            mimeType = sourceMediaFormat.getString(MediaFormat.KEY_MIME);
+        }
+
+        return shouldIncludeTrack(mimeType, removeAudio);
+    }
+
+    private boolean shouldIncludeTrack(@Nullable String mimeType, boolean removeAudio) {
+        if (mimeType == null) {
+            Log.e(TAG, "Mime type is null for track ");
+            return false;
+        }
+
+        return !removeAudio || !mimeType.startsWith("audio");
     }
 
     @Nullable
