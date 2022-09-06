@@ -7,36 +7,6 @@
  */
 package com.linkedin.android.litr;
 
-import android.media.MediaExtractor;
-import android.media.MediaFormat;
-import com.linkedin.android.litr.analytics.TrackTransformationInfo;
-import com.linkedin.android.litr.analytics.TransformationStatsCollector;
-import com.linkedin.android.litr.codec.Decoder;
-import com.linkedin.android.litr.codec.Encoder;
-import com.linkedin.android.litr.exception.InsufficientDiskSpaceException;
-import com.linkedin.android.litr.exception.TrackTranscoderException;
-import com.linkedin.android.litr.io.MediaRange;
-import com.linkedin.android.litr.io.MediaSource;
-import com.linkedin.android.litr.io.MediaTarget;
-import com.linkedin.android.litr.render.Renderer;
-import com.linkedin.android.litr.transcoder.PassthroughTranscoder;
-import com.linkedin.android.litr.transcoder.TrackTranscoder;
-import com.linkedin.android.litr.transcoder.TrackTranscoderFactory;
-import com.linkedin.android.litr.transcoder.VideoTrackTranscoder;
-import com.linkedin.android.litr.utils.DiskUtil;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.ArgumentCaptor;
-import org.mockito.ArgumentMatchers;
-import org.mockito.Captor;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.concurrent.TimeUnit;
-
 import static com.linkedin.android.litr.transcoder.TrackTranscoder.RESULT_EOS_REACHED;
 import static junit.framework.Assert.assertFalse;
 import static org.hamcrest.CoreMatchers.is;
@@ -54,6 +24,38 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
+import android.media.MediaExtractor;
+import android.media.MediaFormat;
+
+import com.linkedin.android.litr.analytics.TrackTransformationInfo;
+import com.linkedin.android.litr.analytics.TransformationStatsCollector;
+import com.linkedin.android.litr.codec.Decoder;
+import com.linkedin.android.litr.codec.Encoder;
+import com.linkedin.android.litr.exception.InsufficientDiskSpaceException;
+import com.linkedin.android.litr.exception.TrackTranscoderException;
+import com.linkedin.android.litr.io.MediaRange;
+import com.linkedin.android.litr.io.MediaSource;
+import com.linkedin.android.litr.io.MediaTarget;
+import com.linkedin.android.litr.render.Renderer;
+import com.linkedin.android.litr.transcoder.PassthroughTranscoder;
+import com.linkedin.android.litr.transcoder.TrackTranscoder;
+import com.linkedin.android.litr.transcoder.TrackTranscoderFactory;
+import com.linkedin.android.litr.transcoder.VideoTrackTranscoder;
+import com.linkedin.android.litr.utils.DiskUtil;
+
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.ArgumentMatchers;
+import org.mockito.Captor;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 public class TransformationJobShould {
     private static final String JOB_ID = "42";
@@ -113,6 +115,7 @@ public class TransformationJobShould {
         when(sourceAudioFormat.containsKey(MediaFormat.KEY_DURATION)).thenReturn(true);
         when(sourceAudioFormat.getLong(MediaFormat.KEY_DURATION)).thenReturn(60000000L);
         when(diskUtil.getAvailableDiskSpaceInDataDirectory()).thenReturn(1000000000L);
+        when(targetVideoFormat.containsKey(MediaFormat.KEY_BIT_RATE)).thenReturn(true);
         when(targetVideoFormat.getInteger(MediaFormat.KEY_BIT_RATE)).thenReturn(6 * 1024 * 1024);
 
         doReturn(videoTrackTranscoder)
