@@ -725,7 +725,6 @@ public class TransformationPresenter {
     private MediaFormat createMediaFormat(@Nullable TargetTrack targetTrack) {
         MediaFormat mediaFormat = null;
         if (targetTrack != null && targetTrack.format != null) {
-            mediaFormat = new MediaFormat();
             if (targetTrack.format.mimeType.startsWith("video")) {
                 mediaFormat = createVideoMediaFormat((VideoTrackFormat) targetTrack.format);
             } else if (targetTrack.format.mimeType.startsWith("audio")) {
