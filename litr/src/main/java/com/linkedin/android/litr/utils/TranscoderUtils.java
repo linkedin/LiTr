@@ -68,7 +68,7 @@ public final class TranscoderUtils {
             String mimeType = getMimeType(sourceTrackFormat);
             if (mimeType != null) {
                 if (trackTransform.getTargetFormat() != null) {
-                    bitrate = trackTransform.getTargetFormat().getInteger(MediaFormat.KEY_BIT_RATE);
+                    bitrate = getBitrate(trackTransform.getTargetFormat());
                 } else if (mimeType.startsWith("audio") && bitrate < 0) {
                     bitrate = COMMON_AUDIO_BITRATE_KBPS * BITS_IN_KILO;
                 }
