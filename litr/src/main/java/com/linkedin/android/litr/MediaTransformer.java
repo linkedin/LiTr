@@ -20,7 +20,6 @@ import androidx.annotation.IntRange;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import com.linkedin.android.litr.codec.Decoder;
 import com.linkedin.android.litr.codec.Encoder;
 import com.linkedin.android.litr.codec.MediaCodecDecoder;
 import com.linkedin.android.litr.codec.MediaCodecEncoder;
@@ -192,19 +191,17 @@ public class MediaTransformer {
                         continue;
                     }
 
-                    Decoder decoder = new MediaCodecDecoder();
-                    Encoder encoder = new MediaCodecEncoder();
-
                     TrackTransform.Builder trackTransformBuilder = new TrackTransform.Builder(mediaSource, track, mediaTarget)
                             .setTargetTrack(trackTransforms.size());
 
                     if (mimeType.startsWith("video")) {
-                        trackTransformBuilder.setDecoder(decoder)
+                        trackTransformBuilder.setDecoder(new MediaCodecDecoder())
                                 .setRenderer(new GlVideoRenderer(options.videoFilters))
-                                .setEncoder(encoder)
+                                .setEncoder(new MediaCodecEncoder())
                                 .setTargetFormat(targetVideoFormat);
                     } else if (mimeType.startsWith("audio")) {
-                        trackTransformBuilder.setDecoder(decoder)
+                        Encoder encoder = new MediaCodecEncoder();
+                        trackTransformBuilder.setDecoder(new MediaCodecDecoder())
                                 .setEncoder(encoder)
                                 .setRenderer(new AudioRenderer(encoder, options.audioFilters))
                                 .setTargetFormat(createTargetAudioFormat(
@@ -213,6 +210,8 @@ public class MediaTransformer {
                                         Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && isVp8OrVp9
                                                 ? MediaFormat.MIMETYPE_AUDIO_OPUS
                                                 : null));
+                    } else {
+                        trackTransformBuilder.setTargetFormat(null);
                     }
 
                     trackTransforms.add(trackTransformBuilder.build());
