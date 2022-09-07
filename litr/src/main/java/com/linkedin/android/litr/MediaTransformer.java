@@ -32,6 +32,7 @@ import com.linkedin.android.litr.io.MediaSource;
 import com.linkedin.android.litr.io.MediaTarget;
 import com.linkedin.android.litr.render.AudioRenderer;
 import com.linkedin.android.litr.render.GlVideoRenderer;
+import com.linkedin.android.litr.utils.MediaFormatUtils;
 import com.linkedin.android.litr.utils.TranscoderUtils;
 
 import java.io.File;
@@ -57,6 +58,7 @@ public class MediaTransformer {
 
     public static final int DEFAULT_KEY_FRAME_INTERVAL = 5;
     private static final int DEFAULT_AUDIO_BITRATE = 256_000;
+    private static final int DEFAULT_FRAME_RATE = 30;
 
     private static final String TAG = MediaTransformer.class.getSimpleName();
     private static final int DEFAULT_FUTURE_MAP_SIZE = 10;
@@ -379,6 +381,11 @@ public class MediaTransformer {
                     targetKeyFrameInterval = sourceMediaFormat.getInteger(MediaFormat.KEY_I_FRAME_INTERVAL);
                 }
                 targetMediaFormat.setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, targetKeyFrameInterval);
+
+                targetMediaFormat.setInteger(
+                        MediaFormat.KEY_FRAME_RATE,
+                        MediaFormatUtils.getFrameRate(sourceMediaFormat, DEFAULT_FRAME_RATE).intValue()
+                );
             } else if (mimeType.startsWith("audio")) {
                 targetMediaFormat = MediaFormat.createAudioFormat(mimeType,
                                                                   sourceMediaFormat.getInteger(MediaFormat.KEY_SAMPLE_RATE),
