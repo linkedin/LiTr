@@ -1,5 +1,16 @@
 # Change Log
 
+## Version 1.5.3 (2022-09-08)
+
+- Implementation of audio overlay filter [#199] (https://github.com/linkedin/LiTr/pull/199)
+- Release BufferFilter's when renderer is released [#200] (https://github.com/linkedin/LiTr/pull/200)
+- Allocate/deallocate native input/output buffers on init/release [#202] (https://github.com/linkedin/LiTr/pull/202)
+- Add ability to reduce the target video's frame rate [#208] (https://github.com/linkedin/LiTr/pull/208) by @niekdev
+- Add TransformationOptions flag to remove audio track(s) [#209] (https://github.com/linkedin/LiTr/pull/209)
+- Fix for incorrect bitrate extraction in size estimation [#212] (https://github.com/linkedin/LiTr/pull/212)
+- Use source (or default) frame rate when creating video MediaFormat [#213] (https://github.com/linkedin/LiTr/pull/213)
+- Use null target MediaFormat for generic tracks [#214] (https://github.com/linkedin/LiTr/pull/214)
+
 ## Version 1.5.2 (2022-06-30)
 
 - Audio filter that changes track volume [#193] (https://github.com/linkedin/LiTr/pull/193)

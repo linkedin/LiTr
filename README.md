@@ -4,17 +4,17 @@
 LiTr (pronounced "lai-tr") is a lightweight video/audio transformation tool which supports transcoding video and audio tracks with optional frame modification.
 
 In its current iteration LiTr supports:
- - changing resolution and/or bitrate of a video track(s)
- - changing sampling rate, channel count and/or bitrate of an audio track(s)
- - overlaying bitmap watermark onto video track(s)
- - applying different effects (brightness/contrast, saturation/hue, blur, etc.) to video pixels
- - including/excluding tracks, which allows muxing/demuxing tracks
- - transforming tracks individually (e.g. apply overlay to one video track, but not the other)
- - positioning source video frame arbitrarily onto target video frame
- - trimming video/audio
- - creating "empty" video, or a video out of single image
- - creating preview bitmap(s) (with filters applied) at specific timestamp(s) (filmstrip)
- - writing raw audio into WAV container
+- changing resolution and/or bitrate of a video track(s)
+- changing sampling rate, channel count and/or bitrate of an audio track(s)
+- overlaying bitmap watermark onto video track(s)
+- applying different effects (brightness/contrast, saturation/hue, blur, etc.) to video pixels
+- including/excluding tracks, which allows muxing/demuxing tracks
+- transforming tracks individually (e.g. apply overlay to one video track, but not the other)
+- positioning source video frame arbitrarily onto target video frame
+- trimming video/audio
+- creating "empty" video, or a video out of single image
+- creating preview bitmap(s) (with filters applied) at specific timestamp(s) (filmstrip)
+- writing raw audio into WAV container
 
 By default, LiTr uses Android MediaCodec stack for hardware accelerated decoding/encoding and OpenGL for rendering. It also uses MediaExtractor and MediaMuxer to read/write media.
 
@@ -23,7 +23,7 @@ By default, LiTr uses Android MediaCodec stack for hardware accelerated decoding
 Simply grab via Gradle:
 
 ```groovy
- implementation 'com.linkedin.android.litr:litr:1.5.2'
+ implementation 'com.linkedin.android.litr:litr:1.5.3'
 ```
 ...or Maven:
 
@@ -31,7 +31,7 @@ Simply grab via Gradle:
 <dependency>
   <groupId>com.linkedin.android.litr</groupId>
   <artifactId>litr</artifactId>
-  <version>1.5.2</version>
+  <version>1.5.3</version>
 </dependency>
 
 ```
@@ -57,19 +57,19 @@ mediaTransformer.transform(requestId,
 ```
 
 Few notable things related to transformation:
- - make sure to provide a unique `requestId`, it will be used when calling back on a listener, or needed when cancelling an ongoing transformation
- - target formats will be applied to all tracks of that type, non video or audio tracks will be copied "as is"
- - passing `null` target format means that you don't want to modify track(s) of that type
- - transformation is performed asynchronously, listener will be called with any transformation progress or state changes
- - by default listener callbacks happen on a UI thread, it is safe to update UI in listener implementation. It is also possible to have them on a non-UI transformation thread, for example, if any "heavy" works needs to be done in listener implementation.
- - if you want to modify video frames, pass in a list of `GlFilter`s in `TransformationOptions`, which will be applied in order
- - if you want to modify audio frames, pass in a list of `BufferFilter`s in `TransformationOptions`, which will be applied in order
- - client can call `transform` multiple times, to queue transformation requests
- - video will be written into MP4 container, we recommend using H.264 ("video/avc" MIME type) for target encoding. If VP8 or VP9 MIME type is used for target video track, audio track will be encoded using Opus codec, and tracks will be written into WebM container.
- - progress update granularity is 100 by default, to match percentage, and can be set in `TransformationOptions`
- - media can be optionally trimmed by specifying a `MediaRange` in `TransformationOptions`
+- make sure to provide a unique `requestId`, it will be used when calling back on a listener, or needed when cancelling an ongoing transformation
+- target formats will be applied to all tracks of that type, non video or audio tracks will be copied "as is"
+- passing `null` target format means that you don't want to modify track(s) of that type
+- transformation is performed asynchronously, listener will be called with any transformation progress or state changes
+- by default listener callbacks happen on a UI thread, it is safe to update UI in listener implementation. It is also possible to have them on a non-UI transformation thread, for example, if any "heavy" works needs to be done in listener implementation.
+- if you want to modify video frames, pass in a list of `GlFilter`s in `TransformationOptions`, which will be applied in order
+- if you want to modify audio frames, pass in a list of `BufferFilter`s in `TransformationOptions`, which will be applied in order
+- client can call `transform` multiple times, to queue transformation requests
+- video will be written into MP4 container, we recommend using H.264 ("video/avc" MIME type) for target encoding. If VP8 or VP9 MIME type is used for target video track, audio track will be encoded using Opus codec, and tracks will be written into WebM container.
+- progress update granularity is 100 by default, to match percentage, and can be set in `TransformationOptions`
+- media can be optionally trimmed by specifying a `MediaRange` in `TransformationOptions`
 
- Ongoing transformation can be cancelled by calling `cancel` with its `requestId`:
+Ongoing transformation can be cancelled by calling `cancel` with its `requestId`:
 
  ```java
 mediaTransformer.cancel(requestId);
@@ -94,18 +94,18 @@ When possible, transformation statistics will be provided in listener callbacks.
 By default, LiTr uses Android MediaCodec stack to do all media work, and OpenGl for rendering. But this is not set in stone.
 
 At high level, LiTr breaks down transformation into five essential steps:
- - reading encoded frame from source container
- - decoding source frame
- - rendering a source frame onto target frame, optionally modifying it (for example, overlaying a bitmap)
- - encoding target frame
- - writing encoded target frame into target container
+- reading encoded frame from source container
+- decoding source frame
+- rendering a source frame onto target frame, optionally modifying it (for example, overlaying a bitmap)
+- encoding target frame
+- writing encoded target frame into target container
 
 Each transformation step is performed by a component. Each component is abstracted as an interface:
- - `MediaSource`
- - `Decoder`
- - `Renderer`
- - `Encoder`
- - `MediaTarget`
+- `MediaSource`
+- `Decoder`
+- `Renderer`
+- `Encoder`
+- `MediaTarget`
 
 When using your own component implementations, make sure that output of a component matches the expected input of a next component. For example, if you are using a custom `Encoder` (AV1?), make sure it accepts whatever frame format `Renderer` produces (`GlSurface`, `ByteBuffer`) and outputs what `MediaTarget` expects as an input.
 
@@ -122,20 +122,22 @@ This API allows defining components and parameters per media track, thus allowin
 
 ## Using Filters
 
-You can use custom filters to modify video frames. Write your own in OpenGL as an implementation of `GlFilter` interface when you need to make extra draw operations which do not need access to source video frames. If you need to change how source video frame is rendered onto a target video frame, implement `GlFrameRender` interface. There are several filters already available from "filter pack" library, which is available via Gradle:
+You can use custom filters to modify video/audio frames. If you are writing a custom video filter, implement `GlFilter` interface to make extra OpenGL draw operations. If you need to change how source video frame is rendered onto a target video frame, implement `GlFrameRender` interface. For audio filter, implement `BufferFilter`.
 
 LiTr now has 40 new GPU accelerated video filters ported from [Mp4Composer-android](https://github.com/MasayukiSuda/Mp4Composer-android) and [android-gpuimage](https://github.com/cats-oss/android-gpuimage) projects. You can also create your own filter simply by configuring VideoFrameRenderFilter with your custom shader, with no extra coding!
 
+All video/audio filters live in "filter pack" library, which is available via Gradle:
+
 ```groovy
- implementation 'com.linkedin.android.litr:litr-filters:1.5.2'
+ implementation 'com.linkedin.android.litr:litr-filters:1.5.3'
 ```
 ...or Maven:
 
 ```xml
 <dependency>
-  <groupId>com.linkedin.android.litr</groupId>
-  <artifactId>litr-filters</artifactId>
-  <version>1.5.2</version>
+    <groupId>com.linkedin.android.litr</groupId>
+    <artifactId>litr-filters</artifactId>
+    <version>1.5.3</version>
 </dependency>
 
 ```
