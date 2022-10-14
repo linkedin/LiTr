@@ -206,12 +206,7 @@ public class MediaTransformer {
                         trackTransformBuilder.setDecoder(new MediaCodecDecoder())
                                 .setEncoder(encoder)
                                 .setRenderer(new AudioRenderer(encoder, options.audioFilters))
-                                .setTargetFormat(createTargetAudioFormat(
-                                        sourceMediaFormat,
-                                        targetAudioFormat,
-                                        Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && isVp8OrVp9
-                                                ? MediaFormat.MIMETYPE_AUDIO_OPUS
-                                                : null));
+                                .setTargetFormat(targetAudioFormat);
                     } else {
                         trackTransformBuilder.setTargetFormat(null);
                     }
@@ -254,15 +249,34 @@ public class MediaTransformer {
         }
 
         int trackCount = trackTransforms.size();
+
+        String targetVideoMimeType = null;
+        for (int trackIndex = 0; trackIndex < trackCount; trackIndex++) {
+            TrackTransform trackTransform = trackTransforms.get(trackIndex);
+            MediaFormat sourceMediaFormat = trackTransform.getMediaSource().getTrackFormat(trackTransform.getSourceTrack());
+            MediaFormat targetMediaFormat = trackTransform.getTargetFormat();
+            if (targetMediaFormat != null
+                    && targetMediaFormat.containsKey(MediaFormat.KEY_MIME)
+                    && targetMediaFormat.getString(MediaFormat.KEY_MIME).startsWith("video")) {
+                targetVideoMimeType = targetMediaFormat.getString(MediaFormat.KEY_MIME);
+                break;
+            } else if (sourceMediaFormat.containsKey(MediaFormat.KEY_MIME)
+                    && sourceMediaFormat.getString(MediaFormat.KEY_MIME).startsWith("video")) {
+                targetVideoMimeType = sourceMediaFormat.getString(MediaFormat.KEY_MIME);
+                break;
+            }
+        }
+
         for (int trackIndex = 0; trackIndex < trackCount; trackIndex++) {
             TrackTransform trackTransform = trackTransforms.get(trackIndex);
             if (trackTransform.getTargetFormat() == null
-                && trackTransform.getRenderer() != null
-                && trackTransform.getRenderer().hasFilters()) {
+                && (trackTransform.getRenderer() != null && trackTransform.getRenderer().hasFilters()
+                    || isAudioIncompatible(trackTransform.getMediaSource(), trackTransform.getSourceTrack(), targetVideoMimeType))) {
                 // target format is null, but track has overlays, which means that we cannot use passthrough transcoder
                 // so we transcode the track using source parameters (resolution, bitrate) as a target
                 MediaFormat targetFormat = createTargetMediaFormat(trackTransform.getMediaSource(),
-                                                                   trackTransform.getSourceTrack());
+                                                                   trackTransform.getSourceTrack(),
+                                                                   targetVideoMimeType);
                 TrackTransform updatedTrackTransform = new TrackTransform.Builder(trackTransform.getMediaSource(),
                                                                                   trackTransform.getSourceTrack(),
                                                                                   trackTransform.getMediaTarget())
@@ -356,9 +370,33 @@ public class MediaTransformer {
         return !removeAudio || !mimeType.startsWith("audio");
     }
 
+    private boolean isAudioIncompatible(@NonNull MediaSource mediaSource,
+                                        int sourceTrackIndex,
+                                        @Nullable String targetVideoMimeType) {
+        if (targetVideoMimeType == null) {
+            // most likely no video track
+            return false;
+        }
+        MediaFormat sourceMediaFormat = mediaSource.getTrackFormat(sourceTrackIndex);
+        switch (targetVideoMimeType) {
+            case MimeType.VIDEO_AVC:
+            case MimeType.VIDEO_HEVC:
+                return sourceMediaFormat.containsKey(MediaFormat.KEY_MIME)
+                        && TextUtils.equals(sourceMediaFormat.getString(MediaFormat.KEY_MIME), MimeType.AUDIO_RAW);
+            case MimeType.VIDEO_VP8:
+            case MimeType.VIDEO_VP9:
+                return sourceMediaFormat.containsKey(MediaFormat.KEY_MIME)
+                        && !(TextUtils.equals(sourceMediaFormat.getString(MediaFormat.KEY_MIME), MimeType.AUDIO_OPUS)
+                        || TextUtils.equals(sourceMediaFormat.getString(MediaFormat.KEY_MIME), MimeType.AUDIO_VORBIS));
+            default:
+                return false;
+        }
+    }
+
     @Nullable
     private MediaFormat createTargetMediaFormat(@NonNull MediaSource mediaSource,
-                                                int sourceTrackIndex) {
+                                                int sourceTrackIndex,
+                                                @Nullable String targetVideoMimeType) {
         MediaFormat sourceMediaFormat = mediaSource.getTrackFormat(sourceTrackIndex);
         MediaFormat targetMediaFormat = null;
 
@@ -386,10 +424,22 @@ public class MediaTransformer {
                         MediaFormatUtils.getFrameRate(sourceMediaFormat, DEFAULT_FRAME_RATE).intValue()
                 );
             } else if (mimeType.startsWith("audio")) {
+                if (isAudioIncompatible(mediaSource, sourceTrackIndex, targetVideoMimeType)) {
+                    mimeType = getCompatibleAudioMimeType(targetVideoMimeType);
+                }
                 targetMediaFormat = MediaFormat.createAudioFormat(mimeType,
                                                                   sourceMediaFormat.getInteger(MediaFormat.KEY_SAMPLE_RATE),
                                                                   sourceMediaFormat.getInteger(MediaFormat.KEY_CHANNEL_COUNT));
-                targetMediaFormat.setInteger(MediaFormat.KEY_BIT_RATE, sourceMediaFormat.getInteger(MediaFormat.KEY_BIT_RATE));
+                targetMediaFormat.setInteger(
+                        MediaFormat.KEY_BIT_RATE,
+                        sourceMediaFormat.containsKey(MediaFormat.KEY_BIT_RATE)
+                                ? sourceMediaFormat.getInteger(MediaFormat.KEY_BIT_RATE)
+                                : DEFAULT_AUDIO_BITRATE);
+                if (sourceMediaFormat.containsKey(MediaFormat.KEY_DURATION)) {
+                    targetMediaFormat.setLong(
+                            MediaFormat.KEY_DURATION,
+                            sourceMediaFormat.getLong(MediaFormat.KEY_DURATION));
+                }
             }
         }
 
@@ -397,26 +447,15 @@ public class MediaTransformer {
     }
 
     @Nullable
-    private MediaFormat createTargetAudioFormat(@NonNull MediaFormat sourceMediaFormat,
-                                                @Nullable MediaFormat targetAudioFormat,
-                                                @Nullable String targetMimeType) {
-        if (targetMimeType == null || targetAudioFormat != null) {
-            return targetAudioFormat;
+    private String getCompatibleAudioMimeType(@NonNull String videoMimeType) {
+        switch (videoMimeType) {
+            case MimeType.VIDEO_AVC:
+            case MimeType.VIDEO_HEVC:
+                return MimeType.AUDIO_AAC;
+            case MimeType.VIDEO_VP8:
+            case MimeType.VIDEO_VP9:
+                return MimeType.AUDIO_OPUS;
         }
-        MediaFormat adjustedAudioFormat = MediaFormat.createAudioFormat(
-                targetMimeType,
-                sourceMediaFormat.getInteger(MediaFormat.KEY_SAMPLE_RATE),
-                sourceMediaFormat.getInteger(MediaFormat.KEY_CHANNEL_COUNT));
-        adjustedAudioFormat.setInteger(
-                MediaFormat.KEY_BIT_RATE,
-                sourceMediaFormat.containsKey(MediaFormat.KEY_BIT_RATE)
-                        ? sourceMediaFormat.getInteger(MediaFormat.KEY_BIT_RATE)
-                        : DEFAULT_AUDIO_BITRATE);
-        if (sourceMediaFormat.containsKey(MediaFormat.KEY_DURATION)) {
-            adjustedAudioFormat.setLong(
-                    MediaFormat.KEY_DURATION,
-                    sourceMediaFormat.getLong(MediaFormat.KEY_DURATION));
-        }
-        return adjustedAudioFormat;
+        return null;
     }
 }
