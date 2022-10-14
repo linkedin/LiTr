@@ -33,17 +33,20 @@ public class TransformationOptions {
     @Nullable public final List<BufferFilter> audioFilters;
     @NonNull public final MediaRange sourceMediaRange;
     public final boolean removeAudio;
+    public final boolean removeMetadata;
 
     private TransformationOptions(@IntRange(from = GRANULARITY_NONE) int granularity,
                                   @Nullable List<GlFilter> videoFilters,
                                   @Nullable List<BufferFilter> audioFilters,
                                   @Nullable MediaRange sourceMediaRange,
-                                  boolean removeAudio) {
+                                  boolean removeAudio,
+                                  boolean removeMetadata) {
         this.granularity = granularity;
         this.videoFilters = videoFilters;
         this.audioFilters = audioFilters;
         this.sourceMediaRange = sourceMediaRange == null ? new MediaRange(0, Long.MAX_VALUE) : sourceMediaRange;
         this.removeAudio = removeAudio;
+        this.removeMetadata = removeMetadata;
     }
 
     public static class Builder {
@@ -52,6 +55,7 @@ public class TransformationOptions {
         private List<BufferFilter> audioFilters;
         private MediaRange sourceMediaRange;
         private boolean removeAudio;
+        private boolean removeMetadata;
 
         @NonNull
         public Builder setGranularity(@IntRange(from = GRANULARITY_NONE) int granularity) {
@@ -84,8 +88,14 @@ public class TransformationOptions {
         }
 
         @NonNull
+        public Builder setRemoveMetadata(boolean removeMetadata) {
+            this.removeMetadata = removeMetadata;
+            return this;
+        }
+
+        @NonNull
         public TransformationOptions build() {
-            return new TransformationOptions(granularity, videoFilters, audioFilters, sourceMediaRange, removeAudio);
+            return new TransformationOptions(granularity, videoFilters, audioFilters, sourceMediaRange, removeAudio, removeMetadata);
         }
     }
 }

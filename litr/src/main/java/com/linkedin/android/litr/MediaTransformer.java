@@ -156,7 +156,7 @@ public class MediaTransformer {
 
             int targetTrackCount = 0;
             for (int track = 0; track < mediaSource.getTrackCount(); track++) {
-                if (shouldIncludeTrack(mediaSource.getTrackFormat(track), options.removeAudio)) {
+                if (shouldIncludeTrack(mediaSource.getTrackFormat(track), options.removeAudio, options.removeMetadata)) {
                     targetTrackCount++;
                 }
             }
@@ -189,7 +189,7 @@ public class MediaTransformer {
                         mimeType = sourceMediaFormat.getString(MediaFormat.KEY_MIME);
                     }
 
-                    if (!shouldIncludeTrack(mimeType, options.removeAudio)) {
+                    if (!shouldIncludeTrack(mimeType, options.removeAudio, options.removeMetadata)) {
                         continue;
                     }
 
@@ -338,22 +338,23 @@ public class MediaTransformer {
         return TranscoderUtils.getEstimatedTargetFileSize(trackTransforms);
     }
 
-    private boolean shouldIncludeTrack(@NonNull MediaFormat sourceMediaFormat, boolean removeAudio) {
+    private boolean shouldIncludeTrack(@NonNull MediaFormat sourceMediaFormat, boolean removeAudio, boolean removeMetadata) {
         String mimeType = null;
         if (sourceMediaFormat.containsKey(MediaFormat.KEY_MIME)) {
             mimeType = sourceMediaFormat.getString(MediaFormat.KEY_MIME);
         }
 
-        return shouldIncludeTrack(mimeType, removeAudio);
+        return shouldIncludeTrack(mimeType, removeAudio, removeMetadata);
     }
 
-    private boolean shouldIncludeTrack(@Nullable String mimeType, boolean removeAudio) {
+    private boolean shouldIncludeTrack(@Nullable String mimeType, boolean removeAudio, boolean removeMetadata) {
         if (mimeType == null) {
             Log.e(TAG, "Mime type is null for track ");
             return false;
         }
 
-        return !removeAudio || !mimeType.startsWith("audio");
+        return !(removeAudio && mimeType.startsWith("audio")
+                || removeMetadata && !mimeType.startsWith("video") && !mimeType.startsWith("audio"));
     }
 
     @Nullable
