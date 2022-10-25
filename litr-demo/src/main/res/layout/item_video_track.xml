@@ -75,6 +75,34 @@
 
         </LinearLayout>
 
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:visibility="@{targetTrack.shouldInclude &amp;&amp; targetTrack.shouldTranscode ? View.VISIBLE : View.GONE}">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/mime_type"
+                android:paddingStart="@dimen/cell_padding"
+                android:paddingEnd="@dimen/cell_padding"/>
+
+            <Spinner
+                android:id="@+id/target_video_mime_type"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:entries="@array/video_mime_type_array"
+                android:paddingStart="0dp"
+                android:paddingEnd="0dp"
+                android:paddingTop="0dp"
+                android:paddingBottom="@dimen/edit_text_padding"
+                android:layout_marginEnd="0dp"
+                android:textSize="15sp"
+                android:onItemSelected="@{(parent, view, pos, id) -> targetTrack.onMimeTypeSelected(parent, view, pos, id)}"/>
+        </LinearLayout>
+
         <TableLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

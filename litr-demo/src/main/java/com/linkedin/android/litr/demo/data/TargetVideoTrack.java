@@ -7,6 +7,9 @@
  */
 package com.linkedin.android.litr.demo.data;
 
+import android.view.View;
+import android.widget.AdapterView;
+
 public class TargetVideoTrack extends TargetTrack {
 
     public TargetVideoTrack(int sourceTrackIndex,
@@ -18,5 +21,9 @@ public class TargetVideoTrack extends TargetTrack {
 
     public VideoTrackFormat getTrackFormat() {
         return (VideoTrackFormat) format;
+    }
+
+    public void onMimeTypeSelected(AdapterView<?> parent, View view, int pos, long id) {
+        format.mimeType = (String) parent.getAdapter().getItem(pos);
     }
 }

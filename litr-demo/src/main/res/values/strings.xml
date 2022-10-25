@@ -138,4 +138,11 @@
         <item>270</item>
     </string-array>
 
+    <string-array name="video_mime_type_array">
+        <item>video/avc</item>
+        <item>video/hevc</item>
+        <item>video/x-vnd.on2.vp8</item>
+        <item>video/x-vnd.on2.vp9</item>
+    </string-array>
+
 </resources>

@@ -16,6 +16,7 @@ import android.media.MediaFormat;
 import android.media.MediaMuxer;
 import android.net.Uri;
 import android.os.Build;
+import android.text.TextUtils;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -23,6 +24,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.linkedin.android.litr.MediaTransformer;
+import com.linkedin.android.litr.MimeType;
 import com.linkedin.android.litr.TrackTransform;
 import com.linkedin.android.litr.TransformationOptions;
 import com.linkedin.android.litr.codec.Encoder;
@@ -105,7 +107,9 @@ public class TransformationPresenter {
                     Uri.fromFile(targetMedia.targetFile),
                     targetMedia.getIncludedTrackCount(),
                     videoRotation,
-                    MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4);
+                    hasVp8OrVp9Track(targetMedia.tracks)
+                            ? MediaMuxer.OutputFormat.MUXER_OUTPUT_WEBM
+                            : MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4);
 
             List<TrackTransform> trackTransforms = new ArrayList<>(targetMedia.tracks.size());
 
@@ -421,7 +425,9 @@ public class TransformationPresenter {
             MediaTarget mediaTarget = new MediaMuxerMediaTarget(targetMedia.targetFile.getPath(),
                     targetMedia.getIncludedTrackCount(),
                     videoRotation,
-                    MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4);
+                    hasVp8OrVp9TrackFormat(sourceMedia.tracks)
+                            ? MediaMuxer.OutputFormat.MUXER_OUTPUT_WEBM
+                            : MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4);
 
             List<TrackTransform> trackTransforms = new ArrayList<>(targetMedia.tracks.size());
 
@@ -739,7 +745,7 @@ public class TransformationPresenter {
     @NonNull
     private MediaFormat createVideoMediaFormat(@NonNull VideoTrackFormat trackFormat) {
         MediaFormat mediaFormat = new MediaFormat();
-        mediaFormat.setString(MediaFormat.KEY_MIME, "video/avc");
+        mediaFormat.setString(MediaFormat.KEY_MIME, trackFormat.mimeType);
         mediaFormat.setInteger(MediaFormat.KEY_WIDTH, trackFormat.width);
         mediaFormat.setInteger(MediaFormat.KEY_HEIGHT, trackFormat.height);
         mediaFormat.setInteger(MediaFormat.KEY_BIT_RATE, trackFormat.bitrate);
@@ -761,5 +767,29 @@ public class TransformationPresenter {
         mediaFormat.setLong(MediaFormat.KEY_DURATION, trackFormat.duration);
 
         return mediaFormat;
+    }
+
+    private boolean hasVp8OrVp9Track(@NonNull List<TargetTrack> targetTracks) {
+        for (TargetTrack targetTrack : targetTracks) {
+            if (!targetTrack.shouldInclude) {
+                continue;
+            }
+
+            if (TextUtils.equals(targetTrack.format.mimeType, MimeType.VIDEO_VP8)
+                    || TextUtils.equals(targetTrack.format.mimeType, MimeType.VIDEO_VP9)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean hasVp8OrVp9TrackFormat(@NonNull List<MediaTrackFormat> trackFormats) {
+        for (MediaTrackFormat trackFormat : trackFormats) {
+            if (TextUtils.equals(trackFormat.mimeType, MimeType.VIDEO_VP8)
+                    || TextUtils.equals(trackFormat.mimeType, MimeType.VIDEO_VP9)) {
+                return true;
+            }
+        }
+        return false;
     }
 }
