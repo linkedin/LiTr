@@ -174,8 +174,9 @@ public class AudioTrackTranscoder extends TrackTranscoder {
 
             if (decoderOutputFrame.bufferInfo.presentationTimeUs >= sourceMediaSelection.getStart()
                     || (decoderOutputFrame.bufferInfo.flags & MediaCodec.BUFFER_FLAG_END_OF_STREAM) != 0) {
-                renderer.renderFrame(decoderOutputFrame,
-                        TimeUnit.MICROSECONDS.toNanos(decoderOutputFrame.bufferInfo.presentationTimeUs - sourceMediaSelection.getStart()));
+                long presentationTimeUs = decoderOutputFrame.bufferInfo.presentationTimeUs - sourceMediaSelection.getStart();
+                decoderOutputFrame.bufferInfo.presentationTimeUs = presentationTimeUs;
+                renderer.renderFrame(decoderOutputFrame, TimeUnit.MICROSECONDS.toNanos(presentationTimeUs));
             }
             decoder.releaseOutputFrame(tag, false);
 
