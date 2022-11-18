@@ -24,6 +24,8 @@ import java.nio.ByteBuffer;
 
 public class MediaCodecEncoder implements Encoder {
 
+    private static final int DEFAULT_FRAME_RATE = 30;
+
     private MediaCodec mediaCodec;
 
     private boolean isReleased = true;
@@ -33,9 +35,15 @@ public class MediaCodecEncoder implements Encoder {
 
     @Override
     public void init(@NonNull MediaFormat targetFormat) throws TrackTranscoderException {
-        // unless specified otherwise, we use default color format for the surface
-        if (!targetFormat.containsKey(MediaFormat.KEY_COLOR_FORMAT)) {
-            targetFormat.setInteger(MediaFormat.KEY_COLOR_FORMAT, MediaCodecInfo.CodecCapabilities.COLOR_FormatSurface);
+        if (targetFormat.containsKey(MediaFormat.KEY_MIME) && targetFormat.getString(MediaFormat.KEY_MIME).startsWith("video")) {
+            // unless specified otherwise, we use default color format for the video surface
+            if (!targetFormat.containsKey(MediaFormat.KEY_COLOR_FORMAT)) {
+                targetFormat.setInteger(MediaFormat.KEY_COLOR_FORMAT, MediaCodecInfo.CodecCapabilities.COLOR_FormatSurface);
+            }
+            // if required frame rate is missing, let's default to 30 fps
+            if (!targetFormat.containsKey(MediaFormat.KEY_FRAME_RATE)) {
+                targetFormat.setInteger(MediaFormat.KEY_FRAME_RATE, DEFAULT_FRAME_RATE);
+            }
         }
 
         mediaCodec = CodecUtils.getAndConfigureCodec(
