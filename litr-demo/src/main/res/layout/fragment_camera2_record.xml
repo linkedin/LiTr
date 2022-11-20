@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2022 LinkedIn Corporation -->
+<!-- All Rights Reserved. -->
+<!-- -->
+<!-- Licensed under the BSD 2-Clause License (the "License").  See License in the project root -->
+<!-- for license information. -->
+<!-- -->
+<!-- Author: Ian Bird -->
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <data>
+        <import type="android.view.View"/>
+
+        <variable
+            name="audioMediaSource"
+            type="com.linkedin.android.litr.io.AudioRecordMediaSource" />
+
+        <variable
+            name="videoMediaSource"
+            type="com.linkedin.android.litr.io.Camera2MediaSource" />
+
+        <variable
+            name="targetMedia"
+            type="com.linkedin.android.litr.demo.data.TargetMedia" />
+
+        <variable
+            name="transformationState"
+            type="com.linkedin.android.litr.demo.data.TransformationState" />
+
+        <variable
+            name="transformationPresenter"
+            type="com.linkedin.android.litr.demo.data.RecordCameraPresenter" />
+
+    </data>
+
+    <RelativeLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <com.linkedin.android.litr.demo.view.AutoFitSurfaceView
+            android:id="@+id/camera_view"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_centerInParent="true"/>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@color/design_default_color_background"
+            android:visibility="@{transformationState.state == transformationState.STATE_RUNNING ? View.GONE : View.VISIBLE}"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_alignParentBottom="true">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="@dimen/cell_padding"
+                android:text="@{transformationState.stats}"
+                android:visibility="@{transformationState.state == transformationState.STATE_RUNNING || transformationState.stats == null ? View.GONE : View.VISIBLE}"/>
+
+            <Button
+                android:id="@+id/button_record"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/record"
+                android:enabled="@{(transformationState.state != transformationState.STATE_RUNNING)}"
+                android:padding="@dimen/cell_padding"/>
+
+            <Button
+                android:id="@+id/button_stop"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/stop"
+                android:enabled="@{transformationState.state == transformationState.STATE_RUNNING}"
+                android:padding="@dimen/cell_padding"/>
+
+            <Button
+                android:id="@+id/button_play"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/play"
+                android:enabled="@{transformationState.state == transformationState.STATE_COMPLETED}"
+                android:padding="@dimen/cell_padding"
+                android:onClick="@{() -> transformationPresenter.play(targetMedia.contentUri)}"/>
+
+        </LinearLayout>
+
+    </RelativeLayout>
+
+</layout>

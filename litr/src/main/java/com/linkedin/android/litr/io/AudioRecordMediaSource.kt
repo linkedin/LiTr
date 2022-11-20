@@ -61,7 +61,7 @@ class AudioRecordMediaSource(
     private var isRecording = false
 
     @Synchronized
-    fun start() {
+    fun startRecording() {
         createAudioRecord()
 
         // Check to make sure the AudioRecord instance is initialized.
@@ -89,7 +89,7 @@ class AudioRecordMediaSource(
     }
 
     @Synchronized
-    fun stop() {
+    fun stopRecording() {
         if (isRecording) {
             // Stop recording.
             audioRecord?.stop()
