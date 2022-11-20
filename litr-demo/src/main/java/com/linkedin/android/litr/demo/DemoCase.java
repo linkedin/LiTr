@@ -7,6 +7,8 @@
  */
 package com.linkedin.android.litr.demo;
 
+import android.annotation.SuppressLint;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.StringRes;
 import androidx.fragment.app.Fragment;
@@ -24,7 +26,8 @@ public enum DemoCase {
     TRANSCODE_AUDIO(R.string.demo_case_transcode_audio, "TranscodeAudio", new TranscodeAudioFragment()),
     EXTRACT_FRAMES(R.string.demo_case_extract_frames, "ExtractFramesFragment", new ExtractFramesFragment()),
     TRANSCODE_TO_VP9(R.string.demo_case_transcode_to_vp9, "TranscodeToVp9Fragment", new TranscodeToVp9Fragment()),
-    RECORD_AUDIO(R.string.demo_case_audio_record, "RecordAudio", new RecordAudioFragment());
+    RECORD_AUDIO(R.string.demo_case_audio_record, "RecordAudio", new RecordAudioFragment()),
+    @SuppressLint("NewApi") RECORD_CAMERA(R.string.demo_case_camera_record, "RecordCamera", new RecordCameraFragment());
 
     @StringRes int displayName;
     String fragmentTag;

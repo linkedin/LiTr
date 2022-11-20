@@ -19,6 +19,7 @@
     <string name="demo_case_extract_frames">Extract Video Frames</string>
     <string name="demo_case_transcode_to_vp9">Transcode To VP9</string>
     <string name="demo_case_audio_record">Record Audio</string>
+    <string name="demo_case_camera_record">Record Camera (via Camera2)</string>
 
     <string name="error_vp9_not_supported">VP8/VP9 is not supported</string>
 

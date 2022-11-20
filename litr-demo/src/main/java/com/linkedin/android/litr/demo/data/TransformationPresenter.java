@@ -42,6 +42,7 @@ import com.linkedin.android.litr.filter.audio.AudioOverlayFilter;
 import com.linkedin.android.litr.filter.video.gl.DefaultVideoFrameRenderFilter;
 import com.linkedin.android.litr.filter.video.gl.SolidBackgroundColorFilter;
 import com.linkedin.android.litr.io.AudioRecordMediaSource;
+import com.linkedin.android.litr.io.ExternalMediaSource;
 import com.linkedin.android.litr.io.MediaExtractorMediaSource;
 import com.linkedin.android.litr.io.MediaMuxerMediaTarget;
 import com.linkedin.android.litr.io.MediaRange;
@@ -756,6 +757,89 @@ public class TransformationPresenter {
         }
 
         mediaSource.stop();
+    }
+
+    public void recordCamera(@NonNull AudioRecordMediaSource audioMediaSource,
+                             @NonNull ExternalMediaSource videoMediaSource,
+                             @NonNull TargetMedia targetMedia,
+                             @NonNull TransformationState transformationState) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+            throw new UnsupportedOperationException("Android Marshmallow or newer required");
+        }
+
+        if (targetMedia.targetFile.exists()) {
+            targetMedia.targetFile.delete();
+        }
+
+        transformationState.requestId = UUID.randomUUID().toString();
+        MediaTransformationListener transformationListener = new MediaTransformationListener(context,
+                transformationState.requestId,
+                transformationState,
+                targetMedia);
+
+        try {
+            MediaTarget mediaTarget = new MediaMuxerMediaTarget(targetMedia.targetFile.getPath(),
+                    2,
+                    0,
+                    MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4);
+
+            VideoTrackFormat videoTrackFormat = new VideoTrackFormat(0, MimeType.VIDEO_AVC);
+            videoTrackFormat.width = videoMediaSource.getWidth();
+            videoTrackFormat.height = videoMediaSource.getHeight();
+            videoTrackFormat.frameRate = videoMediaSource.getFrameRate();
+            videoTrackFormat.bitrate = videoMediaSource.getBitrate();
+            videoTrackFormat.keyFrameInterval = videoMediaSource.getKeyFrameInterval();
+            videoTrackFormat.rotation = videoMediaSource.getOrientation();
+
+            MediaFormat videoMediaFormat = createVideoMediaFormat(videoTrackFormat);
+
+            TrackTransform.Builder videoTransformBuilder = new TrackTransform.Builder(
+                    videoMediaSource,
+                    0,
+                    mediaTarget)
+                    .setTargetTrack(0)
+                    .setTargetFormat(videoMediaFormat)
+                    .setEncoder(new MediaCodecEncoder())
+                    .setDecoder(videoMediaSource)
+                    .setRenderer(new GlVideoRenderer(Collections.emptyList()));
+
+            AudioTrackFormat audioTrackFormat = new AudioTrackFormat(0, MimeType.AUDIO_AAC);
+            audioTrackFormat.samplingRate = 44100;
+            audioTrackFormat.channelCount = 1;
+            audioTrackFormat.bitrate = 64 * 1024;
+
+            TrackTransform.Builder audioTransformBuilder = new TrackTransform.Builder(audioMediaSource,
+                    0,
+                    mediaTarget)
+                    .setTargetTrack(1)
+                    .setTargetFormat(createAudioMediaFormat(audioTrackFormat))
+                    .setEncoder(new MediaCodecEncoder())
+                    .setDecoder(new MediaCodecDecoder());
+
+            ArrayList<TrackTransform> trackTransforms = new ArrayList<>();
+            trackTransforms.add(videoTransformBuilder.build());
+            trackTransforms.add(audioTransformBuilder.build());
+
+            audioMediaSource.start();
+            mediaTransformer.transform(
+                    transformationState.requestId,
+                    trackTransforms,
+                    transformationListener,
+                    MediaTransformer.GRANULARITY_DEFAULT);
+
+        } catch (MediaTransformationException ex) {
+            Log.e(TAG, "Exception when trying to perform track operation", ex);
+        }
+    }
+
+    public void stopRecording(@NonNull AudioRecordMediaSource audioMediaSource,
+                              @NonNull ExternalMediaSource videoMediaSource) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+            throw new UnsupportedOperationException("Android Marshmallow or newer required");
+        }
+
+        audioMediaSource.stop();
+        videoMediaSource.stopExternal();
     }
 
     public void cancelTransformation(@NonNull String requestId) {
