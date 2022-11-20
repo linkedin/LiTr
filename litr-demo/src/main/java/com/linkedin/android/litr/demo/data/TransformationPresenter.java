@@ -11,6 +11,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
 import android.graphics.PointF;
 import android.media.MediaFormat;
 import android.media.MediaMuxer;
@@ -39,6 +40,8 @@ import com.linkedin.android.litr.filter.GlFrameRenderFilter;
 import com.linkedin.android.litr.filter.Transform;
 import com.linkedin.android.litr.filter.audio.AudioOverlayFilter;
 import com.linkedin.android.litr.filter.video.gl.DefaultVideoFrameRenderFilter;
+import com.linkedin.android.litr.filter.video.gl.SolidBackgroundColorFilter;
+import com.linkedin.android.litr.io.AudioRecordMediaSource;
 import com.linkedin.android.litr.io.MediaExtractorMediaSource;
 import com.linkedin.android.litr.io.MediaMuxerMediaTarget;
 import com.linkedin.android.litr.io.MediaRange;
@@ -669,6 +672,90 @@ public class TransformationPresenter {
                 null,
                 transformationListener,
                 transformationOptions);
+    }
+
+    public void recordAudio(@NonNull AudioRecordMediaSource mediaSource,
+                            @NonNull TargetMedia targetMedia,
+                            @NonNull TransformationState transformationState) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+            throw new UnsupportedOperationException("Android Marshmallow or newer required");
+        }
+
+        if (targetMedia.targetFile.exists()) {
+            targetMedia.targetFile.delete();
+        }
+
+        transformationState.requestId = UUID.randomUUID().toString();
+        MediaTransformationListener transformationListener = new MediaTransformationListener(context,
+                transformationState.requestId,
+                transformationState,
+                targetMedia);
+
+        try {
+            MediaTarget mediaTarget = new MediaMuxerMediaTarget(targetMedia.targetFile.getPath(),
+                    2,
+                    0,
+                    MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4);
+
+            // Create a single (synthetic) video track to ensure our output is playable by the demo
+            // app. We only use 1 second of video (a solid color) so the duration of the video will
+            // likely depend on the length of the audio recording.
+            VideoTrackFormat videoTrackFormat = new VideoTrackFormat(0, MimeType.VIDEO_AVC);
+            videoTrackFormat.duration = TimeUnit.SECONDS.toMicros(1);
+            videoTrackFormat.frameRate = 30;
+            videoTrackFormat.width = 512;
+            videoTrackFormat.height = 512;
+
+            MediaFormat videoMediaFormat = createVideoMediaFormat(videoTrackFormat);
+            MediaSource videoMediaSource =
+                    new MockVideoMediaSource(videoMediaFormat);
+
+            SolidBackgroundColorFilter filter = new SolidBackgroundColorFilter(Color.RED);
+
+            TrackTransform.Builder videoTransformBuilder = new TrackTransform.Builder(
+                    videoMediaSource,
+                    0,
+                    mediaTarget)
+                    .setTargetTrack(0)
+                    .setTargetFormat(videoMediaFormat)
+                    .setEncoder(new MediaCodecEncoder())
+                    .setDecoder(new PassthroughDecoder(1))
+                    .setRenderer(new GlVideoRenderer(Collections.singletonList(filter)));
+
+            AudioTrackFormat audioTrackFormat = new AudioTrackFormat(0, MimeType.AUDIO_AAC);
+            audioTrackFormat.samplingRate = 44100;
+            audioTrackFormat.channelCount = 1;
+            audioTrackFormat.bitrate = 64 * 1024;
+
+            TrackTransform.Builder audioTransformBuilder = new TrackTransform.Builder(mediaSource,
+                    0,
+                    mediaTarget)
+                    .setTargetTrack(1)
+                    .setTargetFormat(createAudioMediaFormat(audioTrackFormat))
+                    .setEncoder(new MediaCodecEncoder())
+                    .setDecoder(new MediaCodecDecoder());
+
+            ArrayList<TrackTransform> trackTransforms = new ArrayList<>();
+            trackTransforms.add(videoTransformBuilder.build());
+            trackTransforms.add(audioTransformBuilder.build());
+
+            mediaSource.start();
+            mediaTransformer.transform(
+                    transformationState.requestId,
+                    trackTransforms,
+                    transformationListener,
+                    MediaTransformer.GRANULARITY_DEFAULT);
+        } catch (MediaTransformationException ex) {
+            Log.e(TAG, "Exception when trying to perform track operation", ex);
+        }
+    }
+
+    public void stopRecording(@NonNull AudioRecordMediaSource mediaSource) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+            throw new UnsupportedOperationException("Android Marshmallow or newer required");
+        }
+
+        mediaSource.stop();
     }
 
     public void cancelTransformation(@NonNull String requestId) {
