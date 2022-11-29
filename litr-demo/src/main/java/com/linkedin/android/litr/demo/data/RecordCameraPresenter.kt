@@ -21,6 +21,7 @@ import com.linkedin.android.litr.codec.MediaCodecEncoder
 import com.linkedin.android.litr.exception.MediaTransformationException
 import com.linkedin.android.litr.filter.GlFilter
 import com.linkedin.android.litr.io.*
+import com.linkedin.android.litr.muxers.NativeMediaMuxerMediaTarget
 import com.linkedin.android.litr.render.GlVideoRenderer
 import java.util.UUID
 
@@ -35,7 +36,8 @@ class RecordCameraPresenter(
             audioMediaSource: AudioRecordMediaSource,
             videoMediaSource: Camera2MediaSource,
             targetMedia: TargetMedia,
-            transformationState: TransformationState
+            transformationState: TransformationState,
+            enableNativeMuxer: Boolean
     ) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
             throw UnsupportedOperationException("Android Marshmallow or newer required")
@@ -54,12 +56,7 @@ class RecordCameraPresenter(
         )
 
         try {
-            val mediaTarget: MediaTarget = MediaMuxerMediaTarget(
-                targetMedia.targetFile.path,
-                2,
-                0,
-                MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4
-            )
+            val mediaTarget = buildMediaTarget(targetMedia, enableNativeMuxer)
 
             val videoTrackFormat = VideoTrackFormat(0, MimeType.VIDEO_AVC)
                 .apply {
@@ -126,5 +123,33 @@ class RecordCameraPresenter(
         }
         audioMediaSource.stopRecording()
         videoMediaSource.stopRecording()
+    }
+
+    private fun buildMediaTarget(
+            targetMedia: TargetMedia,
+            enableNativeMuxer: Boolean
+    ): MediaTarget {
+        return if (enableNativeMuxer) {
+            NativeMediaMuxerMediaTarget(
+                    targetMedia.targetFile.path,
+                    2,
+                    0,
+                    MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4
+            ).apply {
+                // Here's an example of how to specify muxer options. This specific option will
+                // configure the muxer to output a fragmented MP4.
+                addOption(
+                        "movflags",
+                        "frag_keyframe+empty_moov+default_base_moof"
+                )
+            }
+        } else {
+            MediaMuxerMediaTarget(
+                    targetMedia.targetFile.path,
+                    2,
+                    0,
+                    MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4
+            )
+        }
     }
 }

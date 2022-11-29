@@ -38,7 +38,7 @@ import static com.linkedin.android.litr.exception.MediaTargetException.Error.UNS
 public class MediaMuxerMediaTarget implements MediaTarget {
     private static final String TAG = MediaMuxerMediaTarget.class.getSimpleName();
 
-    @VisibleForTesting LinkedList<MediaSample> queue;
+    @VisibleForTesting LinkedList<MediaTargetSample> queue;
     @VisibleForTesting boolean isStarted;
     @VisibleForTesting MediaMuxer mediaMuxer;
 
@@ -121,8 +121,8 @@ public class MediaMuxerMediaTarget implements MediaTarget {
 
             // write out queued items
             while (!queue.isEmpty()) {
-                MediaSample mediaSample = queue.removeFirst();
-                mediaMuxer.writeSampleData(mediaSample.targetTrack, mediaSample.buffer, mediaSample.info);
+                MediaTargetSample mediaSample = queue.removeFirst();
+                mediaMuxer.writeSampleData(mediaSample.getTargetTrack(), mediaSample.getBuffer(), mediaSample.getInfo());
             }
         }
 
@@ -139,7 +139,7 @@ public class MediaMuxerMediaTarget implements MediaTarget {
             }
         } else {
             // media muxer is not started yet, so queue up incoming buffers to write them out later
-            MediaSample mediaSample = new MediaSample(targetTrack, buffer, info);
+            MediaTargetSample mediaSample = new MediaTargetSample(targetTrack, buffer, info);
             queue.addLast(mediaSample);
         }
     }
@@ -163,24 +163,6 @@ public class MediaMuxerMediaTarget implements MediaTarget {
                 parcelFileDescriptor = null;
             }
         } catch (IOException ignored) {
-        }
-    }
-
-    private class MediaSample {
-        private int targetTrack;
-        private ByteBuffer buffer;
-        private MediaCodec.BufferInfo info;
-
-        private MediaSample(int targetTrack, ByteBuffer buffer, MediaCodec.BufferInfo info) {
-            this.targetTrack = targetTrack;
-
-            this.info = new MediaCodec.BufferInfo();
-            this.info.set(0, info.size, info.presentationTimeUs, info.flags);
-
-            // we want to make a deep copy so we can release the incoming buffer back to encoder immediately
-            this.buffer = ByteBuffer.allocate(buffer.capacity());
-            this.buffer.put(buffer);
-            this.buffer.flip();
         }
     }
 }

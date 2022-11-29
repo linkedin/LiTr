@@ -18,6 +18,8 @@ import com.linkedin.android.litr.demo.fragment.ExtractFramesFragment;
 import com.linkedin.android.litr.demo.fragment.FreeTransformVideoGlFragment;
 import com.linkedin.android.litr.demo.fragment.MockTranscodeFragment;
 import com.linkedin.android.litr.demo.fragment.MuxVideoAndAudioFragment;
+import com.linkedin.android.litr.demo.fragment.NativeMuxerCameraFragment;
+import com.linkedin.android.litr.demo.fragment.NativeMuxerTranscodeFragment;
 import com.linkedin.android.litr.demo.fragment.RecordAudioFragment;
 import com.linkedin.android.litr.demo.fragment.SquareCenterCropFragment;
 import com.linkedin.android.litr.demo.fragment.TranscodeAudioFragment;
@@ -41,7 +43,9 @@ public enum DemoCase {
     EXTRACT_FRAMES(R.string.demo_case_extract_frames, "ExtractFramesFragment", new ExtractFramesFragment()),
     TRANSCODE_TO_VP9(R.string.demo_case_transcode_to_vp9, "TranscodeToVp9Fragment", new TranscodeToVp9Fragment()),
     RECORD_AUDIO(R.string.demo_case_audio_record, "RecordAudio", new RecordAudioFragment()),
-    @SuppressLint("NewApi") RECORD_CAMERA(R.string.demo_case_camera_record, "RecordCamera2", new RecordCamera2Fragment());
+    @SuppressLint("NewApi") RECORD_CAMERA(R.string.demo_case_camera_record, "RecordCamera2", new RecordCamera2Fragment()),
+    NATIVE_MUXER_TRANSCODE(R.string.demo_case_native_muxer_transcode, "NativeMuxerTranscode", new NativeMuxerTranscodeFragment()),
+    @SuppressLint("NewApi") NATIVE_MUXER_CAMERA(R.string.demo_case_native_muxer_camera, "NativeMuxerCamera", new NativeMuxerCameraFragment());
 
     @StringRes int displayName;
     String fragmentTag;
