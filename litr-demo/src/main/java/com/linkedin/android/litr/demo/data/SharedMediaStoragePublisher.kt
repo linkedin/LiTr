@@ -10,6 +10,7 @@ import android.os.Handler
 import android.os.Looper
 import android.provider.MediaStore
 import android.util.Log
+import android.webkit.MimeTypeMap
 import androidx.annotation.ChecksSdkIntAtLeast
 import androidx.annotation.WorkerThread
 import java.io.File
@@ -49,9 +50,11 @@ class SharedMediaStoragePublisher @JvmOverloads constructor(
         if (!file.exists()) return null
 
         val newFileName = file.name
+        val extension = MimeTypeMap.getFileExtensionFromUrl(newFileName)
+        val mimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension) ?: MIME_TYPE_MPEG_4
 
         val values = ContentValues().apply {
-            put(MediaStore.Video.Media.MIME_TYPE, MIME_TYPE_MPEG_4)
+            put(MediaStore.Video.Media.MIME_TYPE, mimeType)
             put(MediaStore.Video.Media.TITLE, newFileName)
             put(MediaStore.Video.Media.DISPLAY_NAME, newFileName)
             put(MediaStore.Video.Media.DATE_TAKEN, System.currentTimeMillis())

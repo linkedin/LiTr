@@ -1,0 +1,4 @@
+/build
+
+# FFmpeg symlink
+src/main/cpp/ffmpeg
