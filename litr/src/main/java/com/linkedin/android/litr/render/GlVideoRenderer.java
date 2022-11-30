@@ -109,7 +109,15 @@ public class GlVideoRenderer implements Renderer {
 
         this.outputSurface = new VideoRenderOutputSurface(outputSurface);
 
-        inputSurface = new VideoRenderInputSurface();
+        int sourceWidth = VideoRenderInputSurface.UNDEFINED_DIMENSION;
+        if (sourceMediaFormat != null && sourceMediaFormat.containsKey(MediaFormat.KEY_WIDTH)) {
+            sourceWidth = sourceMediaFormat.getInteger(MediaFormat.KEY_WIDTH);
+        }
+        int sourceHeight = VideoRenderInputSurface.UNDEFINED_DIMENSION;
+        if (sourceMediaFormat != null && sourceMediaFormat.containsKey(MediaFormat.KEY_HEIGHT)) {
+            sourceHeight = sourceMediaFormat.getInteger(MediaFormat.KEY_HEIGHT);
+        }
+        inputSurface = new VideoRenderInputSurface(sourceWidth, sourceHeight);
         initMvpMatrix(rotation, aspectRatio);
 
         for (GlFilter filter : filters) {

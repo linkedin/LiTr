@@ -23,6 +23,8 @@ import android.graphics.SurfaceTexture;
 import android.opengl.GLES11Ext;
 import android.opengl.GLES20;
 import android.view.Surface;
+
+import androidx.annotation.IntRange;
 import androidx.annotation.NonNull;
 
 /**
@@ -42,6 +44,8 @@ import androidx.annotation.NonNull;
  */
 class VideoRenderInputSurface implements SurfaceTexture.OnFrameAvailableListener {
 
+    public static final int UNDEFINED_DIMENSION = -1;
+
     private static final int FRAME_WAIT_TIMEOUT_MS = 10000;
 
     private SurfaceTexture surfaceTexture;
@@ -55,9 +59,12 @@ class VideoRenderInputSurface implements SurfaceTexture.OnFrameAvailableListener
      * Creates an RenderInputSurface using the current EGL context (rather than establishing a
      * new one).  Creates a Surface that can be passed to MediaCodec.configure().
      */
-    VideoRenderInputSurface() {
+    VideoRenderInputSurface(@IntRange(from = UNDEFINED_DIMENSION) int width, @IntRange(from = UNDEFINED_DIMENSION) int height) {
         textureId = createTexture();
         surfaceTexture = new SurfaceTexture(textureId);
+        if (width != UNDEFINED_DIMENSION && height != UNDEFINED_DIMENSION) {
+            surfaceTexture.setDefaultBufferSize(width, height);
+        }
         surface = new Surface(surfaceTexture);
         surfaceTexture.setOnFrameAvailableListener(this);
     }
@@ -80,10 +87,6 @@ class VideoRenderInputSurface implements SurfaceTexture.OnFrameAvailableListener
     @NonNull
     Surface getSurface() {
         return surface;
-    }
-
-    SurfaceTexture getSurfaceTexture() {
-        return surfaceTexture;
     }
 
     /**
