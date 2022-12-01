@@ -74,9 +74,7 @@ class GlSingleFrameRenderer(filters: List<GlFilter>?) : SingleFrameRenderer {
 
         // Creates a GL texture, and a SurfaceTexture. Since the rest of the pipeline (e.g. filters) rely on an external texture sampler, we will render the
         // source bitmap into this surface, instead of dealing with GL_TEXTURE_2D, so this surface be passed to the rest of the pipeline with no changes.
-        inputSurface = VideoRenderInputSurface().apply {
-            surfaceTexture.setDefaultBufferSize(inputSize.x, inputSize.y)
-        }
+        inputSurface = VideoRenderInputSurface(width, height)
 
         // The outputSurface is needed to set up EGL surface and context
         val surfaceTexture = SurfaceTexture(0).apply {
