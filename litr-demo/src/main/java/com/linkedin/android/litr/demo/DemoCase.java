@@ -23,7 +23,8 @@ public enum DemoCase {
     TRANSCODE_VIDEO_MOCK(R.string.demo_case_mock_transcode_video, "TranscodeVideoMock", new MockTranscodeFragment()),
     TRANSCODE_AUDIO(R.string.demo_case_transcode_audio, "TranscodeAudio", new TranscodeAudioFragment()),
     EXTRACT_FRAMES(R.string.demo_case_extract_frames, "ExtractFramesFragment", new ExtractFramesFragment()),
-    TRANSCODE_TO_VP9(R.string.demo_case_transcode_to_vp9, "TranscodeToVp9Fragment", new TranscodeToVp9Fragment());
+    TRANSCODE_TO_VP9(R.string.demo_case_transcode_to_vp9, "TranscodeToVp9Fragment", new TranscodeToVp9Fragment()),
+    RECORD_AUDIO(R.string.demo_case_audio_record, "RecordAudio", new RecordAudioFragment());
 
     @StringRes int displayName;
     String fragmentTag;
