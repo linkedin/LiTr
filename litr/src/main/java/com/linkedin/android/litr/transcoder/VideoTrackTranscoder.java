@@ -127,7 +127,7 @@ public class VideoTrackTranscoder extends TrackTranscoder {
         int result = RESULT_FRAME_PROCESSED;
 
         if (lastExtractFrameResult == RESULT_END_OF_RANGE_REACHED) {
-            lastExtractFrameResult = advanceToNextTrack() ? RESULT_EOS_REACHED : RESULT_END_OF_RANGE_REACHED;
+            lastExtractFrameResult = advanceToNextTrack();
         }
 
         // extract the frame from the incoming stream and send it to the decoder
@@ -183,7 +183,7 @@ public class VideoTrackTranscoder extends TrackTranscoder {
                 } else if (sampleTime >= sourceMediaSelection.getEnd()) {
                     frame.bufferInfo.set(0, 0, -1, MediaCodec.BUFFER_FLAG_END_OF_STREAM);
                     decoder.queueInputFrame(frame);
-                    extractFrameResult = advanceToNextTrack() ? RESULT_EOS_REACHED : RESULT_END_OF_RANGE_REACHED;
+                    extractFrameResult = advanceToNextTrack();
                     Log.d(TAG, "Selection end reached on the input stream");
                 } else {
                     frame.bufferInfo.set(0, bytesRead, sampleTime, sampleFlags);

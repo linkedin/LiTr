@@ -119,16 +119,16 @@ public abstract class TrackTranscoder {
         return targetFormat;
     }
 
-    protected boolean advanceToNextTrack() {
+    protected int advanceToNextTrack() {
         // done with this track, advance until track switches to let other track transcoders finish work
         while (mediaSource.getSampleTrackIndex() == sourceTrack) {
             mediaSource.advance();
             if ((mediaSource.getSampleFlags() & MediaCodec.BUFFER_FLAG_END_OF_STREAM) != 0) {
                 // reached the end of container, no more tracks left
-                return true;
+                return RESULT_EOS_REACHED;
             }
         }
-        return false;
+        return RESULT_END_OF_RANGE_REACHED;
     }
 
 }
