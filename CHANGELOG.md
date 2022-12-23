@@ -1,5 +1,15 @@
 # Change Log
 
+## Version 1.5.4 (2022-12-23)
+
+- Enforce transcoding of incompatible audio track(s) to compatible codecs [#220] (https://github.com/linkedin/LiTr/pull/220)
+- Add TransformationOptions parameter to remove metadata tracks [#221] (https://github.com/linkedin/LiTr/pull/221)
+- Fix for incorrect audio frame presentation time when trimming [#225] (https://github.com/linkedin/LiTr/pull/225)
+- Default to 30 fps target frame rate if parameter is missing [#227] (https://github.com/linkedin/LiTr/pull/227)
+- Set default buffer size when creating VideoRendererInputSurface [#228] (https://github.com/linkedin/LiTr/pull/228)
+- Implement AudioRecord support for audio track [#229] (https://github.com/linkedin/LiTr/pull/229) by @IanDBird
+- Allow transcoders advance to next track or EoS past selection end [#230] (https://github.com/linkedin/LiTr/pull/230)
+
 ## Version 1.5.3 (2022-09-08)
 
 - Implementation of audio overlay filter [#199] (https://github.com/linkedin/LiTr/pull/199)

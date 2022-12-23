@@ -13,6 +13,7 @@ In its current iteration LiTr supports:
 - positioning source video frame arbitrarily onto target video frame
 - trimming video/audio
 - creating "empty" video, or a video out of single image
+- recording audio
 - creating preview bitmap(s) (with filters applied) at specific timestamp(s) (filmstrip)
 - writing raw audio into WAV container
 
@@ -23,7 +24,7 @@ By default, LiTr uses Android MediaCodec stack for hardware accelerated decoding
 Simply grab via Gradle:
 
 ```groovy
- implementation 'com.linkedin.android.litr:litr:1.5.3'
+ implementation 'com.linkedin.android.litr:litr:1.5.4'
 ```
 ...or Maven:
 
@@ -31,7 +32,7 @@ Simply grab via Gradle:
 <dependency>
   <groupId>com.linkedin.android.litr</groupId>
   <artifactId>litr</artifactId>
-  <version>1.5.3</version>
+  <version>1.5.4</version>
 </dependency>
 
 ```
@@ -129,7 +130,7 @@ LiTr now has 40 new GPU accelerated video filters ported from [Mp4Composer-andro
 All video/audio filters live in "filter pack" library, which is available via Gradle:
 
 ```groovy
- implementation 'com.linkedin.android.litr:litr-filters:1.5.3'
+ implementation 'com.linkedin.android.litr:litr-filters:1.5.4'
 ```
 ...or Maven:
 
@@ -137,7 +138,7 @@ All video/audio filters live in "filter pack" library, which is available via Gr
 <dependency>
     <groupId>com.linkedin.android.litr</groupId>
     <artifactId>litr-filters</artifactId>
-    <version>1.5.3</version>
+    <version>1.5.4</version>
 </dependency>
 
 ```
