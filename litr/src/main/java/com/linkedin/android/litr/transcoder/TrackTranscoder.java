@@ -31,6 +31,7 @@ public abstract class TrackTranscoder {
     public static final int RESULT_FRAME_PROCESSED = 2;
     public static final int RESULT_FRAME_SKIPPED = 3;
     public static final int RESULT_EOS_REACHED = 4;
+    public static final int RESULT_END_OF_RANGE_REACHED = 5;
 
     @NonNull protected final MediaSource mediaSource;
     @NonNull protected final MediaTarget mediaMuxer;
@@ -118,15 +119,16 @@ public abstract class TrackTranscoder {
         return targetFormat;
     }
 
-    protected void advanceToNextTrack() {
+    protected int advanceToNextTrack() {
         // done with this track, advance until track switches to let other track transcoders finish work
         while (mediaSource.getSampleTrackIndex() == sourceTrack) {
             mediaSource.advance();
             if ((mediaSource.getSampleFlags() & MediaCodec.BUFFER_FLAG_END_OF_STREAM) != 0) {
                 // reached the end of container, no more tracks left
-                return;
+                return RESULT_EOS_REACHED;
             }
         }
+        return RESULT_END_OF_RANGE_REACHED;
     }
 
 }

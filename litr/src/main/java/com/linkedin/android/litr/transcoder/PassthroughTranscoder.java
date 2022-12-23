@@ -64,6 +64,11 @@ public class PassthroughTranscoder extends TrackTranscoder {
             return lastResult;
         }
 
+        if (lastResult == RESULT_END_OF_RANGE_REACHED) {
+            lastResult = advanceToNextTrack();
+            return RESULT_EOS_REACHED;
+        }
+
         // TranscoderJob expects the first result to be RESULT_OUTPUT_MEDIA_FORMAT_CHANGED, so that it can start the mediaMuxer
         if (!targetTrackAdded) {
             targetFormat = mediaSource.getTrackFormat(sourceTrack);
@@ -105,8 +110,7 @@ public class PassthroughTranscoder extends TrackTranscoder {
             progress = 1.0f;
             outputBufferInfo.set(0, 0, sampleTime - sourceMediaSelection.getStart(), outputBufferInfo.flags | MediaCodec.BUFFER_FLAG_END_OF_STREAM);
             mediaMuxer.writeSampleData(targetTrack, outputBuffer, outputBufferInfo);
-            advanceToNextTrack();
-            lastResult = RESULT_EOS_REACHED;
+            lastResult = advanceToNextTrack();
             Log.d(TAG, "Reach selection end on input stream");
         } else {
             if (sampleTime >= sourceMediaSelection.getStart()) {

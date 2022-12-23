@@ -7,6 +7,17 @@
  */
 package com.linkedin.android.litr.transcoder;
 
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import android.media.MediaCodec;
 import android.media.MediaFormat;
 
@@ -20,17 +31,6 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import java.nio.ByteBuffer;
-
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.nullValue;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 public class PassthroughTranscoderShould {
     private static final int SOURCE_TRACK = 0;
@@ -339,6 +339,88 @@ public class PassthroughTranscoderShould {
         verify(outputBufferInfo).set(0, 0, SELECTION_END + 1 - SELECTION_START, MediaCodec.BUFFER_FLAG_END_OF_STREAM);
         verify(mediaSource).advance();
 
-        assertThat(passthroughTranscoder.lastResult, is(PassthroughTranscoder.RESULT_EOS_REACHED));
+        assertThat(passthroughTranscoder.lastResult, is(TrackTranscoder.RESULT_END_OF_RANGE_REACHED));
+    }
+
+    @Test
+    public void writeEosAndAdvanceToEndOfTrackAfterSelectionEnd() {
+        when(mediaSource.getSelection()).thenReturn(trimmedMediaRange);
+        when(mediaSource.getSampleTrackIndex()).thenReturn(SOURCE_TRACK);
+        when(mediaSource.readSampleData(outputBuffer, 0)).thenReturn(BUFFER_SIZE);
+        when(mediaSource.getSampleTime()).thenReturn(SELECTION_END + 1);
+        when(mediaSource.getSampleFlags())
+                .thenReturn(0)
+                .thenReturn(MediaCodec.BUFFER_FLAG_END_OF_STREAM);
+        when(mediaSource.getSampleTrackIndex())
+                .thenReturn(SOURCE_TRACK)
+                .thenReturn(SOURCE_TRACK);
+
+        PassthroughTranscoder passthroughTranscoder = new PassthroughTranscoder(
+                mediaSource,
+                SOURCE_TRACK,
+                mediaTarget,
+                TARGET_TRACK);
+        passthroughTranscoder.targetTrackAdded = true;
+        passthroughTranscoder.outputBufferInfo = outputBufferInfo;
+        passthroughTranscoder.outputBuffer = outputBuffer;
+
+        passthroughTranscoder.processNextFrame();
+
+        verify(mediaTarget).writeSampleData(TARGET_TRACK, outputBuffer, outputBufferInfo);
+        verify(outputBufferInfo).set(0, 0, SELECTION_END + 1 - SELECTION_START, MediaCodec.BUFFER_FLAG_END_OF_STREAM);
+        verify(mediaSource).advance();
+
+        assertThat(passthroughTranscoder.lastResult, is(TrackTranscoder.RESULT_EOS_REACHED));
+    }
+
+    @Test
+    public void advanceToOtherTrackWhenEndOfRangeReached() {
+        when(mediaSource.getSampleTrackIndex())
+                .thenReturn(SOURCE_TRACK)
+                .thenReturn(SOURCE_TRACK)
+                .thenReturn(OTHER_SOURCE_TRACK);
+
+        PassthroughTranscoder passthroughTranscoder = new PassthroughTranscoder(
+                mediaSource,
+                SOURCE_TRACK,
+                mediaTarget,
+                TARGET_TRACK);
+        passthroughTranscoder.targetTrackAdded = true;
+        passthroughTranscoder.outputBufferInfo = outputBufferInfo;
+        passthroughTranscoder.outputBuffer = outputBuffer;
+        passthroughTranscoder.lastResult = TrackTranscoder.RESULT_END_OF_RANGE_REACHED;
+
+        int result = passthroughTranscoder.processNextFrame();
+
+        verify(mediaSource, never()).readSampleData(any(), anyInt());
+        verify(mediaTarget, never()).writeSampleData(anyInt(), any(), any());
+
+        assertThat(result, is(TrackTranscoder.RESULT_EOS_REACHED));
+        assertThat(passthroughTranscoder.lastResult, is(TrackTranscoder.RESULT_END_OF_RANGE_REACHED));
+    }
+
+    @Test
+    public void advanceToEndOfTrackWhenEndOfRangeReached() {
+        when(mediaSource.getSampleFlags())
+                .thenReturn(0)
+                .thenReturn(MediaCodec.BUFFER_FLAG_END_OF_STREAM);
+
+        PassthroughTranscoder passthroughTranscoder = new PassthroughTranscoder(
+                mediaSource,
+                SOURCE_TRACK,
+                mediaTarget,
+                TARGET_TRACK);
+        passthroughTranscoder.targetTrackAdded = true;
+        passthroughTranscoder.outputBufferInfo = outputBufferInfo;
+        passthroughTranscoder.outputBuffer = outputBuffer;
+        passthroughTranscoder.lastResult = TrackTranscoder.RESULT_END_OF_RANGE_REACHED;
+
+        int result = passthroughTranscoder.processNextFrame();
+
+        verify(mediaSource, never()).readSampleData(any(), anyInt());
+        verify(mediaTarget, never()).writeSampleData(anyInt(), any(), any());
+
+        assertThat(result, is(TrackTranscoder.RESULT_EOS_REACHED));
+        assertThat(passthroughTranscoder.lastResult, is(TrackTranscoder.RESULT_EOS_REACHED));
     }
 }

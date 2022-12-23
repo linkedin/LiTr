@@ -76,8 +76,12 @@ public class AudioTrackTranscoder extends TrackTranscoder {
         }
         int result = RESULT_FRAME_PROCESSED;
 
+        if (lastExtractFrameResult == RESULT_END_OF_RANGE_REACHED) {
+            lastExtractFrameResult = advanceToNextTrack();
+        }
+
         // extract the frame from the incoming stream and send it to the decoder
-        if (lastExtractFrameResult != RESULT_EOS_REACHED) {
+        if (lastExtractFrameResult != RESULT_EOS_REACHED && lastExtractFrameResult != RESULT_END_OF_RANGE_REACHED) {
             lastExtractFrameResult = extractAndEnqueueInputFrame();
         }
 
@@ -95,7 +99,7 @@ public class AudioTrackTranscoder extends TrackTranscoder {
             result = RESULT_OUTPUT_MEDIA_FORMAT_CHANGED;
         }
 
-        if (lastExtractFrameResult == RESULT_EOS_REACHED
+        if ((lastExtractFrameResult == RESULT_EOS_REACHED || lastExtractFrameResult == RESULT_END_OF_RANGE_REACHED)
             && lastDecodeFrameResult == RESULT_EOS_REACHED
             && lastEncodeFrameResult == RESULT_EOS_REACHED) {
             result = RESULT_EOS_REACHED;
@@ -138,8 +142,7 @@ public class AudioTrackTranscoder extends TrackTranscoder {
                 } else if (sampleTime >= sourceMediaSelection.getEnd()) {
                     frame.bufferInfo.set(0, 0, -1, MediaCodec.BUFFER_FLAG_END_OF_STREAM);
                     decoder.queueInputFrame(frame);
-                    advanceToNextTrack();
-                    extractFrameResult = RESULT_EOS_REACHED;
+                    extractFrameResult = advanceToNextTrack();
                     Log.d(TAG, "Selection end reached on the input stream");
                 } else {
                     frame.bufferInfo.set(0, bytesRead, sampleTime, sampleFlags);
