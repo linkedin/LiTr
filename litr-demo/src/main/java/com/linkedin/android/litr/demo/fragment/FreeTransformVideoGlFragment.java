@@ -19,10 +19,10 @@ import androidx.annotation.Nullable;
 import com.linkedin.android.litr.MediaTransformer;
 import com.linkedin.android.litr.demo.BaseTransformationFragment;
 import com.linkedin.android.litr.demo.MediaPickerListener;
+import com.linkedin.android.litr.demo.data.FreeTransformVideoGlPresenter;
 import com.linkedin.android.litr.demo.data.SourceMedia;
 import com.linkedin.android.litr.demo.data.TargetMedia;
 import com.linkedin.android.litr.demo.data.TargetVideoConfiguration;
-import com.linkedin.android.litr.demo.data.TransformationPresenter;
 import com.linkedin.android.litr.demo.data.TransformationState;
 import com.linkedin.android.litr.demo.databinding.FragmentVideoOverlayGlBinding;
 import com.linkedin.android.litr.utils.TransformationUtil;
@@ -81,7 +81,7 @@ public class FreeTransformVideoGlFragment extends BaseTransformationFragment imp
         binding.setTargetVideoConfiguration(targetVideoConfiguration);
 
         binding.setTransformationState(new TransformationState());
-        binding.setTransformationPresenter(new TransformationPresenter(getContext(), mediaTransformer));
+        binding.setTransformationPresenter(new FreeTransformVideoGlPresenter(getContext(), mediaTransformer));
 
         binding.setTargetMedia(targetMedia);
 

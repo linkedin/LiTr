@@ -64,7 +64,7 @@ public class TransformationPresenter {
 
     private static final String TAG = TransformationPresenter.class.getSimpleName();
 
-    private static final String KEY_ROTATION = Build.VERSION.SDK_INT >= Build.VERSION_CODES.M
+    protected static final String KEY_ROTATION = Build.VERSION.SDK_INT >= Build.VERSION_CODES.M
             ? MediaFormat.KEY_ROTATION
             : "rotation-degrees";
 
@@ -75,79 +75,6 @@ public class TransformationPresenter {
                                    @NonNull MediaTransformer mediaTransformer) {
         this.context = context;
         this.mediaTransformer = mediaTransformer;
-    }
-
-    public void startVideoOverlayTransformation(@NonNull SourceMedia sourceMedia,
-                                                @NonNull TargetMedia targetMedia,
-                                                @NonNull TargetVideoConfiguration targetVideoConfiguration,
-                                                @NonNull TransformationState transformationState) {
-        if (targetMedia.getIncludedTrackCount() < 1) {
-            return;
-        }
-
-        if (targetMedia.targetFile.exists()) {
-            targetMedia.targetFile.delete();
-        }
-
-        transformationState.requestId = UUID.randomUUID().toString();
-        MediaTransformationListener transformationListener = new MediaTransformationListener(context,
-                transformationState.requestId,
-                transformationState,
-                targetMedia);
-
-        try {
-            MediaTarget mediaTarget = new MediaMuxerMediaTarget(targetMedia.targetFile.getPath(),
-                    targetMedia.getIncludedTrackCount(),
-                    targetVideoConfiguration.rotation,
-                    MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4);
-
-            List<TrackTransform> trackTransforms = new ArrayList<>(targetMedia.tracks.size());
-            MediaSource mediaSource = new MediaExtractorMediaSource(context, sourceMedia.uri);
-
-            for (TargetTrack targetTrack : targetMedia.tracks) {
-                if (!targetTrack.shouldInclude) {
-                    continue;
-                }
-                MediaFormat mediaFormat = createMediaFormat(targetTrack);
-                if (mediaFormat != null && targetTrack.format instanceof VideoTrackFormat) {
-                    mediaFormat.setInteger(KEY_ROTATION, targetVideoConfiguration.rotation);
-                }
-                TrackTransform.Builder trackTransformBuilder = new TrackTransform.Builder(mediaSource,
-                        targetTrack.sourceTrackIndex,
-                        mediaTarget)
-                        .setTargetTrack(trackTransforms.size())
-                        .setTargetFormat(mediaFormat)
-                        .setEncoder(new MediaCodecEncoder())
-                        .setDecoder(new MediaCodecDecoder());
-                if (targetTrack.format instanceof VideoTrackFormat) {
-                    // adding background bitmap first, to ensure that video renders on top of it
-                    List<GlFilter> filters = new ArrayList<>();
-                    if (targetMedia.backgroundImageUri != null) {
-                        GlFilter backgroundImageFilter = TransformationUtil.createGlFilter(context,
-                                targetMedia.backgroundImageUri,
-                                new PointF(1, 1),
-                                new PointF(0.5f, 0.5f),
-                                0);
-                        filters.add(backgroundImageFilter);
-                    }
-
-                    Transform transform = new Transform(new PointF(0.25f, 0.25f), new PointF(0.65f, 0.55f), 30);
-                    GlFrameRenderFilter frameRenderFilter = new DefaultVideoFrameRenderFilter(transform);
-                    filters.add(frameRenderFilter);
-
-                    trackTransformBuilder.setRenderer(new GlVideoRenderer(filters));
-                }
-
-                trackTransforms.add(trackTransformBuilder.build());
-            }
-
-            mediaTransformer.transform(transformationState.requestId,
-                    trackTransforms,
-                    transformationListener,
-                    MediaTransformer.GRANULARITY_DEFAULT);
-        } catch (MediaTransformationException ex) {
-            Log.e(TAG, "Exception when trying to perform track operation", ex);
-        }
     }
 
     public void squareCenterCrop(@NonNull SourceMedia sourceMedia,
