@@ -5,33 +5,39 @@
  * Licensed under the BSD 2-Clause License (the "License").  See License in the project root for
  * license information.
  */
-package com.linkedin.android.litr.demo;
+package com.linkedin.android.litr.demo.fragment;
 
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.linkedin.android.litr.MediaTransformer;
+import com.linkedin.android.litr.demo.BaseTransformationFragment;
+import com.linkedin.android.litr.demo.MediaPickerListener;
 import com.linkedin.android.litr.demo.data.SourceMedia;
 import com.linkedin.android.litr.demo.data.TargetMedia;
 import com.linkedin.android.litr.demo.data.TransformationPresenter;
 import com.linkedin.android.litr.demo.data.TransformationState;
-import com.linkedin.android.litr.demo.databinding.FragmentSquareCenterCropBinding;
+import com.linkedin.android.litr.demo.databinding.FragmentVideoFiltersBinding;
 import com.linkedin.android.litr.utils.TransformationUtil;
 
 import java.io.File;
 
-public class SquareCenterCropFragment extends BaseTransformationFragment implements MediaPickerListener {
+public class VideoFiltersFragment extends BaseTransformationFragment implements MediaPickerListener {
 
-    private FragmentSquareCenterCropBinding binding;
+    private FragmentVideoFiltersBinding binding;
 
     private MediaTransformer mediaTransformer;
     private TargetMedia targetMedia;
+
+    private ArrayAdapter<DemoFilter> adapter;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -39,6 +45,9 @@ public class SquareCenterCropFragment extends BaseTransformationFragment impleme
 
         mediaTransformer = new MediaTransformer(getContext().getApplicationContext());
         targetMedia = new TargetMedia();
+
+        adapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_spinner_item, DemoFilter.values());
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
     }
 
     @Override
@@ -50,7 +59,7 @@ public class SquareCenterCropFragment extends BaseTransformationFragment impleme
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
-        binding = FragmentSquareCenterCropBinding.inflate(inflater, container, false);
+        binding = FragmentVideoFiltersBinding.inflate(inflater, container, false);
 
         SourceMedia sourceMedia = new SourceMedia();
         binding.setSourceMedia(sourceMedia);
@@ -58,19 +67,20 @@ public class SquareCenterCropFragment extends BaseTransformationFragment impleme
         binding.sectionPickVideo.buttonPickVideo.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                pickVideo(SquareCenterCropFragment.this);
+                pickVideo(VideoFiltersFragment.this);
             }
         });
 
-        binding.buttonPickBackground.setOnClickListener(new View.OnClickListener() {
+        binding.spinnerFilters.setAdapter(adapter);
+        binding.spinnerFilters.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
-            public void onClick(View view) {
-                pickBackground(new MediaPickerListener() {
-                    @Override
-                    public void onMediaPicked(@NonNull Uri uri) {
-                        targetMedia.backgroundImageUri = uri;
-                    }
-                });
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                targetMedia.filter = adapter.getItem(position).filter;
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
             }
         });
 

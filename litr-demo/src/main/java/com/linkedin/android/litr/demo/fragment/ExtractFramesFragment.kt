@@ -5,7 +5,7 @@
  * Licensed under the BSD 2-Clause License (the "License").  See License in the project root for
  * license information.
  */
-package com.linkedin.android.litr.demo
+package com.linkedin.android.litr.demo.fragment
 
 import android.R
 import android.graphics.Bitmap
@@ -22,6 +22,8 @@ import android.widget.ArrayAdapter
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.linkedin.android.litr.ExperimentalFrameExtractorApi
+import com.linkedin.android.litr.demo.BaseTransformationFragment
+import com.linkedin.android.litr.demo.MediaPickerListener
 import com.linkedin.android.litr.demo.data.SourceMedia
 import com.linkedin.android.litr.demo.databinding.FragmentExtractFramesBinding
 import com.linkedin.android.litr.filter.GlFilter
@@ -34,7 +36,8 @@ import java.io.ByteArrayOutputStream
 import java.util.*
 
 @OptIn(ExperimentalFrameExtractorApi::class)
-class ExtractFramesFragment : BaseTransformationFragment(), MediaPickerListener {
+class ExtractFramesFragment : BaseTransformationFragment(),
+    MediaPickerListener {
     private lateinit var binding: FragmentExtractFramesBinding
     private lateinit var filtersAdapter: ArrayAdapter<DemoFilter>
     private lateinit var frameExtractor: VideoFrameExtractor

@@ -5,7 +5,7 @@
  * Licensed under the BSD 2-Clause License (the "License").  See License in the project root for
  * license information.
  */
-package com.linkedin.android.litr.demo
+package com.linkedin.android.litr.demo.fragment
 
 import android.content.Context
 import android.graphics.Bitmap

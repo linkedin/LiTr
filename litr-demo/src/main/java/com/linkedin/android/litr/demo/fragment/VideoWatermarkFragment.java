@@ -5,7 +5,7 @@
  * Licensed under the BSD 2-Clause License (the "License").  See License in the project root for
  * license information.
  */
-package com.linkedin.android.litr.demo;
+package com.linkedin.android.litr.demo.fragment;
 
 import android.net.Uri;
 import android.os.Bundle;
@@ -17,6 +17,8 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.linkedin.android.litr.MediaTransformer;
+import com.linkedin.android.litr.demo.BaseTransformationFragment;
+import com.linkedin.android.litr.demo.MediaPickerListener;
 import com.linkedin.android.litr.demo.data.SourceMedia;
 import com.linkedin.android.litr.demo.data.TargetMedia;
 import com.linkedin.android.litr.demo.data.TransformationPresenter;

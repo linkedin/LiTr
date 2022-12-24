@@ -11,6 +11,20 @@ import androidx.annotation.NonNull;
 import androidx.annotation.StringRes;
 import androidx.fragment.app.Fragment;
 
+import com.linkedin.android.litr.demo.fragment.EmptyVideoFragment;
+import com.linkedin.android.litr.demo.fragment.ExtractFramesFragment;
+import com.linkedin.android.litr.demo.fragment.FreeTransformVideoGlFragment;
+import com.linkedin.android.litr.demo.fragment.MockTranscodeFragment;
+import com.linkedin.android.litr.demo.fragment.MuxVideoAndAudioFragment;
+import com.linkedin.android.litr.demo.fragment.RecordAudioFragment;
+import com.linkedin.android.litr.demo.fragment.SquareCenterCropFragment;
+import com.linkedin.android.litr.demo.fragment.TranscodeAudioFragment;
+import com.linkedin.android.litr.demo.fragment.TranscodeToVp9Fragment;
+import com.linkedin.android.litr.demo.fragment.TranscodeVideoGlFragment;
+import com.linkedin.android.litr.demo.fragment.VideoFilterPreviewFragment;
+import com.linkedin.android.litr.demo.fragment.VideoFiltersFragment;
+import com.linkedin.android.litr.demo.fragment.VideoWatermarkFragment;
+
 public enum DemoCase {
     TRANSCODE_VIDEO_GL(R.string.demo_case_transcode_video_gl, "TranscodeVideoGl", new TranscodeVideoGlFragment()),
     VIDEO_OVERLAY_GL(R.string.demo_case_free_transform_video_gl, "FreeTransformVideoGl", new FreeTransformVideoGlFragment()),

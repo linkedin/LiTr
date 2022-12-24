@@ -5,7 +5,7 @@
  * Licensed under the BSD 2-Clause License (the "License").  See License in the project root for
  * license information.
  */
-package com.linkedin.android.litr.demo
+package com.linkedin.android.litr.demo.fragment
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -17,13 +17,14 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import androidx.recyclerview.widget.RecyclerView
 import com.linkedin.android.litr.ExperimentalFrameExtractorApi
+import com.linkedin.android.litr.demo.R
 import com.linkedin.android.litr.frameextract.FrameExtractListener
 import com.linkedin.android.litr.frameextract.FrameExtractParameters
 import com.linkedin.android.litr.frameextract.VideoFrameExtractor
 import java.util.*
 
 @OptIn(ExperimentalFrameExtractorApi::class)
-class ExtractedFramesAdapter(private val extractor: VideoFrameExtractor, private val cache: LruCache<Long, ByteArray>) :
+class   ExtractedFramesAdapter(private val extractor: VideoFrameExtractor, private val cache: LruCache<Long, ByteArray>) :
         RecyclerView.Adapter<ExtractedFramesAdapter.FrameViewHolder>() {
 
     private val frames = mutableListOf<FrameExtractParameters>()

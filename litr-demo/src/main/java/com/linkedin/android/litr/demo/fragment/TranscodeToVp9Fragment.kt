@@ -5,7 +5,7 @@
  * Licensed under the BSD 2-Clause License (the "License").  See License in the project root for
  * license information.
  */
-package com.linkedin.android.litr.demo
+package com.linkedin.android.litr.demo.fragment
 
 import android.net.Uri
 import android.os.Bundle
@@ -13,6 +13,8 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import com.linkedin.android.litr.MediaTransformer
+import com.linkedin.android.litr.demo.BaseTransformationFragment
+import com.linkedin.android.litr.demo.MediaPickerListener
 import com.linkedin.android.litr.demo.data.SourceMedia
 import com.linkedin.android.litr.demo.data.TargetMedia
 import com.linkedin.android.litr.demo.data.TranscodingConfigPresenter
@@ -23,7 +25,8 @@ import com.linkedin.android.litr.demo.databinding.FragmentVideoVp9Binding
 import com.linkedin.android.litr.utils.TransformationUtil
 import java.io.File
 
-class TranscodeToVp9Fragment : BaseTransformationFragment(), MediaPickerListener {
+class TranscodeToVp9Fragment : BaseTransformationFragment(),
+    MediaPickerListener {
 
     private lateinit var binding: FragmentVideoVp9Binding
     private lateinit var mediaTransformer: MediaTransformer

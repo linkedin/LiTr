@@ -5,7 +5,7 @@
  * Licensed under the BSD 2-Clause License (the "License").  See License in the project root for
  * license information.
  */
-package com.linkedin.android.litr.demo;
+package com.linkedin.android.litr.demo.fragment;
 
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -16,6 +16,7 @@ import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import com.linkedin.android.litr.MediaTransformer;
 import com.linkedin.android.litr.TrackTransform;
+import com.linkedin.android.litr.demo.BaseTransformationFragment;
 import com.linkedin.android.litr.demo.data.MediaTrackFormat;
 import com.linkedin.android.litr.demo.data.MediaTransformationListener;
 import com.linkedin.android.litr.demo.data.SourceMedia;

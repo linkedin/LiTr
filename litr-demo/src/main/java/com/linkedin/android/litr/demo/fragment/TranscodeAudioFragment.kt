@@ -5,7 +5,7 @@
  * Licensed under the BSD 2-Clause License (the "License").  See License in the project root for
  * license information.
  */
-package com.linkedin.android.litr.demo
+package com.linkedin.android.litr.demo.fragment
 
 import android.net.Uri
 import android.os.Bundle
@@ -14,6 +14,8 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.linkedin.android.litr.MediaTransformer
+import com.linkedin.android.litr.demo.BaseTransformationFragment
+import com.linkedin.android.litr.demo.MediaPickerListener
 import com.linkedin.android.litr.demo.data.SourceMedia
 import com.linkedin.android.litr.demo.data.TargetMedia
 import com.linkedin.android.litr.demo.data.TranscodingConfigPresenter
@@ -24,7 +26,8 @@ import com.linkedin.android.litr.demo.databinding.FragmentTranscodeAudioBinding
 import com.linkedin.android.litr.utils.TransformationUtil
 import java.io.File
 
-class TranscodeAudioFragment : BaseTransformationFragment(), MediaPickerListener {
+class TranscodeAudioFragment : BaseTransformationFragment(),
+    MediaPickerListener {
 
     private lateinit var binding: FragmentTranscodeAudioBinding
     private lateinit var mediaTransformer: MediaTransformer

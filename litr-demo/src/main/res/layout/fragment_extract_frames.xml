@@ -21,7 +21,7 @@
 
         <variable
             name="fragment"
-            type="com.linkedin.android.litr.demo.ExtractFramesFragment" />
+            type="com.linkedin.android.litr.demo.fragment.ExtractFramesFragment" />
 
     </data>
 

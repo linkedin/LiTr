@@ -5,7 +5,7 @@
  * Licensed under the BSD 2-Clause License (the "License").  See License in the project root for
  * license information.
  */
-package com.linkedin.android.litr.demo;
+package com.linkedin.android.litr.demo.fragment;
 
 import android.content.Context;
 import android.net.Uri;
@@ -27,6 +27,8 @@ import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
 import com.google.android.exoplayer2.upstream.DataSource;
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory;
 import com.google.android.exoplayer2.video.VideoListener;
+import com.linkedin.android.litr.demo.BaseTransformationFragment;
+import com.linkedin.android.litr.demo.MediaPickerListener;
 import com.linkedin.android.litr.demo.data.SourceMedia;
 import com.linkedin.android.litr.demo.databinding.FragmentVideoFilterPreviewBinding;
 import com.linkedin.android.litr.filter.GlFrameRenderFilter;
