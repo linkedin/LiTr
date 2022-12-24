@@ -21,8 +21,8 @@ import com.linkedin.android.litr.demo.MediaPickerListener;
 import com.linkedin.android.litr.demo.data.AudioVolumeConfig;
 import com.linkedin.android.litr.demo.data.SourceMedia;
 import com.linkedin.android.litr.demo.data.TargetMedia;
+import com.linkedin.android.litr.demo.data.TranscodeVideoGlPresenter;
 import com.linkedin.android.litr.demo.data.TranscodingConfigPresenter;
-import com.linkedin.android.litr.demo.data.TransformationPresenter;
 import com.linkedin.android.litr.demo.data.TransformationState;
 import com.linkedin.android.litr.demo.data.TrimConfig;
 import com.linkedin.android.litr.demo.databinding.FragmentTranscodeVideoGlBinding;
@@ -65,7 +65,7 @@ public class TranscodeVideoGlFragment extends BaseTransformationFragment impleme
         });
 
         binding.setTransformationState(new TransformationState());
-        binding.setTransformationPresenter(new TransformationPresenter(getContext(), mediaTransformer));
+        binding.setTransformationPresenter(new TranscodeVideoGlPresenter(getContext(), mediaTransformer));
 
         binding.tracks.setLayoutManager(new LinearLayoutManager(getContext()));
 
