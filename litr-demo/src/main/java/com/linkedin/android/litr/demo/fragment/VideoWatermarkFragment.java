@@ -21,9 +21,9 @@ import com.linkedin.android.litr.demo.BaseTransformationFragment;
 import com.linkedin.android.litr.demo.MediaPickerListener;
 import com.linkedin.android.litr.demo.data.SourceMedia;
 import com.linkedin.android.litr.demo.data.TargetMedia;
-import com.linkedin.android.litr.demo.data.TransformationPresenter;
 import com.linkedin.android.litr.demo.data.TransformationState;
 import com.linkedin.android.litr.demo.data.TrimConfig;
+import com.linkedin.android.litr.demo.data.VideoWatermarkPresenter;
 import com.linkedin.android.litr.demo.databinding.FragmentVideoWatermarkBinding;
 import com.linkedin.android.litr.utils.TransformationUtil;
 
@@ -80,7 +80,7 @@ public class VideoWatermarkFragment extends BaseTransformationFragment implement
         });
 
         binding.setTransformationState(new TransformationState());
-        binding.setTransformationPresenter(new TransformationPresenter(getContext(), mediaTransformer));
+        binding.setTransformationPresenter(new VideoWatermarkPresenter(getContext(), mediaTransformer));
 
         binding.setTargetMedia(targetMedia);
 

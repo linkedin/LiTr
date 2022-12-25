@@ -73,54 +73,6 @@ public class TransformationPresenter {
         this.mediaTransformer = mediaTransformer;
     }
 
-    public void applyWatermark(@NonNull SourceMedia sourceMedia,
-                               @NonNull TargetMedia targetMedia,
-                               @NonNull TrimConfig trimConfig,
-                               @NonNull TransformationState transformationState) {
-        if (targetMedia.targetFile.exists()) {
-            targetMedia.targetFile.delete();
-        }
-
-        transformationState.requestId = UUID.randomUUID().toString();
-        MediaTransformationListener transformationListener = new MediaTransformationListener(context,
-                transformationState.requestId,
-                transformationState,
-                targetMedia);
-
-        List<GlFilter> watermarkImageFilter = null;
-        for (TargetTrack targetTrack : targetMedia.tracks) {
-            if (targetTrack instanceof TargetVideoTrack) {
-                watermarkImageFilter = createGlFilters(
-                        sourceMedia,
-                        (TargetVideoTrack) targetTrack,
-                        0.2f,
-                        new PointF(0.8f, 0.8f),
-                        0);
-                break;
-            }
-        }
-
-        MediaRange mediaRange = trimConfig.enabled
-                ? new MediaRange(
-                TimeUnit.MILLISECONDS.toMicros((long) (trimConfig.range.get(0) * 1000)),
-                TimeUnit.MILLISECONDS.toMicros((long) (trimConfig.range.get(1) * 1000)))
-                : new MediaRange(0, Long.MAX_VALUE);
-        TransformationOptions transformationOptions = new TransformationOptions.Builder()
-                .setGranularity(MediaTransformer.GRANULARITY_DEFAULT)
-                .setVideoFilters(watermarkImageFilter)
-                .setSourceMediaRange(mediaRange)
-                .build();
-
-        mediaTransformer.transform(
-                transformationState.requestId,
-                sourceMedia.uri,
-                targetMedia.targetFile.getPath(),
-                null,
-                null,
-                transformationListener,
-                transformationOptions);
-    }
-
     public void applyFilter(@NonNull SourceMedia sourceMedia,
                             @NonNull TargetMedia targetMedia,
                             @NonNull TransformationState transformationState) {
