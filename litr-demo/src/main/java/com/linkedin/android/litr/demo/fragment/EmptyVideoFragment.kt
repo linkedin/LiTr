@@ -6,9 +6,9 @@ import android.view.View
 import android.view.ViewGroup
 import com.linkedin.android.litr.MediaTransformer
 import com.linkedin.android.litr.demo.BaseTransformationFragment
+import com.linkedin.android.litr.demo.data.EmptyVideoPresenter
 import com.linkedin.android.litr.demo.data.SourceMedia
 import com.linkedin.android.litr.demo.data.TargetMedia
-import com.linkedin.android.litr.demo.data.TransformationPresenter
 import com.linkedin.android.litr.demo.data.TransformationState
 import com.linkedin.android.litr.demo.data.VideoTrackFormat
 import com.linkedin.android.litr.demo.databinding.FragmentEmptyVideoBinding
@@ -64,7 +64,7 @@ class EmptyVideoFragment : BaseTransformationFragment() {
             }
         }
         binding.transformationState = TransformationState()
-        binding.transformationPresenter = TransformationPresenter(context!!, mediaTransformer)
+        binding.transformationPresenter = EmptyVideoPresenter(context!!, mediaTransformer)
 
         val targetFile = File(TransformationUtil.getTargetFileDirectory(requireContext().applicationContext), "empty_video.mp4")
         targetMedia.setTargetFile(targetFile)
