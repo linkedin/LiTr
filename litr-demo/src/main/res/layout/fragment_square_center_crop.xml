@@ -24,7 +24,7 @@
 
         <variable
             name="transformationPresenter"
-            type="com.linkedin.android.litr.demo.data.TransformationPresenter" />
+            type="com.linkedin.android.litr.demo.data.SquareCenterCropPresenter" />
 
     </data>
 
@@ -42,14 +42,6 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 app:sourceMedia="@{sourceMedia}"/>
-
-            <Button
-                android:id="@+id/button_pick_background"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/pick_background"
-                android:enabled="@{sourceMedia != null &amp;&amp; (transformationState.state != transformationState.STATE_RUNNING)}"
-                android:padding="@dimen/cell_padding"/>
 
             <Button
                 android:id="@+id/button_transcode"

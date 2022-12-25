@@ -36,10 +36,6 @@ import com.linkedin.android.litr.codec.PassthroughDecoder;
 import com.linkedin.android.litr.demo.R;
 import com.linkedin.android.litr.exception.MediaTransformationException;
 import com.linkedin.android.litr.filter.GlFilter;
-import com.linkedin.android.litr.filter.GlFrameRenderFilter;
-import com.linkedin.android.litr.filter.Transform;
-import com.linkedin.android.litr.filter.audio.AudioOverlayFilter;
-import com.linkedin.android.litr.filter.video.gl.DefaultVideoFrameRenderFilter;
 import com.linkedin.android.litr.filter.video.gl.SolidBackgroundColorFilter;
 import com.linkedin.android.litr.io.AudioRecordMediaSource;
 import com.linkedin.android.litr.io.MediaExtractorMediaSource;
@@ -75,97 +71,6 @@ public class TransformationPresenter {
                                    @NonNull MediaTransformer mediaTransformer) {
         this.context = context;
         this.mediaTransformer = mediaTransformer;
-    }
-
-    public void squareCenterCrop(@NonNull SourceMedia sourceMedia,
-                                 @NonNull TargetMedia targetMedia,
-                                 @NonNull TransformationState transformationState) {
-        if (targetMedia.getIncludedTrackCount() < 1) {
-            return;
-        }
-
-        if (targetMedia.targetFile.exists()) {
-            targetMedia.targetFile.delete();
-        }
-
-        transformationState.requestId = UUID.randomUUID().toString();
-        MediaTransformationListener transformationListener = new MediaTransformationListener(context,
-                transformationState.requestId,
-                transformationState,
-                targetMedia);
-
-        try {
-            int videoRotation = 0;
-            for (MediaTrackFormat trackFormat : sourceMedia.tracks) {
-                if (trackFormat.mimeType.startsWith("video")) {
-                    videoRotation = ((VideoTrackFormat) trackFormat).rotation;
-                    break;
-                }
-            }
-
-            MediaTarget mediaTarget = new MediaMuxerMediaTarget(targetMedia.targetFile.getPath(),
-                    targetMedia.getIncludedTrackCount(),
-                    videoRotation,
-                    MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4);
-
-            List<TrackTransform> trackTransforms = new ArrayList<>(targetMedia.tracks.size());
-            MediaSource mediaSource = new MediaExtractorMediaSource(context, sourceMedia.uri);
-
-            for (TargetTrack targetTrack : targetMedia.tracks) {
-                if (!targetTrack.shouldInclude) {
-                    continue;
-                }
-                MediaFormat mediaFormat;
-                TrackTransform.Builder trackTransformBuilder = new TrackTransform.Builder(mediaSource,
-                        targetTrack.sourceTrackIndex,
-                        mediaTarget)
-                        .setTargetTrack(trackTransforms.size())
-                        .setEncoder(new MediaCodecEncoder())
-                        .setDecoder(new MediaCodecDecoder());
-                if (targetTrack.format instanceof VideoTrackFormat) {
-                    // adding background bitmap first, to ensure that video renders on top of it
-                    List<GlFilter> filters = new ArrayList<>();
-                    if (targetMedia.backgroundImageUri != null) {
-                        GlFilter backgroundImageFilter = TransformationUtil.createGlFilter(context,
-                                targetMedia.backgroundImageUri,
-                                new PointF(1, 1),
-                                new PointF(0.5f, 0.5f),
-                                0);
-                        filters.add(backgroundImageFilter);
-                    }
-
-                    int width = ((VideoTrackFormat) targetTrack.format).width;
-                    int height = ((VideoTrackFormat) targetTrack.format).height;
-                    Transform transform;
-
-                    if (videoRotation == 0 || videoRotation == 180) {
-                        // landscape
-                        transform = new Transform(new PointF((float) width / height, 1.0f), new PointF(0.5f, 0.5f), 0);
-                    } else {
-                        // portrait
-                        transform = new Transform(new PointF(1.0f, (float) width / height), new PointF(0.5f, 0.5f), 0);
-                    }
-
-                    GlFrameRenderFilter frameRenderFilter = new DefaultVideoFrameRenderFilter(transform);
-                    filters.add(frameRenderFilter);
-
-                    trackTransformBuilder.setRenderer(new GlVideoRenderer(filters));
-
-                    // hack to make video square, should be done more elegantly in prod code
-                    ((VideoTrackFormat) targetTrack.format).width = TargetMedia.DEFAULT_VIDEO_HEIGHT;
-                }
-                mediaFormat = createMediaFormat(targetTrack);
-                trackTransformBuilder.setTargetFormat(mediaFormat);
-                trackTransforms.add(trackTransformBuilder.build());
-            }
-
-            mediaTransformer.transform(transformationState.requestId,
-                    trackTransforms,
-                    transformationListener,
-                    MediaTransformer.GRANULARITY_DEFAULT);
-        } catch (MediaTransformationException ex) {
-            Log.e(TAG, "Exception when trying to perform track operation", ex);
-        }
     }
 
     public void applyWatermark(@NonNull SourceMedia sourceMedia,

@@ -20,8 +20,8 @@ import com.linkedin.android.litr.MediaTransformer;
 import com.linkedin.android.litr.demo.BaseTransformationFragment;
 import com.linkedin.android.litr.demo.MediaPickerListener;
 import com.linkedin.android.litr.demo.data.SourceMedia;
+import com.linkedin.android.litr.demo.data.SquareCenterCropPresenter;
 import com.linkedin.android.litr.demo.data.TargetMedia;
-import com.linkedin.android.litr.demo.data.TransformationPresenter;
 import com.linkedin.android.litr.demo.data.TransformationState;
 import com.linkedin.android.litr.demo.databinding.FragmentSquareCenterCropBinding;
 import com.linkedin.android.litr.utils.TransformationUtil;
@@ -64,20 +64,8 @@ public class SquareCenterCropFragment extends BaseTransformationFragment impleme
             }
         });
 
-        binding.buttonPickBackground.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                pickBackground(new MediaPickerListener() {
-                    @Override
-                    public void onMediaPicked(@NonNull Uri uri) {
-                        targetMedia.backgroundImageUri = uri;
-                    }
-                });
-            }
-        });
-
         binding.setTransformationState(new TransformationState());
-        binding.setTransformationPresenter(new TransformationPresenter(getContext(), mediaTransformer));
+        binding.setTransformationPresenter(new SquareCenterCropPresenter(getContext(), mediaTransformer));
 
         binding.setTargetMedia(targetMedia);
 
