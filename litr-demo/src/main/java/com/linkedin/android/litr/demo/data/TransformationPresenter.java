@@ -19,7 +19,6 @@ import android.net.Uri;
 import android.os.Build;
 import android.text.TextUtils;
 import android.util.Log;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -27,17 +26,14 @@ import androidx.annotation.Nullable;
 import com.linkedin.android.litr.MediaTransformer;
 import com.linkedin.android.litr.MimeType;
 import com.linkedin.android.litr.TrackTransform;
-import com.linkedin.android.litr.TransformationOptions;
 import com.linkedin.android.litr.codec.MediaCodecDecoder;
 import com.linkedin.android.litr.codec.MediaCodecEncoder;
 import com.linkedin.android.litr.codec.PassthroughDecoder;
-import com.linkedin.android.litr.demo.R;
 import com.linkedin.android.litr.exception.MediaTransformationException;
 import com.linkedin.android.litr.filter.GlFilter;
 import com.linkedin.android.litr.filter.video.gl.SolidBackgroundColorFilter;
 import com.linkedin.android.litr.io.AudioRecordMediaSource;
 import com.linkedin.android.litr.io.MediaMuxerMediaTarget;
-import com.linkedin.android.litr.io.MediaRange;
 import com.linkedin.android.litr.io.MediaSource;
 import com.linkedin.android.litr.io.MediaTarget;
 import com.linkedin.android.litr.io.MockVideoMediaSource;
@@ -66,54 +62,6 @@ public class TransformationPresenter {
                                    @NonNull MediaTransformer mediaTransformer) {
         this.context = context;
         this.mediaTransformer = mediaTransformer;
-    }
-
-    public void transcodeToVp9(@NonNull SourceMedia sourceMedia,
-                               @NonNull TargetMedia targetMedia,
-                               @NonNull TrimConfig trimConfig,
-                               @NonNull TransformationState transformationState) {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
-            Toast.makeText(context, R.string.error_vp9_not_supported, Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        if (targetMedia.targetFile.exists()) {
-            targetMedia.targetFile.delete();
-        }
-
-        transformationState.requestId = UUID.randomUUID().toString();
-        MediaTransformationListener transformationListener = new MediaTransformationListener(context,
-                transformationState.requestId,
-                transformationState,
-                targetMedia);
-
-        MediaRange mediaRange = trimConfig.enabled
-                ? new MediaRange(
-                TimeUnit.MILLISECONDS.toMicros((long) (trimConfig.range.get(0) * 1000)),
-                TimeUnit.MILLISECONDS.toMicros((long) (trimConfig.range.get(1) * 1000)))
-                : new MediaRange(0, Long.MAX_VALUE);
-        TransformationOptions transformationOptions = new TransformationOptions.Builder()
-                .setGranularity(MediaTransformer.GRANULARITY_DEFAULT)
-                .setSourceMediaRange(mediaRange)
-                .setRemoveMetadata(true)
-                .build();
-
-        MediaFormat targetVideoFormat = MediaFormat.createVideoFormat(
-                MediaFormat.MIMETYPE_VIDEO_VP9,
-                1280,
-                720);
-        targetVideoFormat.setInteger(MediaFormat.KEY_BIT_RATE, 5_000_000);
-        targetVideoFormat.setInteger(MediaFormat.KEY_FRAME_RATE, 30);
-        targetVideoFormat.setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, 5);
-
-        mediaTransformer.transform(
-                transformationState.requestId,
-                sourceMedia.uri,
-                targetMedia.targetFile.getPath(),
-                targetVideoFormat,
-                null,
-                transformationListener,
-                transformationOptions);
     }
 
     public void recordAudio(@NonNull AudioRecordMediaSource mediaSource,

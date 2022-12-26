@@ -17,8 +17,8 @@ import com.linkedin.android.litr.demo.BaseTransformationFragment
 import com.linkedin.android.litr.demo.MediaPickerListener
 import com.linkedin.android.litr.demo.data.SourceMedia
 import com.linkedin.android.litr.demo.data.TargetMedia
+import com.linkedin.android.litr.demo.data.TranscodeToVp9Presenter
 import com.linkedin.android.litr.demo.data.TranscodingConfigPresenter
-import com.linkedin.android.litr.demo.data.TransformationPresenter
 import com.linkedin.android.litr.demo.data.TransformationState
 import com.linkedin.android.litr.demo.data.TrimConfig
 import com.linkedin.android.litr.demo.databinding.FragmentVideoVp9Binding
@@ -51,7 +51,7 @@ class TranscodeToVp9Fragment : BaseTransformationFragment(),
         binding.sourceMedia = sourceMedia
         binding.sectionPickVideo.buttonPickVideo.setOnClickListener { pickVideo(this@TranscodeToVp9Fragment) }
         binding.transformationState = TransformationState()
-        binding.transformationPresenter = TransformationPresenter(context!!, mediaTransformer)
+        binding.transformationPresenter = TranscodeToVp9Presenter(context!!, mediaTransformer)
 
         val targetMedia = TargetMedia()
         val transcodingConfigPresenter = TranscodingConfigPresenter(this, targetMedia)
