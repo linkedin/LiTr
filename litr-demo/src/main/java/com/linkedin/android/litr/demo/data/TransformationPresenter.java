@@ -101,68 +101,6 @@ public class TransformationPresenter {
                 transformationOptions);
     }
 
-    public void transcodeAudio(@NonNull SourceMedia sourceMedia,
-                               @NonNull TargetMedia targetMedia,
-                               @NonNull TrimConfig trimConfig,
-                               @NonNull TransformationState transformationState) {
-        if (targetMedia.targetFile.exists()) {
-            targetMedia.targetFile.delete();
-        }
-
-        transformationState.requestId = UUID.randomUUID().toString();
-        MediaTransformationListener transformationListener = new MediaTransformationListener(context,
-                transformationState.requestId,
-                transformationState,
-                targetMedia);
-
-        MediaRange mediaRange = trimConfig.enabled
-                ? new MediaRange(
-                TimeUnit.MILLISECONDS.toMicros((long) (trimConfig.range.get(0) * 1000)),
-                TimeUnit.MILLISECONDS.toMicros((long) (trimConfig.range.get(1) * 1000)))
-                : new MediaRange(0, Long.MAX_VALUE);
-
-        try {
-            String targetMimeType = targetMedia.writeToWav ? "audio/raw" : "audio/mp4a-latm";
-            MediaTarget mediaTarget = targetMedia.writeToWav
-                    ? new WavMediaTarget(targetMedia.targetFile.getPath())
-                    : new MediaMuxerMediaTarget(targetMedia.targetFile.getPath(), 1, 0, MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4);
-            MediaSource mediaSource = new MediaExtractorMediaSource(context, sourceMedia.uri, mediaRange);
-            List<TrackTransform> trackTransforms = new ArrayList<>(1);
-
-            for (TargetTrack targetTrack : targetMedia.tracks) {
-                if (targetTrack.format instanceof AudioTrackFormat) {
-                    AudioTrackFormat trackFormat = (AudioTrackFormat) targetTrack.format;
-                    MediaFormat mediaFormat = MediaFormat.createAudioFormat(
-                            targetMimeType,
-                            trackFormat.samplingRate,
-                            trackFormat.channelCount);
-                    mediaFormat.setInteger(MediaFormat.KEY_BIT_RATE, trackFormat.bitrate);
-                    mediaFormat.setLong(MediaFormat.KEY_DURATION, trackFormat.duration);
-
-                    Encoder encoder = targetMedia.writeToWav ? new PassthroughBufferEncoder(8192) : new MediaCodecEncoder();
-                    TrackTransform trackTransform = new TrackTransform.Builder(mediaSource, targetTrack.sourceTrackIndex, mediaTarget)
-                            .setTargetTrack(0)
-                            .setDecoder(new MediaCodecDecoder())
-                            .setEncoder(encoder)
-                            .setRenderer(new AudioRenderer(encoder))
-                            .setTargetFormat(mediaFormat)
-                            .build();
-
-                    trackTransforms.add(trackTransform);
-                    break;
-                }
-            }
-
-            mediaTransformer.transform(
-                    transformationState.requestId,
-                    trackTransforms,
-                    transformationListener,
-                    MediaTransformer.GRANULARITY_DEFAULT);
-        } catch (MediaTransformationException ex) {
-            Log.e(TAG, "Exception when trying to transcode audio", ex);
-        }
-    }
-
     public void transcodeToVp9(@NonNull SourceMedia sourceMedia,
                                @NonNull TargetMedia targetMedia,
                                @NonNull TrimConfig trimConfig,

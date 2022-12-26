@@ -18,8 +18,8 @@ import com.linkedin.android.litr.demo.BaseTransformationFragment
 import com.linkedin.android.litr.demo.MediaPickerListener
 import com.linkedin.android.litr.demo.data.SourceMedia
 import com.linkedin.android.litr.demo.data.TargetMedia
+import com.linkedin.android.litr.demo.data.TranscodeAudioPresenter
 import com.linkedin.android.litr.demo.data.TranscodingConfigPresenter
-import com.linkedin.android.litr.demo.data.TransformationPresenter
 import com.linkedin.android.litr.demo.data.TransformationState
 import com.linkedin.android.litr.demo.data.TrimConfig
 import com.linkedin.android.litr.demo.databinding.FragmentTranscodeAudioBinding
@@ -52,7 +52,7 @@ class TranscodeAudioFragment : BaseTransformationFragment(),
         binding.sourceMedia = sourceMedia
         binding.sectionPickAudio.buttonPickAudio.setOnClickListener { pickAudio(this@TranscodeAudioFragment) }
         binding.transformationState = TransformationState()
-        binding.transformationPresenter = TransformationPresenter(context!!, mediaTransformer)
+        binding.transformationPresenter = TranscodeAudioPresenter(context!!, mediaTransformer)
 
         binding.tracks.layoutManager = LinearLayoutManager(context)
 
