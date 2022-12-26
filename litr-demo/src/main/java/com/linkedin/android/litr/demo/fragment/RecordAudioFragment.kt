@@ -23,6 +23,7 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.linkedin.android.litr.MediaTransformer
 import com.linkedin.android.litr.demo.BaseTransformationFragment
+import com.linkedin.android.litr.demo.data.RecordAudioPresenter
 import com.linkedin.android.litr.demo.data.TargetMedia
 import com.linkedin.android.litr.demo.data.TransformationPresenter
 import com.linkedin.android.litr.demo.data.TransformationState
@@ -80,7 +81,7 @@ class RecordAudioFragment : BaseTransformationFragment() {
         binding = FragmentAudioRecordBinding.inflate(layoutInflater, container, false)
 
         binding.transformationState = TransformationState()
-        binding.transformationPresenter = TransformationPresenter(context!!, mediaTransformer)
+        binding.transformationPresenter = RecordAudioPresenter(context!!, mediaTransformer)
         binding.mediaSource = AudioRecordMediaSource()
 
         val targetFile = File(
