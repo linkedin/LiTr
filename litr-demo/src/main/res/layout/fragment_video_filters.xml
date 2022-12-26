@@ -28,7 +28,7 @@
 
         <variable
             name="transformationPresenter"
-            type="com.linkedin.android.litr.demo.data.TransformationPresenter" />
+            type="com.linkedin.android.litr.demo.data.VideoFiltersPresenter" />
 
     </data>
 

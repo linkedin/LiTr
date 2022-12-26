@@ -25,6 +25,7 @@ import com.linkedin.android.litr.demo.data.SourceMedia;
 import com.linkedin.android.litr.demo.data.TargetMedia;
 import com.linkedin.android.litr.demo.data.TransformationPresenter;
 import com.linkedin.android.litr.demo.data.TransformationState;
+import com.linkedin.android.litr.demo.data.VideoFiltersPresenter;
 import com.linkedin.android.litr.demo.databinding.FragmentVideoFiltersBinding;
 import com.linkedin.android.litr.utils.TransformationUtil;
 
@@ -85,7 +86,7 @@ public class VideoFiltersFragment extends BaseTransformationFragment implements 
         });
 
         binding.setTransformationState(new TransformationState());
-        binding.setTransformationPresenter(new TransformationPresenter(getContext(), mediaTransformer));
+        binding.setTransformationPresenter(new VideoFiltersPresenter(getContext(), mediaTransformer));
 
         binding.setTargetMedia(targetMedia);
 

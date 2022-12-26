@@ -28,24 +28,19 @@ import com.linkedin.android.litr.MediaTransformer;
 import com.linkedin.android.litr.MimeType;
 import com.linkedin.android.litr.TrackTransform;
 import com.linkedin.android.litr.TransformationOptions;
-import com.linkedin.android.litr.codec.Encoder;
 import com.linkedin.android.litr.codec.MediaCodecDecoder;
 import com.linkedin.android.litr.codec.MediaCodecEncoder;
-import com.linkedin.android.litr.codec.PassthroughBufferEncoder;
 import com.linkedin.android.litr.codec.PassthroughDecoder;
 import com.linkedin.android.litr.demo.R;
 import com.linkedin.android.litr.exception.MediaTransformationException;
 import com.linkedin.android.litr.filter.GlFilter;
 import com.linkedin.android.litr.filter.video.gl.SolidBackgroundColorFilter;
 import com.linkedin.android.litr.io.AudioRecordMediaSource;
-import com.linkedin.android.litr.io.MediaExtractorMediaSource;
 import com.linkedin.android.litr.io.MediaMuxerMediaTarget;
 import com.linkedin.android.litr.io.MediaRange;
 import com.linkedin.android.litr.io.MediaSource;
 import com.linkedin.android.litr.io.MediaTarget;
 import com.linkedin.android.litr.io.MockVideoMediaSource;
-import com.linkedin.android.litr.io.WavMediaTarget;
-import com.linkedin.android.litr.render.AudioRenderer;
 import com.linkedin.android.litr.render.GlVideoRenderer;
 import com.linkedin.android.litr.utils.TransformationUtil;
 
@@ -71,34 +66,6 @@ public class TransformationPresenter {
                                    @NonNull MediaTransformer mediaTransformer) {
         this.context = context;
         this.mediaTransformer = mediaTransformer;
-    }
-
-    public void applyFilter(@NonNull SourceMedia sourceMedia,
-                            @NonNull TargetMedia targetMedia,
-                            @NonNull TransformationState transformationState) {
-        if (targetMedia.targetFile.exists()) {
-            targetMedia.targetFile.delete();
-        }
-
-        transformationState.requestId = UUID.randomUUID().toString();
-        MediaTransformationListener transformationListener = new MediaTransformationListener(context,
-                transformationState.requestId,
-                transformationState,
-                targetMedia);
-
-        TransformationOptions transformationOptions = new TransformationOptions.Builder()
-                .setGranularity(MediaTransformer.GRANULARITY_DEFAULT)
-                .setVideoFilters(Collections.singletonList(targetMedia.filter))
-                .build();
-
-        mediaTransformer.transform(
-                transformationState.requestId,
-                sourceMedia.uri,
-                targetMedia.targetFile.getPath(),
-                null,
-                null,
-                transformationListener,
-                transformationOptions);
     }
 
     public void transcodeToVp9(@NonNull SourceMedia sourceMedia,
