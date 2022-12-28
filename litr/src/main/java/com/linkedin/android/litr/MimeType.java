@@ -18,4 +18,5 @@ public class MimeType {
     public static final String VIDEO_HEVC = "video/hevc";
     public static final String VIDEO_VP8 = "video/x-vnd.on2.vp8";
     public static final String VIDEO_VP9 = "video/x-vnd.on2.vp9";
+    public static final String VIDEO_RAW = "video/raw";
 }

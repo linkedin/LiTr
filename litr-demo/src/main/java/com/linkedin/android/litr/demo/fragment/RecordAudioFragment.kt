@@ -23,6 +23,7 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.linkedin.android.litr.MediaTransformer
 import com.linkedin.android.litr.demo.BaseTransformationFragment
+import com.linkedin.android.litr.demo.R
 import com.linkedin.android.litr.demo.data.RecordAudioPresenter
 import com.linkedin.android.litr.demo.data.TargetMedia
 import com.linkedin.android.litr.demo.data.TransformationPresenter
@@ -49,8 +50,8 @@ class RecordAudioFragment : BaseTransformationFragment() {
         // this.
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
             AlertDialog.Builder(requireContext())
-                    .setMessage("Android Marshmallow or newer required")
-                    .setPositiveButton("Ok") { _, _ ->
+                    .setMessage(R.string.error_marshmallow_or_newer_required)
+                    .setPositiveButton(R.string.ok) { _, _ ->
                         activity?.onBackPressed()
                     }
                     .show()
