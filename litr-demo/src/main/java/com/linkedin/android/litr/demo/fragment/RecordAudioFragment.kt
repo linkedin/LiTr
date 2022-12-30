@@ -26,7 +26,6 @@ import com.linkedin.android.litr.demo.BaseTransformationFragment
 import com.linkedin.android.litr.demo.R
 import com.linkedin.android.litr.demo.data.RecordAudioPresenter
 import com.linkedin.android.litr.demo.data.TargetMedia
-import com.linkedin.android.litr.demo.data.TransformationPresenter
 import com.linkedin.android.litr.demo.data.TransformationState
 import com.linkedin.android.litr.demo.databinding.FragmentAudioRecordBinding
 import com.linkedin.android.litr.io.AudioRecordMediaSource

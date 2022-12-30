@@ -19,6 +19,7 @@ import com.linkedin.android.litr.demo.fragment.FreeTransformVideoGlFragment;
 import com.linkedin.android.litr.demo.fragment.MockTranscodeFragment;
 import com.linkedin.android.litr.demo.fragment.MuxVideoAndAudioFragment;
 import com.linkedin.android.litr.demo.fragment.RecordAudioFragment;
+import com.linkedin.android.litr.demo.fragment.RecordCamera2Fragment;
 import com.linkedin.android.litr.demo.fragment.SquareCenterCropFragment;
 import com.linkedin.android.litr.demo.fragment.TranscodeAudioFragment;
 import com.linkedin.android.litr.demo.fragment.TranscodeToVp9Fragment;

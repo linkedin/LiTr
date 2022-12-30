@@ -7,7 +7,7 @@
  *
  * Author: Ian Bird
  */
-package com.linkedin.android.litr.demo
+package com.linkedin.android.litr.demo.fragment
 
 import android.graphics.Point
 import android.hardware.camera2.CameraCharacteristics
