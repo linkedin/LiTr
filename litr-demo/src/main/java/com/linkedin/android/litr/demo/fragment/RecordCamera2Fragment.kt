@@ -7,7 +7,7 @@
  *
  * Author: Ian Bird
  */
-package com.linkedin.android.litr.demo
+package com.linkedin.android.litr.demo.fragment
 
 import android.Manifest
 import android.app.Activity
@@ -26,6 +26,8 @@ import androidx.annotation.RequiresApi
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.linkedin.android.litr.MediaTransformer
+import com.linkedin.android.litr.demo.BaseTransformationFragment
+import com.linkedin.android.litr.demo.R
 import com.linkedin.android.litr.demo.data.RecordCameraPresenter
 import com.linkedin.android.litr.demo.data.TargetMedia
 import com.linkedin.android.litr.demo.data.TransformationState
