@@ -17,6 +17,8 @@ import com.linkedin.android.litr.TrackTransform
 import com.linkedin.android.litr.codec.MediaCodecDecoder
 import com.linkedin.android.litr.codec.MediaCodecEncoder
 import com.linkedin.android.litr.exception.MediaTransformationException
+import com.linkedin.android.litr.filter.BufferFilter
+import com.linkedin.android.litr.filter.audio.AudioOverlayFilter
 import com.linkedin.android.litr.filter.audio.VolumeFilter
 import com.linkedin.android.litr.io.MediaExtractorMediaSource
 import com.linkedin.android.litr.io.MediaMuxerMediaTarget
@@ -112,12 +114,20 @@ class TranscodeVideoGlPresenter(
                             )
                         )
                     )
-                } else if (targetTrack.format is AudioTrackFormat && audioVolumeConfig.enabled) {
-                    trackTransformBuilder.setRenderer(
-                        AudioRenderer(
-                            encoder,
-                            mutableListOf(VolumeFilter(audioVolumeConfig.value.toDouble()))
+                } else if (targetTrack.format is AudioTrackFormat) {
+                    val filterList = mutableListOf<BufferFilter>()
+                    if (targetTrack.overlay != null) {
+                        filterList.add(
+                            AudioOverlayFilter(context, targetTrack.overlay)
                         )
+                    }
+                    if (audioVolumeConfig.enabled) {
+                        filterList.add(
+                            VolumeFilter(audioVolumeConfig.value.toDouble())
+                        )
+                    }
+                    trackTransformBuilder.setRenderer(
+                        AudioRenderer(encoder, filterList)
                     )
                 }
                 trackTransforms.add(trackTransformBuilder.build())
