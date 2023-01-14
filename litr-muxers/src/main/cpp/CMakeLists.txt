@@ -18,7 +18,7 @@ if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/ffmpeg")
     set(ffmpeg_binaries "${ffmpeg_location}/android-libs/${ANDROID_ABI}")
 else()
     set(ffmpeg_location "${CMAKE_CURRENT_SOURCE_DIR}/ffmpeg_bundled")
-    set(ffmpeg_binaries "${ffmpeg_location}/${ANDROID_ABI}")
+    set(ffmpeg_binaries "${ffmpeg_location}/android-libs/${ANDROID_ABI}")
 endif()
 
 foreach(ffmpeg_lib avutil avcodec avformat)
