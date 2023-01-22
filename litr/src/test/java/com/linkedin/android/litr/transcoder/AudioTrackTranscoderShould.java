@@ -77,6 +77,9 @@ public class AudioTrackTranscoderShould {
     public void setup() throws Exception {
         MockitoAnnotations.initMocks(this);
 
+        when(sourceMediaFormat.containsKey(MediaFormat.KEY_DURATION)).thenReturn(true);
+        when(sourceMediaFormat.getLong(MediaFormat.KEY_DURATION)).thenReturn(DURATION);
+
         sampleFrame = new Frame(BUFFER_INDEX, ByteBuffer.allocate(BUFFER_SIZE), bufferInfo);
         fullMediaRange = new MediaRange(0, Long.MAX_VALUE);
         trimmedMediaRange = new MediaRange(SELECTION_START, SELECTION_END);
@@ -414,7 +417,9 @@ public class AudioTrackTranscoderShould {
         audioTrackTranscoder.lastDecodeFrameResult = TrackTranscoder.RESULT_EOS_REACHED;
         audioTrackTranscoder.lastEncodeFrameResult = TrackTranscoder.RESULT_FRAME_PROCESSED;
 
-        MediaFormat encoderMediaFormat = new MediaFormat();
+        MediaFormat encoderMediaFormat = mock(MediaFormat.class);
+        when(encoderMediaFormat.containsKey(MediaFormat.KEY_DURATION)).thenReturn(false);
+
         doReturn(MediaCodec.INFO_OUTPUT_FORMAT_CHANGED).when(encoder).dequeueOutputFrame(anyLong());
         doReturn(encoderMediaFormat).when(encoder).getOutputFormat();
         doReturn(AUDIO_TRACK).when(mediaTarget).addTrack(any(MediaFormat.class), anyInt());
@@ -424,6 +429,7 @@ public class AudioTrackTranscoderShould {
         ArgumentCaptor<MediaFormat> mediaFormatArgumentCaptor = ArgumentCaptor.forClass(MediaFormat.class);
         verify(mediaTarget).addTrack(mediaFormatArgumentCaptor.capture(), eq(AUDIO_TRACK));
         assertThat(mediaFormatArgumentCaptor.getValue(), is(encoderMediaFormat));
+        verify(encoderMediaFormat).setLong(MediaFormat.KEY_DURATION, DURATION);
 
         assertThat(audioTrackTranscoder.targetTrack, is(AUDIO_TRACK));
         assertThat(result, is(TrackTranscoder.RESULT_OUTPUT_MEDIA_FORMAT_CHANGED));
@@ -506,8 +512,6 @@ public class AudioTrackTranscoderShould {
 
     @Test
     public void adjustDurationToMediaSelection() throws Exception {
-        when(sourceMediaFormat.containsKey(MediaFormat.KEY_DURATION)).thenReturn(true);
-        when(sourceMediaFormat.getLong(MediaFormat.KEY_DURATION)).thenReturn(DURATION);
         when(mediaSource.getSelection()).thenReturn(trimmedMediaRange);
 
         AudioTrackTranscoder audioTrackTranscoder = new AudioTrackTranscoder(

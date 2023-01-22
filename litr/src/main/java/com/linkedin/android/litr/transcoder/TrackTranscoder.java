@@ -9,6 +9,8 @@ package com.linkedin.android.litr.transcoder;
 
 import android.media.MediaCodec;
 import android.media.MediaFormat;
+import android.os.Build;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RestrictTo;
@@ -129,6 +131,19 @@ public abstract class TrackTranscoder {
             }
         }
         return RESULT_END_OF_RANGE_REACHED;
+    }
+
+    protected MediaFormat addMissingMetadata(@NonNull MediaFormat sourceMediaFormat, @NonNull MediaFormat targetMediaFormat) {
+        if (!targetMediaFormat.containsKey(MediaFormat.KEY_DURATION)
+                && sourceMediaFormat.containsKey(MediaFormat.KEY_DURATION)) {
+            targetMediaFormat.setLong(MediaFormat.KEY_DURATION, sourceMediaFormat.getLong(MediaFormat.KEY_DURATION));
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT
+                && !targetMediaFormat.containsKey(MediaFormat.KEY_LANGUAGE)
+                && sourceMediaFormat.containsKey(MediaFormat.KEY_LANGUAGE)) {
+            targetMediaFormat.setString(MediaFormat.KEY_LANGUAGE, sourceMediaFormat.getString(MediaFormat.KEY_LANGUAGE));
+        }
+        return targetMediaFormat;
     }
 
 }

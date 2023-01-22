@@ -238,8 +238,8 @@ public class AudioTrackTranscoder extends TrackTranscoder {
                     // TODO for now, we assume that we only get one media format as a first buffer
                     MediaFormat outputMediaFormat = encoder.getOutputFormat();
                     if (!targetTrackAdded) {
-                        targetFormat = outputMediaFormat;
-                        targetTrack = mediaMuxer.addTrack(outputMediaFormat, targetTrack);
+                        targetFormat = addMissingMetadata(sourceAudioFormat, outputMediaFormat);
+                        targetTrack = mediaMuxer.addTrack(targetFormat, targetTrack);
                         targetTrackAdded = true;
                         renderer.onMediaFormatChanged(sourceAudioFormat, targetFormat);
                     }
