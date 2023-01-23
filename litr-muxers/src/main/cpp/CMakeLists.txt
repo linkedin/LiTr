@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.10.2)
+cmake_minimum_required(VERSION 3.18.1)
 
 # Enable C++11 features.
 set(CMAKE_CXX_STANDARD 11)
@@ -17,8 +17,26 @@ if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/ffmpeg")
     set(ffmpeg_location "${CMAKE_CURRENT_SOURCE_DIR}/ffmpeg")
     set(ffmpeg_binaries "${ffmpeg_location}/android-libs/${ANDROID_ABI}")
 else()
-    set(ffmpeg_location "${CMAKE_CURRENT_SOURCE_DIR}/ffmpeg_bundled")
-    set(ffmpeg_binaries "${ffmpeg_location}/${ANDROID_ABI}")
+    # We need to link against the source code that matches our bundled bindaries. We will therefore
+    # download the original snapshot locally.
+    set(ffmpeg_bundled_source_archive "${CMAKE_CURRENT_SOURCE_DIR}/ffmpeg_bundled/ffmpeg-4.2.tar.gz")
+    if (NOT EXISTS "${ffmpeg_bundled_source_archive}")
+        file(DOWNLOAD
+                https://git.ffmpeg.org/gitweb/ffmpeg.git/snapshot/e228a0cccd31c2466ea968f34be4ec0da50bd792.tar.gz
+                "${ffmpeg_bundled_source_archive}"
+                EXPECTED_MD5 a08c1bdffbbb1e801c06fd62721af008)
+    endif()
+
+    # Once we have the snapshot, we can uncompress it in a location that we'll link too.
+    set(ffmpeg_bundled_source "${CMAKE_CURRENT_SOURCE_DIR}/ffmpeg_bundled/ffmpeg-e228a0c")
+    if (NOT EXISTS "${ffmpeg_bundled_source}")
+        file(ARCHIVE_EXTRACT
+                INPUT "${CMAKE_CURRENT_SOURCE_DIR}/ffmpeg_bundled/ffmpeg-4.2.tar.gz"
+                DESTINATION "${CMAKE_CURRENT_SOURCE_DIR}/ffmpeg_bundled")
+    endif()
+
+    set(ffmpeg_location "${ffmpeg_bundled_source}")
+    set(ffmpeg_binaries "${CMAKE_CURRENT_SOURCE_DIR}/ffmpeg_bundled/android-libs/${ANDROID_ABI}")
 endif()
 
 foreach(ffmpeg_lib avutil avcodec avformat)

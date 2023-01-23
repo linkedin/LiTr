@@ -1,4 +1,7 @@
 /build
 
+# FFmpeg (downloaded via cmake)
+src/main/cpp/ffmpeg_bundled/ffmpeg-*
+
 # FFmpeg symlink
 src/main/cpp/ffmpeg
