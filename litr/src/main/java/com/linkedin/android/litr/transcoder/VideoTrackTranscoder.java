@@ -284,8 +284,8 @@ public class VideoTrackTranscoder extends TrackTranscoder {
                     // TODO for now, we assume that we only get one media format as a first buffer
                     MediaFormat outputMediaFormat = encoder.getOutputFormat();
                     if (!targetTrackAdded) {
-                        targetVideoFormat = targetFormat = outputMediaFormat;
-                        targetTrack = mediaMuxer.addTrack(outputMediaFormat, targetTrack);
+                        targetVideoFormat = targetFormat = addMissingMetadata(sourceVideoFormat, outputMediaFormat);
+                        targetTrack = mediaMuxer.addTrack(targetFormat, targetTrack);
                         targetTrackAdded = true;
                         renderer.onMediaFormatChanged(sourceVideoFormat, targetVideoFormat);
                     }

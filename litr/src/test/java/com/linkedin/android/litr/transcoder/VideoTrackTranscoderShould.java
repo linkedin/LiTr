@@ -92,6 +92,9 @@ public class VideoTrackTranscoderShould {
         fullMediaRange = new MediaRange(0, Long.MAX_VALUE);
         trimmedMediaRange = new MediaRange(SELECTION_START, SELECTION_END);
 
+        when(sourceMediaFormat.containsKey(MediaFormat.KEY_DURATION)).thenReturn(true);
+        when(sourceMediaFormat.getLong(MediaFormat.KEY_DURATION)).thenReturn(DURATION);
+
         doReturn(sourceMediaFormat).when(mediaSource).getTrackFormat(anyInt());
         doReturn(surface).when(encoder).createInputSurface();
         doReturn(surface).when(renderer).getInputSurface();
@@ -428,7 +431,9 @@ public class VideoTrackTranscoderShould {
         videoTrackTranscoder.lastDecodeFrameResult = TrackTranscoder.RESULT_EOS_REACHED;
         videoTrackTranscoder.lastEncodeFrameResult = TrackTranscoder.RESULT_FRAME_PROCESSED;
 
-        MediaFormat encoderMediaFormat = new MediaFormat();
+        MediaFormat encoderMediaFormat = mock(MediaFormat.class);
+        when(encoderMediaFormat.containsKey(MediaFormat.KEY_DURATION)).thenReturn(false);
+
         doReturn(MediaCodec.INFO_OUTPUT_FORMAT_CHANGED).when(encoder).dequeueOutputFrame(anyLong());
         doReturn(encoderMediaFormat).when(encoder).getOutputFormat();
         doReturn(VIDEO_TRACK).when(mediaTarget).addTrack(any(MediaFormat.class), anyInt());
@@ -438,6 +443,7 @@ public class VideoTrackTranscoderShould {
         ArgumentCaptor<MediaFormat> mediaFormatArgumentCaptor = ArgumentCaptor.forClass(MediaFormat.class);
         verify(mediaTarget).addTrack(mediaFormatArgumentCaptor.capture(), eq(VIDEO_TRACK));
         assertThat(mediaFormatArgumentCaptor.getValue(), is(encoderMediaFormat));
+        verify(encoderMediaFormat).setLong(MediaFormat.KEY_DURATION, DURATION);
 
         assertThat(videoTrackTranscoder.targetTrack, is(VIDEO_TRACK));
         assertThat(result, is(TrackTranscoder.RESULT_OUTPUT_MEDIA_FORMAT_CHANGED));
@@ -521,8 +527,6 @@ public class VideoTrackTranscoderShould {
 
     @Test
     public void adjustDurationToMediaSelection() throws Exception {
-        when(sourceMediaFormat.containsKey(MediaFormat.KEY_DURATION)).thenReturn(true);
-        when(sourceMediaFormat.getLong(MediaFormat.KEY_DURATION)).thenReturn(DURATION);
         when(mediaSource.getSelection()).thenReturn(trimmedMediaRange);
 
         VideoTrackTranscoder videoTrackTranscoder = new VideoTrackTranscoder(
