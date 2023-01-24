@@ -24,7 +24,18 @@ else()
         file(DOWNLOAD
                 https://git.ffmpeg.org/gitweb/ffmpeg.git/snapshot/e228a0cccd31c2466ea968f34be4ec0da50bd792.tar.gz
                 "${ffmpeg_bundled_source_archive}"
-                EXPECTED_MD5 a08c1bdffbbb1e801c06fd62721af008)
+                EXPECTED_MD5 a08c1bdffbbb1e801c06fd62721af008
+                STATUS DOWNLOAD_STATUS)
+
+        # Separate the returned status code, and error message.
+        list(GET DOWNLOAD_STATUS 0 STATUS_CODE)
+        list(GET DOWNLOAD_STATUS 1 ERROR_MESSAGE)
+
+        # If the download (or hash verification) failed, let's clean up the old downloaded file.
+        if(${STATUS_CODE} EQUAL 1)
+            file(REMOVE "${ffmpeg_bundled_source_archive}")
+            message(FATAL_ERROR "Error occurred during download: ${ERROR_MESSAGE}")
+        endif()
     endif()
 
     # Once we have the snapshot, we can uncompress it in a location that we'll link too.
