@@ -239,7 +239,7 @@ public class VideoTrackTranscoder extends TrackTranscoder {
                     // Log.d(TAG, "Will try getting decoder output later");
                     break;
                 case MediaCodec.INFO_OUTPUT_FORMAT_CHANGED:
-                    sourceVideoFormat = decoder.getOutputFormat();
+                    sourceVideoFormat = addMissingMetadata(sourceVideoFormat, decoder.getOutputFormat());
                     renderer.onMediaFormatChanged(sourceVideoFormat, targetVideoFormat);
                     Log.d(TAG, "Decoder output format changed: " + sourceVideoFormat);
                     break;
