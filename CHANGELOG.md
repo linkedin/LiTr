@@ -2,7 +2,7 @@
 
 ## Version 1.5.5 (2023-01-25)
 
-- Implement Camera2 support as a MediaSource [#232] (https://github.com/linkedin/LiTr/pull/232) by @IanBird
+- Implement Camera2 support as a MediaSource [#232] (https://github.com/linkedin/LiTr/pull/232) by @IanDBird
 - Add missing duration target track metadata when adding track to muxer [#244] (https://github.com/linkedin/LiTr/pull/244)
 - Add missing duration target track metadata to decoder output format [#247] (https://github.com/linkedin/LiTr/pull/247)
 
