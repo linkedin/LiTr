@@ -36,7 +36,7 @@ class MarshallingTransformationListener {
     private final Map<String, Future<?>> futureMap;
     private final TransformationListener listener;
 
-    private Bundle data = new Bundle();
+    private final Bundle data = new Bundle();
     private MarshallingHandler handler;
 
     MarshallingTransformationListener(@NonNull Map<String, Future<?>> futureMap,
@@ -134,6 +134,7 @@ class MarshallingTransformationListener {
 
         @Override
         public void handleMessage(@NonNull Message message) {
+            @SuppressWarnings("unchecked")
             List<TrackTransformationInfo> trackTransformationInfos = message.obj == null ? null : (List<TrackTransformationInfo>) message.obj;
 
             Bundle data = message.getData();

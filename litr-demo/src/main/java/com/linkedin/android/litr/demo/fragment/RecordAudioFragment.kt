@@ -42,7 +42,7 @@ class RecordAudioFragment : BaseTransformationFragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        mediaTransformer = MediaTransformer(context!!.applicationContext)
+        mediaTransformer = MediaTransformer(requireContext().applicationContext)
 
         // This demo fragment requires Android M or newer, in order to support reading data from
         // AudioRecord in a non-blocking way. Let's double check that the current device supports
@@ -51,7 +51,7 @@ class RecordAudioFragment : BaseTransformationFragment() {
             AlertDialog.Builder(requireContext())
                     .setMessage(R.string.error_marshmallow_or_newer_required)
                     .setPositiveButton(R.string.ok) { _, _ ->
-                        activity?.onBackPressed()
+                        activity?.onBackPressedDispatcher?.onBackPressed()
                     }
                     .show()
             return
@@ -81,7 +81,7 @@ class RecordAudioFragment : BaseTransformationFragment() {
         binding = FragmentAudioRecordBinding.inflate(layoutInflater, container, false)
 
         binding.transformationState = TransformationState()
-        binding.transformationPresenter = RecordAudioPresenter(context!!, mediaTransformer)
+        binding.transformationPresenter = RecordAudioPresenter(requireContext(), mediaTransformer)
         binding.mediaSource = AudioRecordMediaSource()
 
         val targetFile = File(

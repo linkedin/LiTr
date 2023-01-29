@@ -3,6 +3,8 @@ package com.linkedin.android.litr.io
 import android.content.Context
 import android.graphics.Rect
 import android.hardware.camera2.*
+import android.hardware.camera2.params.OutputConfiguration
+import android.hardware.camera2.params.SessionConfiguration
 import android.os.Build
 import android.os.Handler
 import android.os.HandlerThread
@@ -13,6 +15,7 @@ import android.view.Surface
 import android.view.SurfaceHolder
 import androidx.annotation.RequiresApi
 import androidx.annotation.RequiresPermission
+import java.util.concurrent.Executor
 
 private const val TAG = "Camera2MediaSource"
 
@@ -59,6 +62,10 @@ class Camera2MediaSource(
 
     private lateinit var backgroundHandlerThread: HandlerThread
     private lateinit var backgroundHandler: Handler
+
+    private val backgroundExecutor: Executor by lazy {
+        Executor { command -> command?.let { backgroundHandler.post(it) } }
+    }
 
     private val cameraManager = context.getSystemService(Context.CAMERA_SERVICE) as CameraManager
 
@@ -202,7 +209,19 @@ class Camera2MediaSource(
             set(CaptureRequest.CONTROL_AE_TARGET_FPS_RANGE, Range(frameRate, frameRate))
         }.build()
 
-        camera.createCaptureSession(surfaces, captureStateCallback, backgroundHandler)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            val config = SessionConfiguration(
+                SessionConfiguration.SESSION_REGULAR,
+                surfaces.map { OutputConfiguration(it) },
+                backgroundExecutor,
+                captureStateCallback
+            )
+
+            camera.createCaptureSession(config)
+        } else {
+            @Suppress("DEPRECATION")
+            camera.createCaptureSession(surfaces, captureStateCallback, backgroundHandler)
+        }
     }
 
     /**

@@ -41,7 +41,7 @@
     <string name="source_path" formatted="true">Uri: %s</string>
     <string name="size" formatted="true">Size: %.2f MB</string>
 
-    <string name="track_info" formatted="true">Track %d: %s</string>
+    <string name="track_info" formatted="true">Track %1$d: %2$s</string>
 
     <string name="default_video_mime_type">video/avc</string>
 

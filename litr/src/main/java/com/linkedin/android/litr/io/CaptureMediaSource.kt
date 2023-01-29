@@ -37,7 +37,7 @@ open class CaptureMediaSource: MediaSource, Decoder {
      * Callback which notifies when the input surface is available to be written too.
      */
     interface Callback {
-        fun onInputSurfaceAvailable(inputSurface: Surface)
+        fun onInputSurfaceAvailable(surface: Surface)
         fun onFrameSkipped(frameSkipCount: Int)
     }
 

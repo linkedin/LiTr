@@ -27,7 +27,7 @@ class EmptyVideoFragment : BaseTransformationFragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        mediaTransformer = MediaTransformer(context!!.applicationContext)
+        mediaTransformer = MediaTransformer(requireContext().applicationContext)
     }
 
     override fun onDestroy() {
@@ -64,7 +64,7 @@ class EmptyVideoFragment : BaseTransformationFragment() {
             }
         }
         binding.transformationState = TransformationState()
-        binding.transformationPresenter = EmptyVideoPresenter(context!!, mediaTransformer)
+        binding.transformationPresenter = EmptyVideoPresenter(requireContext(), mediaTransformer)
 
         val targetFile = File(TransformationUtil.getTargetFileDirectory(requireContext().applicationContext), "empty_video.mp4")
         targetMedia.setTargetFile(targetFile)

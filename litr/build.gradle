@@ -11,6 +11,8 @@ android {
     compileSdkVersion rootProject.ext.compileSdkVersion
     buildToolsVersion rootProject.ext.buildToolsVersion
 
+    namespace 'com.linkedin.android.litr'
+
     defaultConfig {
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
@@ -25,7 +27,7 @@ android {
         unitTests.returnDefaultValues = true
     }
 
-    lintOptions {
+    lint {
         abortOnError true
         checkDependencies true
         checkTestSources true

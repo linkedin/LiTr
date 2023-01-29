@@ -95,7 +95,7 @@ class RecordCamera2Fragment : BaseTransformationFragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         cameraManager = requireContext().getSystemService(Context.CAMERA_SERVICE) as CameraManager
-        mediaTransformer = MediaTransformer(context!!.applicationContext)
+        mediaTransformer = MediaTransformer(requireContext().applicationContext)
 
         // This demo fragment requires Android M or newer, in order to support reading data from
         // AudioRecord in a non-blocking way. Let's double check that the current device supports
@@ -104,7 +104,7 @@ class RecordCamera2Fragment : BaseTransformationFragment() {
             AlertDialog.Builder(requireContext())
                     .setMessage(R.string.error_marshmallow_or_newer_required)
                     .setPositiveButton(R.string.ok) { _, _ ->
-                        activity?.onBackPressed()
+                        activity?.onBackPressedDispatcher?.onBackPressed()
                     }
                     .show()
             return
@@ -144,7 +144,7 @@ class RecordCamera2Fragment : BaseTransformationFragment() {
         binding.buttonStop.setOnClickListener { stopRecording() }
 
         binding.transformationState = TransformationState()
-        binding.transformationPresenter = RecordCameraPresenter(context!!, mediaTransformer)
+        binding.transformationPresenter = RecordCameraPresenter(requireContext(), mediaTransformer)
         binding.audioMediaSource = AudioRecordMediaSource()
 
         binding.videoMediaSource = Camera2MediaSource(requireContext(), cameraId!!).apply {
@@ -178,7 +178,6 @@ class RecordCamera2Fragment : BaseTransformationFragment() {
 
     private fun initPreview(characteristics: CameraCharacteristics) {
         val previewSize = getPreviewOutputSize(
-                binding.cameraView.display,
                 characteristics,
                 SurfaceHolder::class.java)
         Log.i(TAG, "View finder size: ${binding.cameraView.width} x ${binding.cameraView.height}")
