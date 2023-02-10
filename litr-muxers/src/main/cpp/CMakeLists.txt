@@ -48,6 +48,10 @@ else()
 
     set(ffmpeg_location "${ffmpeg_bundled_source}")
     set(ffmpeg_binaries "${CMAKE_CURRENT_SOURCE_DIR}/ffmpeg_bundled/android-libs/${ANDROID_ABI}")
+
+    # Include additional headers that would be generated via the configure (which won't be there in
+    # the downloaded artifact.
+    include_directories("${CMAKE_CURRENT_SOURCE_DIR}/ffmpeg_bundled/extra")
 endif()
 
 foreach(ffmpeg_lib avutil avcodec avformat)
@@ -69,7 +73,9 @@ find_library(log-lib log)
 add_library(litr-muxers SHARED
         FFmpeg.h
         Logging.h
-        )
+        NativeLogger.cpp
+        NativeMediaMuxer.cpp
+        MediaMuxer.cpp)
 
 target_link_libraries(litr-muxers
         PRIVATE android
@@ -78,4 +84,3 @@ target_link_libraries(litr-muxers
         PRIVATE avformat
         PRIVATE ${log-lib})
 
-set_property(TARGET litr-muxers PROPERTY LINKER_LANGUAGE CXX)
