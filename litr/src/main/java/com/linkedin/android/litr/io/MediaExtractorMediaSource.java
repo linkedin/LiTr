@@ -45,7 +45,7 @@ public class MediaExtractorMediaSource implements MediaSource {
             mediaExtractor.setDataSource(context, uri, null);
             mediaMetadataRetriever.setDataSource(context, uri);
         } catch (IOException ex) {
-            mediaMetadataRetriever.release();
+            releaseQuietly(mediaMetadataRetriever);
             throw new MediaSourceException(DATA_SOURCE, uri, ex);
         }
         String rotation = mediaMetadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_ROTATION);
@@ -54,7 +54,7 @@ public class MediaExtractorMediaSource implements MediaSource {
         }
         size = TranscoderUtils.getSize(context, uri);
         // Release unused anymore MediaMetadataRetriever instance
-        mediaMetadataRetriever.release();
+        releaseQuietly(mediaMetadataRetriever);
     }
 
     @Override
@@ -122,5 +122,13 @@ public class MediaExtractorMediaSource implements MediaSource {
     @Override
     public MediaRange getSelection() {
         return mediaRange;
+    }
+
+    private void releaseQuietly(MediaMetadataRetriever mediaMetadataRetriever) {
+        try {
+            mediaMetadataRetriever.release();
+        } catch (IOException ex) {
+            // Nothing to do.
+        }
     }
 }

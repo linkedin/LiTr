@@ -133,7 +133,7 @@ class AudioOverlayFilter(
     }
 
     private fun sufficientOverlayFramesInQueue(frameBuffer: ByteBuffer): Boolean {
-        val bytesInRenderQueue = renderQueue.sumBy { overlayBuffer ->
+        val bytesInRenderQueue = renderQueue.sumOf { overlayBuffer ->
             overlayBuffer?.let { it.limit() - it.position() } ?: 0
         }
 

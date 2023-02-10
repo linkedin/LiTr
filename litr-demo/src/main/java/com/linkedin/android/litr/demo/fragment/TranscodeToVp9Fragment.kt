@@ -33,7 +33,7 @@ class TranscodeToVp9Fragment : BaseTransformationFragment(),
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        mediaTransformer = MediaTransformer(context!!.applicationContext)
+        mediaTransformer = MediaTransformer(requireContext().applicationContext)
     }
 
     override fun onDestroy() {
@@ -51,7 +51,7 @@ class TranscodeToVp9Fragment : BaseTransformationFragment(),
         binding.sourceMedia = sourceMedia
         binding.sectionPickVideo.buttonPickVideo.setOnClickListener { pickVideo(this@TranscodeToVp9Fragment) }
         binding.transformationState = TransformationState()
-        binding.transformationPresenter = TranscodeToVp9Presenter(context!!, mediaTransformer)
+        binding.transformationPresenter = TranscodeToVp9Presenter(requireContext(), mediaTransformer)
 
         val targetMedia = TargetMedia()
         val transcodingConfigPresenter = TranscodingConfigPresenter(this, targetMedia)
@@ -67,7 +67,7 @@ class TranscodeToVp9Fragment : BaseTransformationFragment(),
             updateSourceMedia(sourceMedia, uri)
             binding.trimConfig?.let { trimConfig -> updateTrimConfig(trimConfig, sourceMedia) }
             val targetFile = File(TransformationUtil.getTargetFileDirectory(requireContext().applicationContext),
-                "transcoded_" + TransformationUtil.getDisplayName(context!!, sourceMedia.uri))
+                "transcoded_" + TransformationUtil.getDisplayName(requireContext(), sourceMedia.uri))
             binding.targetMedia?.setTargetFile(targetFile)
             binding.targetMedia?.setTracks(sourceMedia.tracks)
             binding.transformationState?.setState(TransformationState.STATE_IDLE)

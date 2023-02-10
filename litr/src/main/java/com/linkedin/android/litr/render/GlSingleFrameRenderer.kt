@@ -14,16 +14,17 @@ import android.graphics.SurfaceTexture
 import android.opengl.GLES20
 import android.opengl.Matrix
 import android.view.Surface
+import com.linkedin.android.litr.ExperimentalFrameExtractorApi
 import com.linkedin.android.litr.filter.GlFilter
 import com.linkedin.android.litr.filter.GlFrameRenderFilter
 import com.linkedin.android.litr.filter.video.gl.DefaultVideoFrameRenderFilter
 import java.nio.ByteBuffer
 import java.util.*
 
-
 /**
  * A renderer that applies OpenGL filters to a bitmap, and returns a new bitmap.
  */
+@OptIn(ExperimentalFrameExtractorApi::class)
 class GlSingleFrameRenderer(filters: List<GlFilter>?) : SingleFrameRenderer {
     private val hasFilters: Boolean = filters != null && filters.isNotEmpty()
 

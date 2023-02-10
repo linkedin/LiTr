@@ -34,7 +34,7 @@ class TranscodeAudioFragment : BaseTransformationFragment(),
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        mediaTransformer = MediaTransformer(context!!.applicationContext)
+        mediaTransformer = MediaTransformer(requireContext().applicationContext)
     }
 
     override fun onDestroy() {
@@ -52,7 +52,7 @@ class TranscodeAudioFragment : BaseTransformationFragment(),
         binding.sourceMedia = sourceMedia
         binding.sectionPickAudio.buttonPickAudio.setOnClickListener { pickAudio(this@TranscodeAudioFragment) }
         binding.transformationState = TransformationState()
-        binding.transformationPresenter = TranscodeAudioPresenter(context!!, mediaTransformer)
+        binding.transformationPresenter = TranscodeAudioPresenter(requireContext(), mediaTransformer)
 
         binding.tracks.layoutManager = LinearLayoutManager(context)
 
@@ -70,7 +70,7 @@ class TranscodeAudioFragment : BaseTransformationFragment(),
             updateSourceMedia(sourceMedia, uri)
             binding.trimConfig?.let { trimConfig -> updateTrimConfig(trimConfig, sourceMedia) }
             val targetFile = File(TransformationUtil.getTargetFileDirectory(requireContext().applicationContext),
-                "transcoded_" + TransformationUtil.getDisplayName(context!!, sourceMedia.uri))
+                "transcoded_" + TransformationUtil.getDisplayName(requireContext(), sourceMedia.uri))
             binding.targetMedia?.setTargetFile(targetFile)
             binding.targetMedia?.setTracks(sourceMedia.tracks)
             binding.transformationState?.setState(TransformationState.STATE_IDLE)

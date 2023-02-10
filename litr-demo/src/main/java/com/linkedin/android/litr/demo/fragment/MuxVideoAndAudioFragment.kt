@@ -28,7 +28,7 @@ class MuxVideoAndAudioFragment : BaseTransformationFragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        mediaTransformer = MediaTransformer(context!!.applicationContext)
+        mediaTransformer = MediaTransformer(requireContext().applicationContext)
     }
 
     override fun onDestroy() {
@@ -50,7 +50,7 @@ class MuxVideoAndAudioFragment : BaseTransformationFragment() {
             pickAudio(mediaPickerListener)
         }
         binding.transformationState = TransformationState()
-        binding.transformationPresenter = MuxVideoAndAudioPresenter(context!!, mediaTransformer)
+        binding.transformationPresenter = MuxVideoAndAudioPresenter(requireContext(), mediaTransformer)
 
         binding.targetMedia = targetMedia
 
@@ -65,7 +65,7 @@ class MuxVideoAndAudioFragment : BaseTransformationFragment() {
                     mimeType.startsWith("video") -> {
                         updateSourceMedia(binding.sourceVideo!!, uri)
                         val targetFile = File(TransformationUtil.getTargetFileDirectory(requireContext().applicationContext),
-                            "transcoded_" + TransformationUtil.getDisplayName(context!!, uri))
+                            "transcoded_" + TransformationUtil.getDisplayName(requireContext(), uri))
                         binding.targetMedia?.setTargetFile(targetFile)
                     }
                     mimeType.startsWith("audio") -> {

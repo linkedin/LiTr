@@ -9,6 +9,7 @@
  */
 package com.linkedin.android.litr.demo.data
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Color
 import android.media.MediaMuxer
@@ -38,6 +39,7 @@ class RecordAudioPresenter(
     private val mediaTransformer: MediaTransformer
 ) : TransformationPresenter(context, mediaTransformer) {
 
+    @SuppressLint("MissingPermission")
     fun recordAudio(
         mediaSource: AudioRecordMediaSource,
         targetMedia: TargetMedia,

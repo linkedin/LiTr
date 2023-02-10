@@ -5,8 +5,7 @@
 <!-- Licensed under the BSD 2-Clause License (the "License").  See License in the project root -->
 <!-- for license information. -->
 <manifest xmlns:tools="http://schemas.android.com/tools"
-          package="com.linkedin.android.litr.demo"
-          xmlns:android="http://schemas.android.com/apk/res/android">
+    xmlns:android="http://schemas.android.com/apk/res/android">
 
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>

@@ -13,6 +13,7 @@ import android.media.*
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
+import androidx.annotation.RequiresPermission
 import com.linkedin.android.litr.MimeType
 import com.linkedin.android.litr.exception.MediaSourceException
 import java.nio.ByteBuffer
@@ -60,6 +61,7 @@ class AudioRecordMediaSource(
 
     private var isRecording = false
 
+    @RequiresPermission("android.permission.RECORD_AUDIO")
     @Synchronized
     fun startRecording() {
         createAudioRecord()
@@ -78,6 +80,7 @@ class AudioRecordMediaSource(
         isRecording = true
     }
 
+    @RequiresPermission("android.permission.RECORD_AUDIO")
     private fun createAudioRecord() {
         audioRecord = AudioRecord(
                 audioSource,

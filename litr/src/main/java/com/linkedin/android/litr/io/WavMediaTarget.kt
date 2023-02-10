@@ -98,11 +98,11 @@ class WavMediaTarget(
 
         // Not necessarily the best, but it's very easy to visualize this way
         outputStream.write(byteArrayOf( // RIFF header
-            'R'.toByte(), 'I'.toByte(), 'F'.toByte(), 'F'.toByte(),  // ChunkID
+            'R'.code.toByte(), 'I'.code.toByte(), 'F'.code.toByte(), 'F'.code.toByte(),  // ChunkID
             0, 0, 0, 0,  // ChunkSize (must be updated later)
-            'W'.toByte(), 'A'.toByte(), 'V'.toByte(), 'E'.toByte(),  // Format
+            'W'.code.toByte(), 'A'.code.toByte(), 'V'.code.toByte(), 'E'.code.toByte(),  // Format
             // fmt subchunk
-            'f'.toByte(), 'm'.toByte(), 't'.toByte(), ' '.toByte(),  // Subchunk1ID
+            'f'.code.toByte(), 'm'.code.toByte(), 't'.code.toByte(), ' '.code.toByte(),  // Subchunk1ID
             16, 0, 0, 0,  // Subchunk1 Size
             1, 0,  // AudioFormat
             littleBytes[0], littleBytes[1],  // NumChannels
@@ -111,7 +111,7 @@ class WavMediaTarget(
             littleBytes[10], littleBytes[11],  // BlockAlign
             littleBytes[12], littleBytes[13],  // BitsPerSample
             // data subchunk
-            'd'.toByte(), 'a'.toByte(), 't'.toByte(), 'a'.toByte(),  // Subchunk2 ID
+            'd'.code.toByte(), 'a'.code.toByte(), 't'.code.toByte(), 'a'.code.toByte(),  // Subchunk2 ID
             0, 0, 0, 0))
     }
 

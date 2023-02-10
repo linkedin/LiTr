@@ -9,6 +9,7 @@
  */
 package com.linkedin.android.litr.demo.data
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.media.MediaMuxer
 import android.os.Build
@@ -31,6 +32,7 @@ class RecordCameraPresenter(
     private val mediaTransformer: MediaTransformer
 ) : TransformationPresenter(context, mediaTransformer) {
 
+    @SuppressLint("MissingPermission")
     fun recordCamera(
             audioMediaSource: AudioRecordMediaSource,
             videoMediaSource: Camera2MediaSource,
