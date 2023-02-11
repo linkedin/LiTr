@@ -32,6 +32,10 @@
             name="transformationPresenter"
             type="com.linkedin.android.litr.demo.data.RecordCameraPresenter" />
 
+        <variable
+            name="enableNativeMuxer"
+            type="java.lang.Boolean" />
+
     </data>
 
     <RelativeLayout

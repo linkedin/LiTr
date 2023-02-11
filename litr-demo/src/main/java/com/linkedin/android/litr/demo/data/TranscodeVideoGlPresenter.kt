@@ -25,6 +25,7 @@ import com.linkedin.android.litr.io.MediaMuxerMediaTarget
 import com.linkedin.android.litr.io.MediaRange
 import com.linkedin.android.litr.io.MediaSource
 import com.linkedin.android.litr.io.MediaTarget
+import com.linkedin.android.litr.muxers.NativeMediaMuxerMediaTarget
 import com.linkedin.android.litr.render.AudioRenderer
 import com.linkedin.android.litr.render.GlVideoRenderer
 import java.util.UUID
@@ -42,7 +43,8 @@ class TranscodeVideoGlPresenter(
         targetMedia: TargetMedia,
         trimConfig: TrimConfig,
         audioVolumeConfig: AudioVolumeConfig,
-        transformationState: TransformationState
+        transformationState: TransformationState,
+        enableNativeMuxer: Boolean
     ) {
         if (targetMedia.includedTrackCount < 1) {
             return
@@ -70,12 +72,11 @@ class TranscodeVideoGlPresenter(
                 }
             }
 
-            val mediaTarget: MediaTarget = MediaMuxerMediaTarget(
+            val mediaTarget = buildMediaTarget(
                 context,
-                Uri.fromFile(targetMedia.targetFile),
-                targetMedia.includedTrackCount,
+                targetMedia,
                 videoRotation,
-                if (hasVp8OrVp9Track(targetMedia.tracks)) MediaMuxer.OutputFormat.MUXER_OUTPUT_WEBM else MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4
+                enableNativeMuxer
             )
 
             val trackTransforms: MutableList<TrackTransform> = ArrayList(targetMedia.tracks.size)
@@ -141,6 +142,35 @@ class TranscodeVideoGlPresenter(
             )
         } catch (ex: MediaTransformationException) {
             Log.e(TAG, "Exception when trying to perform track operation", ex)
+        }
+    }
+
+    private fun buildMediaTarget(
+        context: Context,
+        targetMedia: TargetMedia,
+        videoRotation: Int,
+        enableNativeMuxer: Boolean
+    ): MediaTarget {
+        val outputFormat = if (hasVp8OrVp9Track(targetMedia.tracks))
+            MediaMuxer.OutputFormat.MUXER_OUTPUT_WEBM
+        else
+            MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4
+
+        return if (enableNativeMuxer) {
+            NativeMediaMuxerMediaTarget(
+                targetMedia.targetFile.absolutePath,
+                targetMedia.includedTrackCount,
+                videoRotation,
+                outputFormat
+            )
+        } else {
+            MediaMuxerMediaTarget(
+                context,
+                Uri.fromFile(targetMedia.targetFile),
+                targetMedia.includedTrackCount,
+                videoRotation,
+                outputFormat
+            )
         }
     }
 }

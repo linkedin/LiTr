@@ -20,6 +20,8 @@
     <string name="demo_case_transcode_to_vp9">Transcode To VP9</string>
     <string name="demo_case_audio_record">Record Audio</string>
     <string name="demo_case_camera_record">Record Camera (via Camera2)</string>
+    <string name="demo_case_native_muxer_transcode">Native Muxer (Transcode)</string>
+    <string name="demo_case_native_muxer_camera">Native Muxer (Camera)</string>
 
     <string name="error_vp9_not_supported">VP8/VP9 is not supported</string>
     <string name="error_marshmallow_or_newer_required">Android Marshmallow or newer required</string>

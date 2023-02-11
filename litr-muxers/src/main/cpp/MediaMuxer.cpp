@@ -174,7 +174,7 @@ int MediaMuxer::writeSampleData(int stream_index, uint8_t *buffer, int size, int
     auto stream = mContext->streams[stream_index];
     av_packet_rescale_ts(&pkt, (AVRational){ 1, 1000000 }, stream->time_base);
 
-    LOGI("writeSampleData(index: %d size: %d pts: %lld flags: %d)", stream_index, size, ptsUs, flags);
+    //LOGI("writeSampleData(index: %d size: %d pts: %lld flags: %d)", stream_index, size, ptsUs, flags);
 
     // Write the compressed frame to the media file.
     int err = av_interleaved_write_frame(mContext, &pkt);
