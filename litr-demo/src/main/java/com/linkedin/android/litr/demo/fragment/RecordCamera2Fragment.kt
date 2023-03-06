@@ -47,8 +47,8 @@ private const val DEFAULT_TARGET_BITRATE = 5_000_000 // 5Mbps
 private const val DEFAULT_RECORD_WIDTH = 1280
 
 @RequiresApi(Build.VERSION_CODES.M)
-class RecordCamera2Fragment : BaseTransformationFragment() {
-    private lateinit var binding: FragmentCamera2RecordBinding
+open class RecordCamera2Fragment : BaseTransformationFragment() {
+    protected lateinit var binding: FragmentCamera2RecordBinding
 
     private lateinit var mediaTransformer: MediaTransformer
     private var targetMedia: TargetMedia = TargetMedia()
@@ -79,7 +79,8 @@ class RecordCamera2Fragment : BaseTransformationFragment() {
                     binding.audioMediaSource!!,
                     binding.videoMediaSource!!,
                     binding.targetMedia!!,
-                    binding.transformationState!!
+                    binding.transformationState!!,
+                    binding.enableNativeMuxer == true
             )
         }
 

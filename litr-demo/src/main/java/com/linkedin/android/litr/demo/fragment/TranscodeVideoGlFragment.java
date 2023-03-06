@@ -32,7 +32,7 @@ import java.io.File;
 
 public class TranscodeVideoGlFragment extends BaseTransformationFragment implements MediaPickerListener {
 
-    private FragmentTranscodeVideoGlBinding binding;
+    protected FragmentTranscodeVideoGlBinding binding;
 
     private MediaTransformer mediaTransformer;
 

@@ -20,13 +20,17 @@ public class MediaTargetException extends MediaTransformationException {
 
     private final Error error;
     private final String outputFilePath;
-    private final int outputFormat;
+    private final String outputFormat;
 
     public MediaTargetException(@NonNull Error error, @NonNull Uri outputFileUri, @IntRange(from=0, to=2) int outputFormat, @NonNull Throwable cause) {
         this(error, outputFileUri.toString(), outputFormat, cause);
     }
 
     public MediaTargetException(@NonNull Error error, @NonNull String outputFilePath, @IntRange(from=0, to=2) int outputFormat, @NonNull Throwable cause) {
+        this(error, outputFilePath, String.valueOf(outputFormat), cause);
+    }
+
+    public MediaTargetException(@NonNull Error error, @NonNull String outputFilePath, String outputFormat, @NonNull Throwable cause) {
         super(cause);
         this.error = error;
         this.outputFilePath = outputFilePath;
