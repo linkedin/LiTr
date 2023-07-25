@@ -132,8 +132,10 @@ class TransformationJob implements Runnable {
     @VisibleForTesting
     void initStatsCollector() {
         // TODO modify TrackTransformationInfo to report muxing/demuxing and different media sources/targets
-        for (TrackTransform trackTransform : trackTransforms) {
+        for (int track = 0; track < trackTransforms.size(); track++) {
+            TrackTransform trackTransform = trackTransforms.get(track);
             statsCollector.addSourceTrack(trackTransform.getMediaSource().getTrackFormat(trackTransform.getSourceTrack()));
+            statsCollector.setTargetFormat(track, trackTransform.getTargetFormat());
         }
     }
 
