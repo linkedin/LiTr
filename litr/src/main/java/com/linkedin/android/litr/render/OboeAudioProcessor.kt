@@ -8,8 +8,8 @@
 package com.linkedin.android.litr.render
 
 import com.linkedin.android.litr.codec.Frame
-import java.lang.IllegalArgumentException
 import java.nio.ByteBuffer
+import kotlin.math.min
 
 private const val BYTES_PER_SAMPLE = 2
 
@@ -37,11 +37,14 @@ internal class OboeAudioProcessor(
     override fun processFrame(sourceFrame: Frame, targetFrame: Frame) {
         if (sourceFrame.buffer != null && targetFrame.buffer != null) {
             val sourceSampleCount = sourceFrame.bufferInfo.size / (BYTES_PER_SAMPLE * sourceChannelCount)
-            val targetSampleCount = processAudioFrame(sourceFrame.buffer, sourceSampleCount, targetFrame.buffer)
+            val targetSampleCount = processAudioFrame(sourceFrame.buffer, sourceSampleCount, targetFrame.buffer, targetFrame.buffer.capacity())
 
             val targetBufferSize = targetSampleCount * BYTES_PER_SAMPLE * targetChannelCount
             targetFrame.buffer.rewind()
-            targetFrame.buffer.limit(targetBufferSize)
+
+            val limit = min(targetBufferSize, targetFrame.buffer.capacity())
+
+            targetFrame.buffer.limit(limit)
             targetFrame.bufferInfo.set(
                 0,
                 targetBufferSize,
@@ -61,7 +64,7 @@ internal class OboeAudioProcessor(
 
     private external fun initProcessor(sourceChannelCount: Int, sourceSampleRate: Int, targetChannelCount: Int, targetSampleRate: Int)
 
-    private external fun processAudioFrame(sourceBuffer: ByteBuffer, sampleCount: Int, targetBuffer: ByteBuffer): Int
+    private external fun processAudioFrame(sourceBuffer: ByteBuffer, sampleCount: Int, targetBuffer: ByteBuffer, targetBufferSize: Int): Int
 
     private external fun releaseProcessor()
 
