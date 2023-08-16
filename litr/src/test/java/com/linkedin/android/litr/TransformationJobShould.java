@@ -210,8 +210,10 @@ public class TransformationJobShould {
         transformationJob.transform();
 
         verify(marshallingTransformationListener).onCompleted(eq(JOB_ID), ArgumentMatchers.<TrackTransformationInfo>anyList());
+        verify(statsCollector).setTargetFormat(0, targetVideoFormat);
         verify(statsCollector).addSourceTrack(sourceVideoFormat);
         verify(statsCollector).addSourceTrack(sourceAudioFormat);
+        verify(statsCollector).setTargetFormat(1, targetAudioFormat);
     }
 
     @Test(expected = InsufficientDiskSpaceException.class)
