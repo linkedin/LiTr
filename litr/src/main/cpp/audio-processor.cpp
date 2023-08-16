@@ -52,7 +52,8 @@ Java_com_linkedin_android_litr_render_OboeAudioProcessor_processAudioFrame(
         jobject,
         jobject jsourceBuffer,
         jint sampleCount,
-        jobject jtargetBuffer) {
+        jobject jtargetBuffer,
+        jint jtargetBufferSize) {
     if (oboeResampler != nullptr && inputChannelCount > 0 && outputChannelCount > 0) {
         auto sourceBuffer = (jbyte *) env->GetDirectBufferAddress(jsourceBuffer);
         auto targetBuffer = (jbyte *) env->GetDirectBufferAddress(jtargetBuffer);
@@ -75,8 +76,10 @@ Java_com_linkedin_android_litr_render_OboeAudioProcessor_processAudioFrame(
                         value = 32767;
                     }
                     int index = framesProcessed * outputChannelCount + channel;
-                    targetBuffer[index * 2 + 0] = ((short) value) & 0xFF;
-                    targetBuffer[index * 2 + 1] = ((short) value >> 8) & 0xFF;
+                    if((index * 2 + 1) < jtargetBufferSize) {
+                        targetBuffer[index * 2 + 0] = ((short) value) & 0xFF;
+                        targetBuffer[index * 2 + 1] = ((short) value >> 8) & 0xFF;
+                    }
                 }
                 framesProcessed++;
             }
