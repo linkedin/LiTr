@@ -1,1 +1,3 @@
-include ':litr-demo', ':litr', ':litr-filters', ':litr-ffmpeg'
+include ':litr-demo', ':litr', ':litr-filters'
+// uncomment if experimenting with ffmpeg
+// include ':litr-ffmpeg'
