@@ -22,7 +22,7 @@ import com.linkedin.android.litr.codec.MediaCodecEncoder
 import com.linkedin.android.litr.exception.MediaTransformationException
 import com.linkedin.android.litr.filter.GlFilter
 import com.linkedin.android.litr.io.*
-import com.linkedin.android.litr.muxers.NativeMediaMuxerMediaTarget
+// import com.linkedin.android.litr.muxers.NativeMediaMuxerMediaTarget
 import com.linkedin.android.litr.render.GlVideoRenderer
 import java.util.UUID
 
@@ -131,20 +131,27 @@ class RecordCameraPresenter(
         targetMedia: TargetMedia,
         enableNativeMuxer: Boolean
     ): MediaTarget {
-        return if (enableNativeMuxer) {
-            NativeMediaMuxerMediaTarget(
-                targetMedia.targetFile.path,
-                2,
-                0,
-                MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4
-            )
-        } else {
-            MediaMuxerMediaTarget(
-                targetMedia.targetFile.path,
-                2,
-                0,
-                MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4
-            )
-        }
+        return MediaMuxerMediaTarget(
+            targetMedia.targetFile.path,
+            2,
+            0,
+            MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4
+        )
+        // remove above code and uncomment if need to experiment with ffmpeg muxer
+//        return if (enableNativeMuxer) {
+//            NativeMediaMuxerMediaTarget(
+//                targetMedia.targetFile.path,
+//                2,
+//                0,
+//                MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4
+//            )
+//        } else {
+//            MediaMuxerMediaTarget(
+//                targetMedia.targetFile.path,
+//                2,
+//                0,
+//                MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4
+//            )
+//        }
     }
 }

@@ -1,6 +1,7 @@
 # Litr Muxers module
 
-The Litr Muxers module provides `NativeMediaMuxerMediaTarget`, which uses FFmpeg for muxing 
+The Litr FFmpeg module provides integration with ffmpeg. Currently, it offers 
+`NativeMediaMuxerMediaTarget`, which uses FFmpeg for muxing 
 individual streams into a target file container.
 
 ## Build instructions (Linux, macOS)

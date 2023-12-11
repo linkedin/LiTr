@@ -25,7 +25,7 @@ import com.linkedin.android.litr.io.MediaMuxerMediaTarget
 import com.linkedin.android.litr.io.MediaRange
 import com.linkedin.android.litr.io.MediaSource
 import com.linkedin.android.litr.io.MediaTarget
-import com.linkedin.android.litr.muxers.NativeMediaMuxerMediaTarget
+//import com.linkedin.android.litr.muxers.NativeMediaMuxerMediaTarget
 import com.linkedin.android.litr.render.AudioRenderer
 import com.linkedin.android.litr.render.GlVideoRenderer
 import java.util.UUID
@@ -156,21 +156,30 @@ class TranscodeVideoGlPresenter(
         else
             MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4
 
-        return if (enableNativeMuxer) {
-            NativeMediaMuxerMediaTarget(
-                targetMedia.targetFile.absolutePath,
-                targetMedia.includedTrackCount,
-                videoRotation,
-                outputFormat
-            )
-        } else {
-            MediaMuxerMediaTarget(
-                context,
-                Uri.fromFile(targetMedia.targetFile),
-                targetMedia.includedTrackCount,
-                videoRotation,
-                outputFormat
-            )
-        }
+        return MediaMuxerMediaTarget(
+            context,
+            Uri.fromFile(targetMedia.targetFile),
+            targetMedia.includedTrackCount,
+            videoRotation,
+            outputFormat
+        )
+
+        // remove above code and uncomment if need to experiment with ffmpeg muxer
+//        return if (enableNativeMuxer) {
+//            NativeMediaMuxerMediaTarget(
+//                targetMedia.targetFile.absolutePath,
+//                targetMedia.includedTrackCount,
+//                videoRotation,
+//                outputFormat
+//            )
+//        } else {
+//            MediaMuxerMediaTarget(
+//                context,
+//                Uri.fromFile(targetMedia.targetFile),
+//                targetMedia.includedTrackCount,
+//                videoRotation,
+//                outputFormat
+//            )
+//        }
     }
 }
