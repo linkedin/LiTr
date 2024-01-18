@@ -99,4 +99,13 @@ public interface MediaSource {
     default MediaRange getSelection() {
         return new MediaRange(0, Long.MAX_VALUE);
     }
+
+    /**
+     * Returns the playback duration of the media if applicable and known
+     *
+     * @return playback duration in milliseconds, -1 if unknown
+     */
+    default long getDuration() {
+        return -1;
+    }
 }

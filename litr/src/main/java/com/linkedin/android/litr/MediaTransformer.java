@@ -57,6 +57,7 @@ public class MediaTransformer {
 
     public static final int DEFAULT_KEY_FRAME_INTERVAL = 5;
     private static final int DEFAULT_AUDIO_BITRATE = 256_000;
+    private static final int DEFAULT_VIDEO_BITRATE = 10_000_000;
     private static final int DEFAULT_FRAME_RATE = 30;
 
     private static final String TAG = MediaTransformer.class.getSimpleName();
@@ -412,6 +413,10 @@ public class MediaTransformer {
                                                                   sourceMediaFormat.getInteger(MediaFormat.KEY_WIDTH),
                                                                   sourceMediaFormat.getInteger(MediaFormat.KEY_HEIGHT));
                 int targetBitrate = TranscoderUtils.estimateVideoTrackBitrate(mediaSource, sourceTrackIndex);
+                if (targetBitrate <= 0) {
+                    // Use a default value in case of failure to extract value from source media
+                    targetBitrate = DEFAULT_VIDEO_BITRATE;
+                }
                 targetMediaFormat.setInteger(MediaFormat.KEY_BIT_RATE, targetBitrate);
 
                 int targetKeyFrameInterval = DEFAULT_KEY_FRAME_INTERVAL;

@@ -173,6 +173,34 @@ public class TranscoderUtilsShould {
     }
 
     @Test
+    public void useMediaDurationForVideoTrackBitrateEstimationWhenTrackMetadataDoesNotExist() {
+        long mediaDuration = 50000L; int bitrateUsingMediaDuration = 11400000;
+        when(mediaSource.getTrackFormat(0)).thenReturn(videoMediaFormat);
+        when(mediaSource.getDuration()).thenReturn(mediaDuration);
+        when(videoMediaFormat.containsKey(MediaFormat.KEY_BIT_RATE)).thenReturn(false);
+        when(videoMediaFormat.containsKey(MediaFormat.KEY_DURATION)).thenReturn(false);
+
+        when(mediaSource.getSize()).thenReturn(VIDEO_BIT_RATE * DURATION_S / 8);
+        when(mediaSource.getTrackCount()).thenReturn(1);
+
+        int estimatedBitrate = TranscoderUtils.estimateVideoTrackBitrate(mediaSource, 0);
+
+        assertThat(estimatedBitrate, is(bitrateUsingMediaDuration));
+    }
+
+    @Test
+    public void returnInvalidBitrateWhenNeitherTrackDurationNorMediaDurationIsAvailable() {
+        int invalidBitrate = -1;
+        when(mediaSource.getTrackFormat(0)).thenReturn(videoMediaFormat);
+        when(videoMediaFormat.containsKey(MediaFormat.KEY_BIT_RATE)).thenReturn(false);
+        when(videoMediaFormat.containsKey(MediaFormat.KEY_DURATION)).thenReturn(false);
+        when(mediaSource.getDuration()).thenReturn((long) invalidBitrate);
+
+        int estimatedBitrate = TranscoderUtils.estimateVideoTrackBitrate(mediaSource, 0);
+        assertThat(estimatedBitrate, is(invalidBitrate));
+    }
+
+    @Test
     public void estimateVideoTrackBitrateWhenSingleVideoTrack() {
         when(mediaSource.getSize()).thenReturn(VIDEO_BIT_RATE * DURATION_S / 8);
         when(mediaSource.getTrackCount()).thenReturn(1);
@@ -250,6 +278,20 @@ public class TranscoderUtilsShould {
         assertEquals(estimatedBitrate, VIDEO_BIT_RATE, 1);
     }
 
+    @Test
+    public void estimateVideoTrackDurationFromMetadata() {
+        float durationSecs = TranscoderUtils.estimateVideoTrackDuration(mediaSource, videoMediaFormat);
+        assertThat(durationSecs, is((float) DURATION_S));
+    }
+
+    @Test
+    public void useMediaDurationAsFallbackWhenEstimatingVideoTrackDuration() {
+        long mediaDuration = 50_000L;
+        when(mediaSource.getDuration()).thenReturn(mediaDuration);
+        when(videoMediaFormat.containsKey(MediaFormat.KEY_DURATION)).thenReturn(false);
+        float durationSecs = TranscoderUtils.estimateVideoTrackDuration(mediaSource, videoMediaFormat);
+        assertThat(durationSecs, is((float) mediaDuration/1000));
+    }
 
     @Test
     public void estimateWhenTrimmedFromBeginningToMiddle() {

@@ -131,9 +131,9 @@ public final class TranscoderUtils {
         if (videoTrackFormat.containsKey(MediaFormat.KEY_BIT_RATE)) {
             return videoTrackFormat.getInteger(MediaFormat.KEY_BIT_RATE);
         }
-        float videoTrackDuration = TimeUtils.microsToSeconds(videoTrackFormat.getLong(MediaFormat.KEY_DURATION));
-        if (videoTrackDuration == 0) {
-            return 0;
+        float videoTrackDuration = estimateVideoTrackDuration(mediaSource, videoTrackFormat);
+        if (videoTrackDuration <= 0) {
+            return -1;
         }
 
         float unallocatedSize = mediaSource.getSize();
@@ -149,9 +149,12 @@ public final class TranscoderUtils {
                 } else {
                     String mimeType = trackFormat.getString(MediaFormat.KEY_MIME);
                     if (mimeType.startsWith("video")) {
-                        totalPixels += trackFormat.getInteger(MediaFormat.KEY_WIDTH)
-                            * trackFormat.getInteger(MediaFormat.KEY_HEIGHT)
-                            * TimeUtils.microsToSeconds(trackFormat.getLong(MediaFormat.KEY_DURATION));
+                        float trackDuration = estimateVideoTrackDuration(mediaSource, trackFormat);
+                        if (trackDuration > 0) {
+                            totalPixels += trackFormat.getInteger(MediaFormat.KEY_WIDTH)
+                                    * trackFormat.getInteger(MediaFormat.KEY_HEIGHT)
+                                    * trackDuration;
+                        }
                     }
                 }
             }
@@ -163,6 +166,23 @@ public final class TranscoderUtils {
 
         float trackSize = totalPixels > 0 ? unallocatedSize * trackPixels / totalPixels : unallocatedSize;
         return (int) (trackSize * BITS_IN_BYTE / videoTrackDuration);
+    }
+
+    /**
+     * Returns the duration of the given video track. If the given track does not contain a valid
+     * duration value in its meta data, then the duration value associated with the media source
+     * shall be returned.
+     *
+     * @param mediaSource {@link MediaSource} which contains the video track
+     * @param videoTrack Track whose duration needs to be determined
+     *
+     * @return Duration of the given video track in seconds.
+     */
+    @VisibleForTesting
+    static float estimateVideoTrackDuration(MediaSource mediaSource, MediaFormat videoTrack) {
+       return videoTrack.containsKey(MediaFormat.KEY_DURATION) ?
+                TimeUtils.microsToSeconds(videoTrack.getLong(MediaFormat.KEY_DURATION)) :
+                TimeUtils.millisToSeconds(mediaSource.getDuration());
     }
 
     /**
