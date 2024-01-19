@@ -174,14 +174,14 @@ public final class TranscoderUtils {
      * shall be returned.
      *
      * @param mediaSource {@link MediaSource} which contains the video track
-     * @param videoTrack Track whose duration needs to be determined
+     * @param videoTrackFormat MediaFormat of the track whose duration needs to be determined
      *
      * @return Duration of the given video track in seconds.
      */
     @VisibleForTesting
-    static float estimateVideoTrackDuration(MediaSource mediaSource, MediaFormat videoTrack) {
-       return videoTrack.containsKey(MediaFormat.KEY_DURATION) ?
-                TimeUtils.microsToSeconds(videoTrack.getLong(MediaFormat.KEY_DURATION)) :
+    static float estimateVideoTrackDuration(MediaSource mediaSource, MediaFormat videoTrackFormat) {
+       return videoTrackFormat.containsKey(MediaFormat.KEY_DURATION) ?
+                TimeUtils.microsToSeconds(videoTrackFormat.getLong(MediaFormat.KEY_DURATION)) :
                 TimeUtils.millisToSeconds(mediaSource.getDuration());
     }
 
