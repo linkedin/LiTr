@@ -146,11 +146,8 @@ public class MediaMuxerMediaTarget implements MediaTarget {
 
     @Override
     public void release() {
-        try {
-            mediaMuxer.release();
-        } finally {
-            releaseFileDescriptor();
-        }
+        mediaMuxer.release();
+        releaseFileDescriptor();
     }
 
     @Override
