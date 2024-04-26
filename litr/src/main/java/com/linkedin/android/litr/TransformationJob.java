@@ -114,19 +114,37 @@ class TransformationJob implements Runnable {
             }
         } while (!completed);
 
-        release(completed);
+        if (completed) {
+            updateTargetFormatStats();
+            release();
+            marshallingTransformationListener.onCompleted(jobId, statsCollector.getStats());
+        }
     }
 
     @VisibleForTesting
     void cancel() {
-        marshallingTransformationListener.onCancelled(jobId, statsCollector.getStats());
-        release(false);
+        try {
+            updateTargetFormatStats();
+            release();
+            deleteOutputFiles();
+        } catch (Exception ex) {
+            Log.e(TAG, "cancel: ", ex);
+        } finally {
+            marshallingTransformationListener.onCancelled(jobId, statsCollector.getStats());
+        }
     }
 
     @VisibleForTesting
     protected void error(@Nullable Throwable cause) {
-        marshallingTransformationListener.onError(jobId, cause, statsCollector.getStats());
-        release(false);
+        try {
+            updateTargetFormatStats();
+            release();
+            deleteOutputFiles();
+        } catch (Exception ex) {
+            Log.e(TAG, "error: ", ex);
+        } finally {
+            marshallingTransformationListener.onError(jobId, cause, statsCollector.getStats());
+        }
     }
 
     @VisibleForTesting
@@ -232,12 +250,16 @@ class TransformationJob implements Runnable {
     }
 
     @VisibleForTesting
-    void release(boolean success) {
+    void release() {
         if (trackTranscoders != null) {
+            // Stop transcoders
             for (int track = 0; track < trackTranscoders.size(); track++) {
-                TrackTranscoder trackTranscoder = trackTranscoders.get(track);
-                trackTranscoder.stop();
-                statsCollector.setTargetFormat(track, trackTranscoder.getTargetMediaFormat());
+                try {
+                    TrackTranscoder trackTranscoder = trackTranscoders.get(track);
+                    trackTranscoder.stop();
+                } catch (Exception ex){
+                    Log.e(TAG, "release: Exception when stopping track transcoder: ", ex);
+                }
             }
         }
 
@@ -249,27 +271,42 @@ class TransformationJob implements Runnable {
             mediaTargets.add(trackTransform.getMediaTarget());
         }
         for (MediaSource mediaSource : mediaSources) {
-            mediaSource.release();
-        }
-        for (MediaTarget mediaTarget : mediaTargets) {
-            mediaTarget.release();
-            if (!success) {
-                deleteOutputFile(mediaTarget.getOutputFilePath());
+            // Release media extractor
+            try {
+                mediaSource.release();
+            } catch (Exception ex) {
+                Log.e(TAG, "release: Exception when releasing media source: ", ex);
             }
         }
 
-        if (success) {
-            marshallingTransformationListener.onCompleted(jobId, statsCollector.getStats());
+        for (MediaTarget mediaTarget : mediaTargets) {
+            // Releases muxer along with its associated file descriptor.
+            mediaTarget.release();
         }
     }
 
     @VisibleForTesting
-    boolean deleteOutputFile(String outputFilePath) {
-        if (TextUtils.isEmpty(outputFilePath)) {
-            return false;
+    void deleteOutputFiles() {
+        if (trackTransforms != null) {
+            for (TrackTransform trackTransform : trackTransforms) {
+                try {
+                    String outputFilePath = trackTransform.getMediaTarget().getOutputFilePath();
+                    if (!TextUtils.isEmpty(outputFilePath)) {
+                        new File(outputFilePath).delete();
+                    }
+                } catch (Exception ex) {
+                    Log.e(TAG, "deleteOutputFiles: ", ex);
+                }
+            }
         }
+    }
 
-        File outputFile = new File(outputFilePath);
-        return outputFile.delete();
+    private void updateTargetFormatStats() {
+        if (trackTranscoders != null) {
+            for (int track = 0; track < trackTranscoders.size(); track++) {
+                TrackTranscoder trackTranscoder = trackTranscoders.get(track);
+                statsCollector.setTargetFormat(track, trackTranscoder.getTargetMediaFormat());
+            }
+        }
     }
 }

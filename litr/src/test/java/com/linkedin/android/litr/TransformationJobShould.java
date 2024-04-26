@@ -208,12 +208,18 @@ public class TransformationJobShould {
     @Test
     public void transformWhenNoErrors() throws Exception {
         transformationJob.transform();
-
-        verify(marshallingTransformationListener).onCompleted(eq(JOB_ID), ArgumentMatchers.<TrackTransformationInfo>anyList());
+        // Verify stats are updated
         verify(statsCollector).setTargetFormat(0, targetVideoFormat);
         verify(statsCollector).addSourceTrack(sourceVideoFormat);
         verify(statsCollector).addSourceTrack(sourceAudioFormat);
         verify(statsCollector).setTargetFormat(1, targetAudioFormat);
+        // Verify release of resources
+        verify(transformationJob).release();
+        // Verify output is not deleted in success scenarios
+        verify(transformationJob, never()).deleteOutputFiles();
+        // Verify invocation of completion callback with latest stats
+        verify(statsCollector).getStats();
+        verify(marshallingTransformationListener).onCompleted(eq(JOB_ID), ArgumentMatchers.<TrackTransformationInfo>anyList());
     }
 
     @Test(expected = InsufficientDiskSpaceException.class)
@@ -369,42 +375,43 @@ public class TransformationJobShould {
     public void stopTranscodersAndCleanupWhenReleasing() {
         loadTrackTranscoders();
 
-        transformationJob.release(true);
+        transformationJob.release();
 
         verify(videoTrackTranscoder).stop();
         verify(audioTrackTranscoder).stop();
         verify(mediaSource).release();
         verify(mediaTarget).release();
-        verify(marshallingTransformationListener).onCompleted(eq(JOB_ID), ArgumentMatchers.<TrackTransformationInfo>anyList());
-        verify(statsCollector).setTargetFormat(0, videoTrackTranscoder.getTargetMediaFormat());
-        verify(statsCollector).setTargetFormat(1, audioTrackTranscoder.getTargetMediaFormat());
-        verify(statsCollector).getStats();
     }
 
     @Test
-    public void reportErrorAndReleaseWhenError() {
+    public void releaseAndReportFailureWhenError() {
         loadTrackTranscoders();
 
         TrackTranscoderException exception = new TrackTranscoderException(TrackTranscoderException.Error.CODEC_IN_RELEASED_STATE);
         transformationJob.error(exception);
 
-        verify(marshallingTransformationListener).onError(eq(JOB_ID), eq(exception), ArgumentMatchers.<TrackTransformationInfo>anyList());
+        // Verify that stats are updated with latest target formats
         verify(statsCollector).setTargetFormat(0, videoTrackTranscoder.getTargetMediaFormat());
         verify(statsCollector).setTargetFormat(1, audioTrackTranscoder.getTargetMediaFormat());
+        // Verify callback invocation with latest stats
         verify(statsCollector).getStats();
+        verify(marshallingTransformationListener).onError(eq(JOB_ID), eq(exception), ArgumentMatchers.<TrackTransformationInfo>anyList());
     }
 
     @Test
-    public void reportErrorAndReleaseWhenCancelling() {
+    public void releaseAndReportStateWhenCancelling() {
         loadTrackTranscoders();
         List<TrackTransformationInfo> trackTransformationInfos = new ArrayList<>();
         when(statsCollector.getStats()).thenReturn(trackTransformationInfos);
 
         transformationJob.cancel();
 
-        verify(marshallingTransformationListener).onCancelled(eq(JOB_ID), trackTransformationInfosCaptor.capture());
+        // Verify that stats are updated with latest target formats
         verify(statsCollector).setTargetFormat(0, videoTrackTranscoder.getTargetMediaFormat());
         verify(statsCollector).setTargetFormat(1, audioTrackTranscoder.getTargetMediaFormat());
+        // Verify callback invocation with latest stats
+        verify(statsCollector).getStats();
+        verify(marshallingTransformationListener).onCancelled(eq(JOB_ID), trackTransformationInfosCaptor.capture());
         assertThat(trackTransformationInfosCaptor.getValue(), is(trackTransformationInfos));
     }
 
