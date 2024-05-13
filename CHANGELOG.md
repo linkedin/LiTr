@@ -1,5 +1,23 @@
 # Change Log
 
+## Version 1.5.6 (2024-05-13)
+
+- Release file descriptor even when releasing of android muxer fails #274 by @vamshi-dhulipala
+- Refactors TransformationJob to handle terminal states in a more determisitic fashion #273 by @vamshi-dhulipala
+- Fixes a null pointer crash (Github Issue #269) #271 by @vamshi-dhulipala
+- Fixes a crash in demo app due to a null pointer #270 by @vamshi-dhulipala
+- Fix potential buffer overflow issue #263 by @Nailik
+- Always set TargetFormat value in TrackTransformationInfo object #262 by @vamshi-dhulipala
+- Muxers: integrate native muxer with LiTr #253 by @IanDBird
+- Upgrade Build Tools / SDK / Kotlin #249 by @IanDBird
+- Muxers: Add native muxer implementation #248 by @IanDBird
+- Add missing duration target track metadata to decoder output format #247
+- Muxers: Clean up old artifacts if build fails #246 by @IanDBird
+- Add missing duration target track metadata when adding track to muxer #244
+- Muxers: Add native headers required for building (Alt) #243 by @IanDBird
+- Implement skeleton of native litr-muxers module #239 by @IanDBird
+- Move RecordCamera2Fragment to fragment package #234 by @IanDBird
+
 ## Version 1.5.5 (2023-01-25)
 
 - Implement Camera2 support as a MediaSource [#232] (https://github.com/linkedin/LiTr/pull/232) by @IanDBird
