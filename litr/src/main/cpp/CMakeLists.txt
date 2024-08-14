@@ -12,3 +12,8 @@ find_library(log-lib log)
 target_link_libraries(litr-jni
         ${log-lib}
         oboe-resampler)
+
+#[[To support compiling 16 KB-aligned shared libraries with Android NDK version r26 or lower]]
+set_target_properties(litr-jni PROPERTIES
+        LINK_FLAGS "-Wl,-z,max-page-size=16384"
+)
