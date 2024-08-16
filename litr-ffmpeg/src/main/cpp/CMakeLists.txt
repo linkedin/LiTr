@@ -84,3 +84,5 @@ target_link_libraries(litr-muxers
         PRIVATE avformat
         PRIVATE ${log-lib})
 
+#[[To support compiling 16 KB-aligned shared libraries with Android NDK version r26 or lower]]
+target_link_options(litr-muxers PRIVATE "-Wl,-z,max-page-size=16384")
