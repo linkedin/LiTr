@@ -26,7 +26,7 @@ By default, LiTr uses Android MediaCodec stack for hardware accelerated decoding
 Simply grab via Gradle:
 
 ```groovy
- implementation 'com.linkedin.android.litr:litr:1.5.6'
+ implementation 'com.linkedin.android.litr:litr:1.5.7'
 ```
 ...or Maven:
 
@@ -34,7 +34,7 @@ Simply grab via Gradle:
 <dependency>
   <groupId>com.linkedin.android.litr</groupId>
   <artifactId>litr</artifactId>
-  <version>1.5.6</version>
+  <version>1.5.7</version>
 </dependency>
 
 ```
@@ -132,7 +132,7 @@ LiTr now has 40 new GPU accelerated video filters ported from [Mp4Composer-andro
 All video/audio filters live in "filter pack" library, which is available via Gradle:
 
 ```groovy
- implementation 'com.linkedin.android.litr:litr-filters:1.5.6'
+ implementation 'com.linkedin.android.litr:litr-filters:1.5.7'
 ```
 ...or Maven:
 
@@ -140,7 +140,7 @@ All video/audio filters live in "filter pack" library, which is available via Gr
 <dependency>
     <groupId>com.linkedin.android.litr</groupId>
     <artifactId>litr-filters</artifactId>
-    <version>1.5.6</version>
+    <version>1.5.7</version>
 </dependency>
 
 ```

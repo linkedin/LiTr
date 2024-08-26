@@ -1,5 +1,9 @@
 # Change Log
 
+## Version 1.5.7 (2024-08-26)
+
+- Add 16KB page size support, required for Android 15 #277 by @vamshi-dhulipala
+
 ## Version 1.5.6 (2024-05-13)
 
 - Release file descriptor even when releasing of android muxer fails #274 by @vamshi-dhulipala
