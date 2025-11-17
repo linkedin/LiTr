@@ -73,24 +73,18 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         Intent intent = new Intent(this, InfoActivity.class);
-        switch (item.getItemId()) {
-            case R.id.device_info:
-                intent.setAction(InfoActivity.ACTION_DISPLAY_DEVICE_INFO);
-                break;
-            case R.id.capture_formats:
-                intent.setAction(InfoActivity.ACTION_DISPLAY_CAPTURE_FORMATS);
-                break;
-            case R.id.codec_list:
-                intent.setAction(InfoActivity.ACTION_DISPLAY_CODEC_LIST);
-                break;
-            case R.id.avc_encoders:
-                intent.setAction(InfoActivity.ACTION_DISPLAY_AVC_ENCODERS);
-                break;
-            case R.id.avc_decoders:
-                intent.setAction(InfoActivity.ACTION_DISPLAY_AVC_DECODERS);
-                break;
-            default:
-                return super.onOptionsItemSelected(item);
+        if (item.getItemId() == R.id.device_info) {
+            intent.setAction(InfoActivity.ACTION_DISPLAY_DEVICE_INFO);
+        } else if (item.getItemId() == R.id.capture_formats) {
+            intent.setAction(InfoActivity.ACTION_DISPLAY_CAPTURE_FORMATS);
+        } else if (item.getItemId() == R.id.codec_list) {
+            intent.setAction(InfoActivity.ACTION_DISPLAY_CODEC_LIST);
+        } else if (item.getItemId() == R.id.avc_encoders) {
+            intent.setAction(InfoActivity.ACTION_DISPLAY_AVC_ENCODERS);
+        } else if (item.getItemId() == R.id.avc_decoders) {
+            intent.setAction(InfoActivity.ACTION_DISPLAY_AVC_DECODERS);
+        } else {
+            return super.onOptionsItemSelected(item);
         }
         startActivity(intent);
 
