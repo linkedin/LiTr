@@ -26,6 +26,11 @@ android {
         targetCompatibility JavaVersion.VERSION_1_8
     }
 
+    kotlinOptions {
+        freeCompilerArgs += "-Xopt-in=kotlin.RequiresOptIn"
+        jvmTarget = "1.8"
+    }
+
     buildTypes {
         release {
             minifyEnabled false
