@@ -41,6 +41,8 @@ public class PassthroughTranscoderShould {
     private static final long SAMPLE_TIME = 21;
     private static final int BUFFER_SIZE = 512;
 
+    private final ByteBuffer outputBuffer = ByteBuffer.allocate(1);
+
     private static final long CURRENT_PRESENTATION_TIME = 42;
     private static final long SELECTION_START = 16;
     private static final long SELECTION_END = 64;
@@ -48,7 +50,6 @@ public class PassthroughTranscoderShould {
     @Mock private MediaSource mediaSource;
     @Mock private MediaTarget mediaTarget;
     @Mock private MediaCodec.BufferInfo outputBufferInfo;
-    @Mock private ByteBuffer outputBuffer;
 
     @Mock private MediaFormat sourceMediaFormat;
 
@@ -59,7 +60,7 @@ public class PassthroughTranscoderShould {
 
     @Before
     public void setup() throws Exception {
-        MockitoAnnotations.initMocks(this);
+        MockitoAnnotations.openMocks(this);
 
         fullMediaRange = new MediaRange(0, Long.MAX_VALUE);
         trimmedMediaRange = new MediaRange(SELECTION_START, SELECTION_END);
