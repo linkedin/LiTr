@@ -7,14 +7,16 @@
 <!-- -->
 <!-- Author: Ian Bird -->
 <layout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
 
     <data>
         <import type="android.view.View"/>
 
         <variable
             name="mediaSource"
-            type="com.linkedin.android.litr.io.AudioRecordMediaSource" />
+            type="com.linkedin.android.litr.io.AudioRecordMediaSource"
+            tools:targetApi = "23"/>
 
         <variable
             name="targetMedia"
